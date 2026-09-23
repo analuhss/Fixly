@@ -1,0 +1,54 @@
+:root {
+        --bg: #0D0D0D;
+        --texto: #fff;
+        --amarelo: #F2B909;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg);
+}
+
+.card {
+    background-color: #000;
+    margin: 150px;
+    padding: 30px;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 450px;
+    margin-bottom: 30px;
+}
+
+.logo {
+    margin-top: 40px;
+    margin-bottom: 10;
+}
+
+.boas {
+    color: var(--texto);
+    font-size: 20px;
+    letter-spacing: 1px;
+    padding-top: 20px;
+}
+
+button {
+    background-color: var(--amarelo);
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 200px;
+    padding-right: 200px;
+}
+
+a {
+    text-decoration: none;
+    color: var(--amarelo);
+}
+
+.footerconta p {
+    color: #fff;
+}
