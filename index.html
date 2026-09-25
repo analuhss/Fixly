@@ -4,38 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fixly</title>
-    <link rel="icon" type="image/svg" href="./files/svg/icone.svg">
+    <link rel="icon" type="image/svg+xml" href="./files/svg/aplicativo/fixly.svg">
     <link rel="stylesheet" href="./css/style.css">
-
 </head>
 <body>
     <main>
-        
-
         <div class="card">
             <div class="logo">
-                <img src="./files/svg/fixly.svg" alt="Logo do Fixly">
+                <img src="./files/svg/aplicativo/fixly.svg" alt="Logo do Fixly">
             </div>
             
             <div class="boas">
-                <p>Bem vindo(a) de volta!</p>
+                <p class="boas">Bem-vindo(a) de volta!</p>
             </div>
-
-            <div class="input">
+            
+            <form class="login">
+                <div class="input">
+                    <div>
+                        <label for="email" class="visual">E-mail</label>
+                        <input class="info" type="email" id="email" name="email" placeholder="email" required>
+                    </div>
+                    <div>
+                        <label for="password" class="visual">Senha</label>
+                        <input class="info" type="password" id="password" name="password" placeholder="senha" required minlength="6">
+                    </div>
+                </div>
                 
-                <div >
-                    <input class="info" type="email" id="email" name="email" placeholder="email">
+                <div class="entar">
+                    <button type="submit">Entrar</button>
                 </div>
-                <div >
-                    <input class="info" type="password" name="password" id="password" placeholder="senha">
-                </div>
-
-            </div>
-
-            <div class="entar">
-                <button type="submit">Entar</button>
-            </div>
-
+            </form>
+            
             <div class="ou"><p>ou</p></div>
 
             <div class="footerconta">
@@ -43,7 +42,6 @@
                 <a href="./criarConta.html">Crie uma</a>
             </div>
 
-            
         </div>
     </main>
 </body>
