@@ -43,9 +43,12 @@ main {
  
 .esquerda h2 {
     max-width: 300px;
+
+    font-family: "Kanit", sans-serif;
+    font-weight: 300;
+    font-style: normal;
  
     font-size: 50px;
-    font-weight: 400;
     line-height: 40px;
     text-align: center;
     color: #ffffff;
@@ -53,9 +56,12 @@ main {
  
 .boasVindas {
     font-size: 26px;
-    font-weight: 600;
     margin-bottom: 15px;
     text-align: center;
+
+    font-family: "Kanit", sans-serif;
+    font-weight: 300;
+    font-style: normal;
 }
  
 .logo {
@@ -65,7 +71,7 @@ main {
  
 .login {
     width: 100%;
-    max-width: 340px;
+    max-width: 370px;
 }
  
 .input {
@@ -142,15 +148,18 @@ main {
     pointer-events: none;
 }
 
-.recomendacao {
-    margin-top: 2px;
-}
- 
 .recomendacao p {
+
+    margin-top: 1px;
     font-size: 12px;
     line-height: 1.4;
     color: #8a8a8a;
     text-align: center;
+
+    font-family: "Intel One Mono", monospace;
+    font-optical-sizing: auto;
+    font-style: normal;
+    letter-spacing: -1px;
 }
  
 .recomendacao p:first-child {
@@ -181,8 +190,11 @@ main {
  
     font-size: 18px;
     font-weight: bold;
-    letter-spacing: 1px;
- 
+    letter-spacing: 2px;
+    
+    font-family: "Kanit", sans-serif;
+    font-style: normal;
+
     cursor: pointer;
  
     transition: 0.2s ease;
@@ -208,6 +220,11 @@ main {
     justify-content: center;
  
     position: relative;
+
+    font-family: "Intel One Mono", monospace;
+    font-optical-sizing: auto;
+    font-style: normal;
+    letter-spacing: -1px;
 }
  
 .ou::before,
@@ -233,6 +250,11 @@ main {
     font-size: 15px;
     color: #ffffff;
     margin-bottom: 3px;
+
+    font-family: "Intel One Mono", monospace;
+    font-optical-sizing: auto;
+    font-style: normal;
+    letter-spacing: -1px;
 }
  
 .footerconta a {
@@ -241,6 +263,9 @@ main {
     color: #f5c32f;
     text-decoration: none;
     transition: 0.2s;
+
+    font-family: "Kanit", sans-serif;
+    font-style: normal;
 }
  
 .footerconta a:hover {
