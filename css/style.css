@@ -37,7 +37,15 @@ main {
     flex-direction: column;
     align-items: center;
 
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+    /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.4); */
+     /* border: 3px solid #f5c42f;
+    border-radius: 30px;
+
+    box-shadow:
+        0 0 10px rgba(245, 195, 47, 0.7),
+        0 0 25px rgba(245, 195, 47, 0.5),
+        0 0 50px rgba(245, 195, 47, 0.35),
+        0 0 90px rgba(245, 195, 47, 0.2); */
 }
 
 .logo {
@@ -57,7 +65,12 @@ main {
 
 .boas {
     margin-bottom: 12px;
+    font-family: "Intel One Mono", monospace;
+    font-optical-sizing: auto;
+    font-style: normal;
+    letter-spacing: -1px;
 }
+
 
 .boas p {
     margin-top: 23px;
@@ -108,7 +121,7 @@ main {
 
     background-color: #d9d9d9;
 
-    color: #222222;
+    color: #22222262;
 
     font-size: 20px;
 
@@ -118,10 +131,14 @@ main {
 
     transition: 0.2s;
 
+    font-family: "Intel One Mono", monospace;
+    font-optical-sizing: auto;
+    font-style: normal;
+
 }
 
 .info::placeholder {
-    color: #999999;
+    color: #0000003f;
     opacity: 1;
 }
 
@@ -176,6 +193,11 @@ main {
     cursor: pointer;
 
     transition: 0.2s ease;
+
+    font-family: "Kanit", sans-serif;
+    font-style: normal;
+    letter-spacing: 3px;
+
 }
 
 
@@ -192,13 +214,17 @@ main {
 .ou {
     width: 100%;
 
-    margin-top: 150px;
+    margin-top: 100px;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
     position: relative;
+
+    font-family: "Intel One Mono", monospace;
+    font-optical-sizing: auto;
+    font-style: normal;
 }
 
 
@@ -219,6 +245,11 @@ main {
     font-size: 20px;
 
     padding: 0 10px;
+
+    font-family: "Intel One Mono", monospace;
+    font-optical-sizing: auto;
+    font-style: normal;
+
 }
 
 
@@ -234,6 +265,11 @@ main {
     color: #ffffff;
 
     margin-bottom: 3px;
+
+    font-family: "Intel One Mono", monospace;
+    font-optical-sizing: auto;
+    font-style: normal;
+    letter-spacing: -1px;
 }
 
 .footerconta a {
@@ -246,6 +282,10 @@ main {
     text-decoration: none;
 
     transition: 0.2s;
+    
+    font-family: "Kanit", sans-serif;
+    font-style: normal;
+    letter-spacing: 1px;
 }
 
 .footerconta a:hover {

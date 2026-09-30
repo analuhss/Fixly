@@ -175,7 +175,7 @@ main {
 }
  
 .entar button {
-    width: 100%;
+    width: 300%;
     max-width: 220px;
     height: 50px;
  
@@ -190,7 +190,7 @@ main {
  
     font-size: 18px;
     font-weight: bold;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
     
     font-family: "Kanit", sans-serif;
     font-style: normal;
@@ -266,6 +266,7 @@ main {
 
     font-family: "Kanit", sans-serif;
     font-style: normal;
+    letter-spacing: 1px;
 }
  
 .footerconta a:hover {
