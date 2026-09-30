@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete seu cadastro</title>
+    <link rel="stylesheet" href="./css/cadastroProfissional.css">
+    <link rel="icon" type="image/svg+xml" href="./files/svg/aplicativo/icone.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main>
+        <form class="card" id="formProfissional">
+            <h1>Complete seu cadastro</h1>
+ 
+            <div class="linha">
+                <div class="campo">
+                    <label for="nome">Nome <span class="obrigatorio">*</span></label>
+                    <input class="info" type="text" id="nome" name="nome" placeholder="Nome" required>
+                </div>
+                <div class="campo">
+                    <label for="sobrenome">Sobrenome <span class="obrigatorio">*</span></label>
+                    <input class="info" type="text" id="sobrenome" name="sobrenome" placeholder="Sobrenome" required>
+                </div>
+            </div>
+ 
+            <div class="linha">
+                <div class="campo full">
+                    <label for="cpf">CPF <span class="obrigatorio">*</span></label>
+                    <input class="info" type="text" id="cpf" name="cpf" placeholder="000.000.000-00" required>
+                </div>
+            </div>
+ 
+            <div class="linha">
+                <div class="campo full">
+                    <label for="nascimento">Data aniversário</label>
+                    <input class="info" type="text" id="nascimento" name="nascimento" placeholder="dd/mm/aaaa">
+                </div>
+            </div>
+ 
+            <div class="linha">
+                <div class="campo full">
+                    <label for="telefone">Telefone ou celular <span class="obrigatorio">*</span></label>
+                    <input class="info" type="tel" id="telefone" name="telefone" placeholder="(DDD) Telefone" required>
+                </div>
+            </div>
+ 
+            <div class="linha">
+                <div class="campo">
+                    <label for="email">E-mail</label>
+                    <input class="info" type="email" id="email" name="email" placeholder="Email">
+                </div>
+                <div class="campo">
+                    <label for="confirmarEmail">Confirmar E-mail <span class="obrigatorio">*</span></label>
+                    <input class="info" type="email" id="confirmarEmail" name="confirmarEmail" placeholder="Email" required>
+                </div>
+            </div>
+ 
+            <div class="linha">
+                <div class="campo">
+                    <label for="senha">Senha</label>
+                    <input class="info" type="password" id="senha" name="senha" placeholder="Senha">
+                </div>
+                <div class="campo">
+                    <label for="confirmarSenha">Confirmar Senha <span class="obrigatorio">*</span></label>
+                    <input class="info" type="password" id="confirmarSenha" name="confirmarSenha" placeholder="Confirmar senha" required>
+                </div>
+            </div>
+ 
+            <div class="linha">
+                <div class="campo">
+                    <label for="cep">CEP</label>
+                    <input class="info" type="text" id="cep" name="cep" placeholder="00000-000">
+                </div>
+                <div class="campo">
+                    <label for="cidade">Cidade</label>
+                    <input class="info" type="text" id="cidade" name="cidade" placeholder="Cidade">
+                </div>
+            </div>
+ 
+            <div class="linha">
+                <div class="campo">
+                    <label for="estado">Estado</label>
+                    <select class="info" id="estado" name="estado">
+                        <option value="" selected disabled hidden></option>
+                        <option value="AC">Acre</option>
+                        <option value="AL">Alagoas</option>
+                        <option value="AP">Amapá</option>
+                        <option value="AM">Amazonas</option>
+                        <option value="BA">Bahia</option>
+                        <option value="CE">Ceará</option>
+                        <option value="DF">Distrito Federal</option>
+                        <option value="ES">Espírito Santo</option>
+                        <option value="GO">Goiás</option>
+                        <option value="MA">Maranhão</option>
+                        <option value="MT">Mato Grosso</option>
+                        <option value="MS">Mato Grosso do Sul</option>
+                        <option value="MG">Minas Gerais</option>
+                        <option value="PA">Pará</option>
+                        <option value="PB">Paraíba</option>
+                        <option value="PR">Paraná</option>
+                        <option value="PE">Pernambuco</option>
+                        <option value="PI">Piauí</option>
+                        <option value="RJ">Rio de Janeiro</option>
+                        <option value="RN">Rio Grande do Norte</option>
+                        <option value="RS">Rio Grande do Sul</option>
+                        <option value="RO">Rondônia</option>
+                        <option value="RR">Roraima</option>
+                        <option value="SC">Santa Catarina</option>
+                        <option value="SP">São Paulo</option>
+                        <option value="SE">Sergipe</option>
+                        <option value="TO">Tocantins</option>
+                    </select>
+                </div>
+                <div class="campo">
+                    <label for="endereco">Endereço</label>
+                    <input class="info" type="text" id="endereco" name="endereco" placeholder="Rua, Bairro., Número">
+                </div>
+            </div>
+        </form>
+ 
+        <button type="submit" form="formProfissional" class="cadastrar">Cadastrar-se</button>
+    </main>
+</body>
+</html>
