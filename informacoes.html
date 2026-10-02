@@ -19,10 +19,6 @@
                     <label for="nome">Nome <span class="obrigatorio">*</span></label>
                     <input class="info" type="text" id="nome" name="nome" placeholder="Nome" required>
                 </div>
-                <div class="campo">
-                    <label for="sobrenome">Sobrenome <span class="obrigatorio">*</span></label>
-                    <input class="info" type="text" id="sobrenome" name="sobrenome" placeholder="Sobrenome" required>
-                </div>
             </div>
  
             <div class="linha">
@@ -34,8 +30,8 @@
  
             <div class="linha">
                 <div class="campo full">
-                    <label for="nascimento">Data aniversário</label>
-                    <input class="info" type="text" id="nascimento" name="nascimento" placeholder="dd/mm/aaaa">
+                    <label for="nascimento">Data aniversário<span class="obrigatorio">*</label>
+                    <input class="info" type="date" id="nascimento" name="nascimento" placeholder="dd/mm/aaaa">
                 </div>
             </div>
  
@@ -70,7 +66,7 @@
  
             <div class="linha">
                 <div class="campo">
-                    <label for="cep">CEP</label>
+                    <label for="cep">CEP<span class="obrigatorio">*</label>
                     <input class="info" type="text" id="cep" name="cep" placeholder="00000-000">
                 </div>
                 <div class="campo">
@@ -81,7 +77,7 @@
  
             <div class="linha">
                 <div class="campo">
-                    <label for="estado">Estado</label>
+                    <label for="estado">Estado<span class="obrigatorio">*</label>
                     <select class="info" id="estado" name="estado">
                         <option value="" selected disabled hidden></option>
                         <option value="AC">Acre</option>
