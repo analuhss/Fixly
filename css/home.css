@@ -7,33 +7,32 @@
     --cinza-botao: #a6a6a6;
     --dourado: #d9a813;
 }
- 
+
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
- 
+
 body {
     font-family: "Kanit", sans-serif;
     background: var(--fundo);
     color: #fff;
     min-height: 100vh;
 }
- 
+
 a {
     text-decoration: none;
     color: inherit;
 }
- 
+
 .topo {
     background: var(--topo);
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 14px 30px;
+    justify-content: space-between; 
 }
- 
+
 .menu {
     background: none;
     border: none;
@@ -41,17 +40,13 @@ a {
     display: flex;
     flex-direction: column;
     gap: 5px;
-    padding: 4px;
 }
- 
-.menu span {
-    display: block;
-    width: 28px;
-    height: 5px;
+
+.menu span { 
     border-radius: 3px;
     background: #8a8a8a;
 }
- 
+
 .abas {
     display: flex;
     gap: 36px;
@@ -160,7 +155,7 @@ main {
     font-weight: 300;
 }
  
-/* card de pedidos recentes e de novo pedido com altura mínima */
+
 main > .card {
     min-height: 220px;
 }
