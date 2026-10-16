@@ -1,0 +1,7 @@
+
+NO TERMINAL:
+npm init -y
+npm install express mysql2 bcryptjs express-session express-mysql-session dotenv helmet express-rate-limitz
+
+OU:
+session dotenv helmet express-rate-limit
