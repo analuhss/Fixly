@@ -1,0 +1,7 @@
+CREATE TABLE login IF NOT EXISTS
+VALUES (
+    idCliente INT PRIMARY KEY AUTO INCREMENT,
+    email VARCHAR(100),
+    senha VARCHAR(50)
+)
+
