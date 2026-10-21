@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixly</title>
+    <link rel="icon" type="image/svg+xml" href="./files/svg/icone.svg">
+    <link rel="stylesheet" href="./frontend/css/style.css">
+</head>
+<body>
+    <main>
+        <div class="card">
+            <div class="logo">
+                <img src="./files/svg/fixly.svg" alt="Logo do Fixly">
+            </div>
+
+            <form class="login-form" action="./home.html" method="post" autocomplete="on">
+                <div class="input">
+                    <div>
+                        <label for="email" class="visually-hidden">E-mail</label>
+                        <input class="info" type="email" id="email" name="email" placeholder="email" required>
+                    </div>
+                    <div>
+                        <label for="password" class="visually-hidden">Senha</label>
+                        <input class="info" type="password" id="password" name="password" placeholder="senha" required minlength="6" pattern="(?=.*[0-9])(?=.*[!@#$%^*()_+\-=\[\]{}|:;,.?/~`]).{6,}" title="A senha deve ter pelo menos 6 caracteres e incluir ao menos um número e um caractere especial (ex: ! @ # $ % *).">
+                    </div>
+                </div>
+
+                <div class="entar">
+                    <button type="submit">Entrar</button>
+                </div>
+            </form>
+
+            <div class="ou"><p>ou</p></div>
+
+            <div class="footerconta">
+                <p>Ainda não tem uma conta?</p>
+                <a href="./criarConta.html">Crie uma</a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

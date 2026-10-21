@@ -1,5 +1,8 @@
 
 NO TERMINAL:
 npm install express dotenv
+npm install express better-sqlite3 bcrypt express-session dotenv
+npm install express
+npm install cors
 
 .gitignore com node_modules
