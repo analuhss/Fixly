@@ -11,13 +11,16 @@
 
     <link rel="stylesheet" href="../css/style2.css">
     <link rel="icon" type="image/svg+xml" href="./files/svg/aplicativo/icone.svg">
+
+    <script src="../js/api.js" defer></script>
+
 </head>
 <body>
     <main>
         <div class="card">
-            <img class="logo" src="../../files/svg/fixly.svg" alt="Logo do site fixly">
+            <img class="logo" src="/files/svg/fixly.svg" alt="Logo do site Fixly">
 
-            <form class="login">
+            <form class="cadastro" id="cadastro">
                 <div class="input">
                     <div class="campo email">
                         <label for="email" class="visual">E-mail</label>
@@ -25,7 +28,7 @@
                     </div>
                     <div class="campo senha">
                         <label for="password" class="visual">Senha</label>
-                        <input class="info" type="password" id="password" name="password" placeholder="senha" required minlength="6">
+                        <input class="info" type="password" id="senha" name="password" placeholder="senha" required minlength="6">
                     </div>
 
                     <div class="recomendacao">

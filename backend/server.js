@@ -22,7 +22,7 @@ app.use(express.static(path.resolve(__dirname, '..', 'frontend')));
 app.use('/files', express.static(path.join(__dirname, '../../files')));
 
 
-const banco = new DatabaseSync(path.join(__dirname, 'login.db')); 
+const banco = new DatabaseSync(path.join(__dirname, 'login.db'));
 //abre o banco(se não existir, cria o arquivo). ------> ___dirname = pasta deste arquivo
 
 //Parte 3: Configurar o servidor (os famosos middlewares)
@@ -59,20 +59,26 @@ app.get('/criar-conta', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/pag-ini/criarConta.html'));
 });
 
+// ROTA PARA HOME - CLIENTE
+app.get('/home-c', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/cliente/homeC.html'));
+});
+
+
 // Fução para rodar o script do BDD de login
 function iniBDD() {
     try {
         // verifica se o arquivo script.sql realmente existe na pasta
-        
+
         if (fs.existsSync(scriptPath)) {
             const sql = fs.readFileSync(scriptPath, 'utf8');
-            
+
             deb.exec(sql)
-            
+
             console.log('Banco de dados inicializado e tabela LOG-IN criado')
         } else {
             conosle.log('Arquivo script.sql não foi encontrado')
-        } 
+        }
     } catch (error) {
         console.error('ERRO ao rodar o script de inicialização do banco de dados', error.message)
     }
@@ -86,3 +92,24 @@ module.exports = db;
 app.listen(PORT, () => {
     console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
+
+// =====================================
+//              Cadastro
+// =====================================
+
+app.post('/api/usuarios', (req, res) => {
+    const { email, senha } = req.body; 
+
+    const sql = 'INSERT INTO usuarios (email, senha) VALUES (?, ?)';
+
+    db.run(sql, [email, senha], function(erro) {
+        if (erro) {
+            console.error('Erro ao salvar no banco:', erro.message);
+            return res.status(500).json({ mensagem: 'Erro interno no servidor' });
+        }
+        
+        return res.status(201).json({ mensagem: 'Usuário cadastrado com sucesso!', id: this.lastID });
+    });
+});
+
+

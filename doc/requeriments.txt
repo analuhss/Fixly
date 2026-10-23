@@ -4,5 +4,6 @@ npm install express dotenv
 npm install express better-sqlite3 bcrypt express-session dotenv
 npm install express
 npm install cors
+npm install sqlite3
 
 .gitignore com node_modules
