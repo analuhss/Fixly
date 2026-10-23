@@ -21,10 +21,6 @@ app.use(express.static(path.resolve(__dirname, '..', 'frontend')));
 // dados de imagem e svg
 app.use('/files', express.static(path.join(__dirname, '../../files')));
 
-
-const banco = new DatabaseSync(path.join(__dirname, 'login.db'));
-//abre o banco(se não existir, cria o arquivo). ------> ___dirname = pasta deste arquivo
-
 //Parte 3: Configurar o servidor (os famosos middlewares)
 // app.use: "TODO pedido que chegar, passe primeiro por aqui."
 
@@ -47,9 +43,11 @@ app.use(express.json()); // faz o servidor entender JSON
 //  Update   | PUT         | /tarefas/:id | INSERT
 //  Delete   | DELETE      | /tarefas/:id | DELETE
 
+                // ==================================
+                //               ROTAS
+                // ==================================
 
 // ROTA PARA CONFIGURAR A TELA PRINCIPAL DO INDEX
-
 app.get('/', (req, res) => {
     res.sendFile(path.resolve(__dirname, '..', 'frontend', 'pag-ini', 'index.html'));
 });
@@ -63,6 +61,21 @@ app.get('/criar-conta', (req, res) => {
 app.get('/home-c', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/cliente/homeC.html'));
 });
+
+// ROTA PARA HOME - PROFISSIONAIS
+app.get('/home-pro', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/profissionais/home.html'));
+});
+
+// ROTA PARA HOME - ADM
+app.get('/home-adm', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/adm/home-adm.html'));
+});
+
+// ROTA PARA API - LOGIN
+app.post('/api/login', (req, res) => {
+    const { email, senha } = req.body;
+})
 
 
 // Fução para rodar o script do BDD de login
@@ -93,14 +106,16 @@ app.listen(PORT, () => {
     console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
 
-// =====================================
-//              Cadastro
-// =====================================
+                // =====================================
+                //              Cadastro
+                // =====================================
+
+// Esta parte do código permite que todos os cadastros feitos pela página de cadastros se tornem clientes, pois, o cadastro de profissionais e adms é feita de uma forma diferente
 
 app.post('/api/usuarios', (req, res) => {
     const { email, senha } = req.body; 
 
-    const sql = 'INSERT INTO usuarios (email, senha) VALUES (?, ?)';
+    const sql = "INSERT INTO usuarios (email, senha, tipo) VALUES (?, ?, 'cliente')";
 
     db.run(sql, [email, senha], function(erro) {
         if (erro) {
@@ -113,3 +128,38 @@ app.post('/api/usuarios', (req, res) => {
 });
 
 
+                // =====================================
+                //               LOGIN
+                // =====================================
+
+app.post ('api/login', (req, res) => {
+     
+    const { email, senha } = req.body;
+
+    // Busca o usuário pelo e-mail informado
+
+    const sql = 'SELECT * FROM usuarios WHERE email = ?'
+
+    db.get(sql, [email], (erro, usuario) => {
+        if (erro) {
+            console.error('Erro ao consultar o banco:', erro.message);
+            return res.status(500).json({ mensagem: 'Ero interno no servidor'})
+        }
+
+        // Se não exisir usuário 
+        else if (!usuario) { 
+            return res.status(401).json({ message: 'Erro interno no servidor'})
+        }
+        
+        // Verifica se a senha esta correta
+        else if ( usuario.senha !== senha) {
+            return res.status(401).json({ mensagem: 'Senha incorreta'})
+        } 
+
+        return  res.status(200).json ({
+            
+            mensagem: 'Login autorizado!',
+        
+        });
+    });
+});

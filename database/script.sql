@@ -5,4 +5,3 @@ CREATE TABLE IF NOT EXISTS login (
     tipo TEXT NOT NULL
         CHECK (tipo IN ('cliente', 'profisional', 'adm'))
 )
-
