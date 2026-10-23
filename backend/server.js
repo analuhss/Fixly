@@ -8,12 +8,19 @@ const express = require('express');             //biblioteca para criar o servid
 const path = require('path');                   //ajuda a montar caminhos de pastas
 const { DatabaseSync } = require('node:sqlite') //banco SQLite (já vem dentro do node!)
 
+// Abreviação de readFiles
+const fs = require('fs');
+const db = require('../database/db.js');
+
 //PARTE 2: Criar o Servidor e abrir o banco
+const PORT = 3000;
 const app = express(); //cria o servidor
-console.log("Servidor funcionando!")
 
 //Servir os dados para do frontend
-app.use(express.static(path.join(__dirname, "../frontend")));
+app.use(express.static(path.resolve(__dirname, '..', 'frontend')));
+// dados de imagem e svg
+app.use('/files', express.static(path.join(__dirname, '../../files')));
+
 
 const banco = new DatabaseSync(path.join(__dirname, 'login.db')); 
 //abre o banco(se não existir, cria o arquivo). ------> ___dirname = pasta deste arquivo
@@ -41,6 +48,41 @@ app.use(express.json()); // faz o servidor entender JSON
 //  Delete   | DELETE      | /tarefas/:id | DELETE
 
 
-// ROTA PRINCIPAL PARA CONFIGURAR A TELA PRINCIPAL DO INDEX
-app.get('/', (req, res) => {res.sendFile(path.join(__dirname, '../frontend/pag-ini/index.html'))});
+// ROTA PARA CONFIGURAR A TELA PRINCIPAL DO INDEX
 
+app.get('/', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '..', 'frontend', 'pag-ini', 'index.html'));
+});
+
+// ROTA PARA A PÁGINA DE CRIAR CONTA
+app.get('/criar-conta', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/pag-ini/criarConta.html'));
+});
+
+// Fução para rodar o script do BDD de login
+function iniBDD() {
+    try {
+        // verifica se o arquivo script.sql realmente existe na pasta
+        
+        if (fs.existsSync(scriptPath)) {
+            const sql = fs.readFileSync(scriptPath, 'utf8');
+            
+            deb.exec(sql)
+            
+            console.log('Banco de dados inicializado e tabela LOG-IN criado')
+        } else {
+            conosle.log('Arquivo script.sql não foi encontrado')
+        } 
+    } catch (error) {
+        console.error('ERRO ao rodar o script de inicialização do banco de dados', error.message)
+    }
+}
+
+// Inicializar o BDD (LOG-IN)
+iniBDD();
+
+module.exports = db;
+
+app.listen(PORT, () => {
+    console.log(`Servidor rodando em http://localhost:${PORT}`);
+});

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Início</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/inicio.css">
+    <link rel="icon" type="image/svg+xml" href="./files/svg/aplicativo/icone.svg">
+</head>
+<body>
+    <header class="navbar">
+        <a class="logo" href="./inicio.html">
+            <img src="./files/svg/fixly.svg" alt="Logo do site fixly">
+        </a>
+
+        <nav class="menu">
+            <a href="./inicio.html" class="ativo">Início</a>
+            <a href="./ordens.html">Ordens</a>
+            <a href="./conversas.html">Conversas</a>
+        </nav>
+
+        <a class="perfil" href="./perfil.html" aria-label="Perfil">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <circle cx="12" cy="8.5" r="4.2"/>
+                <path d="M3.5 22c0-4.7 3.8-7.5 8.5-7.5s8.5 2.8 8.5 7.5z"/>
+            </svg>
+        </a>
+    </header>
+
+    <main class="conteudo">
+        <h1 class="boasVindas">Bem vindo ao <span>Fixly!</span></h1>
+
+        <form class="busca">
+            <label for="pesquisa" class="visual">Pesquisar</label>
+            <input class="info" type="search" id="pesquisa" name="pesquisa" placeholder="pesquisa">
+            <button type="submit" aria-label="Pesquisar">
+                <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7"/>
+                    <path d="m20 20-3.5-3.5"/>
+                </svg>
+            </button>
+        </form>
+
+        <hr class="divisor">
+
+        <section class="status">
+            <h2>Status do <span>Serviço</span></h2>
+            <p class="subtitulo">Acompanhe as ordens de serviço</p>
+        </section>
+
+        <section class="pedidos">
+            <h3>Pedidos recentes</h3>
+            <p>Você não tem nenhum pedido recente</p>
+
+            <div class="vazio">
+                <button class="novo" type="button" aria-label="Criar nova ordem de serviço">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" aria-hidden="true">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                </button>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
