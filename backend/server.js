@@ -1,67 +1,46 @@
-const express = require("express");
-const cors = require("cors");
-const { config } = require("dotenv");
 
-const app = express();
-const PORT = 3000;
+//=======================================
+//   Server.js - BACK-END COMPLETO
+//=======================================
 
-app.use(cors({
-    origin: "http://localhost:3000",
-    credentials: true
-}));
+// PARTE 1: Importar as ferramentas
+const express = require('express');             //biblioteca para criar o servidor
+const path = require('path');                   //ajuda a montar caminhos de pastas
+const { DatabaseSync } = require('node:sqlite') //banco SQLite (já vem dentro do node!)
 
-app.use(express.json());
+//PARTE 2: Criar o Servidor e abrir o banco
+const app = express(); //cria o servidor
+console.log("Servidor funcionando!")
 
-// ============================
-//      PRIMEIRA ROTA API
-// ============================
+//Servir os dados para do frontend
+app.use(express.static(path.join(__dirname, "../frontend")));
 
-app.get("/api/status", (req, res)=>{
-    res.json({
-        sucesso: true,
-        mensagem: "API funcionando!"
-    });
-});
+const banco = new DatabaseSync(path.join(__dirname, 'login.db')); 
+//abre o banco(se não existir, cria o arquivo). ------> ___dirname = pasta deste arquivo
 
-// ===============================
-//        INCIAR SERVIDOR
-// ===============================
+//Parte 3: Configurar o servidor (os famosos middlewares)
+// app.use: "TODO pedido que chegar, passe primeiro por aqui."
 
-app.listen(PORT, () =>{
-    console.log(`API rodando em http://localhost:${PORT}`)
-})
+app.use(express.json()); // faz o servidor entender JSON
 
-// ===============================
-//             TESTE
-// ===============================
+//----------------------------------------------
+// PARTE 4: ROTAS (a API)
+//----------------------------------------------
+// ROTA: a combinação do método + endereço
+// API:  é o conjunto dessas rotas
+// 
+// Toda rota recebe 2 coisas (SEMPRE NA ORDEM ABAIXO):
+// requisição = o PEDIDO que chegou 
+// resposta   = o que vamos devolver para o front.
+// 
+//  Operação | Método HTTP | Endereço | Comando SQL
+//  -----------------------------------------------
+//  Create   | POST        | /tarefas     | INSERT
+//  Read     | GET         | /tarefas     | SELECT
+//  Update   | PUT         | /tarefas/:id | INSERT
+//  Delete   | DELETE      | /tarefas/:id | DELETE
 
 
-app.post("/api/teste", (req, res) => {
-    console.log("Dados recebidos:", req.body);
+// ROTA PRINCIPAL PARA CONFIGURAR A TELA PRINCIPAL DO INDEX
+app.get('/', (req, res) => {res.sendFile(path.join(__dirname, '../frontend/pag-ini/index.html'))});
 
-    res.json({
-        mensagem: "Informações recebidas com sucesso!",
-        dadosRecebidos: req.body
-    });
-});
-
-const path = require("path");
-
-app.use(express.static(
-    path.join(__dirname, "../frontend")
-));
-
-// ===============================================================
-const Database = require("better-sqlite3");
-
-const db = new Database(
-    path.join(__dirname, "../database/fixly.db")
-);
-
-const authRoutes = require("./routes/auth");
-
-app.use("/api/auth", (req, res, next) => {
-    // Disponibiliza a conexão para as rotas.
-    req.db = db;
-    next();
-}, authRoutes);
