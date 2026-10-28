@@ -1,1 +1,8 @@
-Para iniciar o projeto e fazer com que ele funcione a 
+Para iniciar o projeto e fazer com que ele funcione
+
+Primeiro configure o DOTENV com a senha e o email do administrador com as variáveis.
+"emailAdm" e "senhaAdm" 
+
+Depois instale os modulos que estão no "requeriments.txt" 
+
+E por fim inicie o servidor com "node server.js" na pasta do backend

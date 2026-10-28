@@ -5,6 +5,7 @@
 // PARTE 1: Importar as ferramentas
 // Importar o dotenv LOGO NO INÍCIO para garantir que o processo leia as variáveis de ambiente antes de tudo
 const path = require('path');                   // ajuda a montar caminhos de pastas
+
 require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
 const express = require('express');             // biblioteca para criar o servidor
@@ -12,84 +13,79 @@ const fs = require('fs');                       // abreviação de readFiles e w
 
 const db = require('../database/db.js');
 
+
 // PARTE 2: Criar o Servidor e abrir o banco
 const PORT = process.env.PORT || 3000;          // Correção da ordem para ler do .env corretamente
 const app = express();                          // cria o servidor
 
 // Servir os dados para do frontend
 app.use(express.static(path.resolve(__dirname, '..', 'frontend')));
+
 // dados de imagem e svg
 app.use('/files', express.static(path.join(__dirname, '../../files')));
 
 // Parte 3: Configurar o servidor (os famosos middlewares)
 app.use(express.json()); // faz o servidor entender JSON
 
-//----------------------------------------------
-// PARTE 4: ROTAS (a API)
-//----------------------------------------------
+// ==================================
+//       ROTAS DE PÁGINAS (GET)
+// ==================================
 
-                // ==================================
-                //       ROTAS DE PÁGINAS (GET)
-                // ==================================
-
-// ROTA PARA CONFIGURAR A TELA PRINCIPAL DO INDEX
+    // ROTA PARA CONFIGURAR A TELA PRINCIPAL DO INDEX
 app.get('/', (req, res) => {
     res.sendFile(path.resolve(__dirname, '..', 'frontend', 'pag-ini', 'index.html'));
 });
 
-// ROTA PARA A PÁGINA DE CRIAR CONTA
+    // ROTA PARA A PÁGINA DE CRIAR CONTA
 app.get('/criar-conta', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/pag-ini/criarConta.html'));
 });
 
-// ROTA PARA HOME - CLIENTE
+    // ROTA PARA HOME - CLIENTE
 app.get('/home-c', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/cliente/homeC.html'));
 });
 
-// ROTA PARA HOME - PROFISSIONAIS
+    // ROTA PARA HOME - PROFISSIONAIS
 app.get('/home-pro', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/profissionais/home.html'));
 });
 
-// ROTA PARA HOME - ADM
+    // ROTA PARA HOME - ADM
 app.get('/home-adm', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/adm/home-adm.html'));
 });
 
-// ROTA PARA API - TELA DE FINALIZAÇÃO DE CADASTRO
+    // ROTA PARA API - TELA DE FINALIZAÇÃO DE CADASTRO
 app.get('/cadastro', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/cliente/cadastro.html'));
 });
 
 
-                // =====================================
-                //              Cadastro
-                // =====================================
+// =====================================
+//              Cadastro
+// =====================================
 
 app.post('/api/usuarios', (req, res) => {
     const { email, senha } = req.body; 
     
-    // Inserção inicial gravando 'cliente' no tipo e 0 no cadastro_completo
-    const sql = "INSERT INTO usuarios (email, senha, tipo, cadastro_completo) VALUES (?, ?, 'cliente', 0)";
+    // Inserção na tabela de logins (rosa do seu diagrama)
+    const sql = "INSERT INTO login (email, senha, tipo) VALUES (?, ?, 'cliente')";
     
     db.run(sql, [email, senha], function(erro) {
         if (erro) {
-            console.error('Erro ao salvar no banco:', erro.message);
-            if (erro.message.includes("UNIQUE constraint failed")) {
-                return res.status(400).json({ mensagem: 'Este e-mail já está cadastrado.' });
-            }
-            return res.status(500).json({ mensagem: 'Erro interno no servidor' });
+            console.error('Erro interno no SQLite:', erro.message);
+            return res.status(500).json({ mensagem: 'Erro interno no servidor ao salvar login' });
         }
         
-        return res.status(201).json({ mensagem: 'Usuário cadastrado com sucesso!', id: this.lastID });
+        // Retorna o idCliente criado automaticamente pelo banco de dados
+        return res.status(201).json({ mensagem: 'Login criado com sucesso!', id: this.lastID });
     });
 });
 
-
-                // =====================================
-                //       FINALIZAR CADASTRO (NOVO!)
-                // =====================================
+// =====================================
+//       FINALIZAR CADASTRO 
+// =====================================
 
 // Rota PUT usada para atualizar dados adicionais obrigatórios do cliente recém-criado
 app.put('/api/usuarios/finalizar-cadastro', (req, res) => {
@@ -115,11 +111,11 @@ app.put('/api/usuarios/finalizar-cadastro', (req, res) => {
 });
 
 
-                // =====================================
-                //               LOGIN
-                // =====================================
+// =====================================
+//               LOGIN
+// =====================================
 
-app.post('/api/login', (req, res) => { // Correção: Adicionada a barra '/' que faltava na string
+app.post('/api/login', (req, res) => { 
     const { email, senha } = req.body;
     
     // Busca o usuário pelo e-mail informado
@@ -148,6 +144,25 @@ app.post('/api/login', (req, res) => { // Correção: Adicionada a barra '/' que
             tipo: usuario.tipo,
             cadastroCompleto: usuario.cadastro_completo // Retorna 0 se for recém-criado, ou 1 se já finalizou
         });
+    });
+});
+
+// ====================================
+//           INSERIR CADASTROS
+// ====================================
+
+app.put('/api/usuarios/finalizar-cadastro', (req, res) => {
+    const { idCliente, nome, data_nascimento, cpf, cep, endereco, telefone } = req.body;
+
+    const sql = `
+        UPDATE usuarios 
+        SET nome = ?, data_nascimento = ?, cpf = ?, cep = ?, endereco = ?, telefone = ?, cadastro_completo = 1 
+        WHERE idCliente = ?
+    `;
+
+    db.run(sql, [nome, data_nascimento, cpf, cep, endereco, telefone, idCliente], function(erro) {
+        if (erro) return res.status(500).json({ mensagem: 'Erro ao salvar no banco' });
+        return res.status(200).json({ mensagem: 'Cadastro finalizado com sucesso!' });
     });
 });
 
@@ -185,7 +200,7 @@ function administrador() {
                 }
             });
         } else {
-            console.log('ℹ Administrador do .env já está cadastrado e pronto para uso.');
+            console.log('Administrador do .env já está cadastrado e pronto para uso.');
         }
     });
 }
@@ -210,6 +225,7 @@ function iniBDD() {
 // ========================================
 
 iniBDD();
+
 administrador();
 
 app.listen(PORT, () => {

@@ -1,21 +1,21 @@
-// Aguarda a página carregar completamente
 document.addEventListener('DOMContentLoaded', () => {
-  
     const formulario = document.getElementById('cadastro');
 
     formulario.addEventListener('submit', async (evento) => {
-        evento.preventDefault(); // Impede a página de recarregar sozinha
+        evento.preventDefault(); // Impede o recarregamento automático da página
 
-        // 1. Captura o ID do cliente que guardamos no localStorage durante o login
         const idCliente = localStorage.getItem('idClienteLogado');
 
         if (!idCliente) {
             alert('Sessão expirada ou usuário não identificado. Faça login novamente.');
-            window.location.href = '/'; // Manda de volta para o início caso não tenha ID
+            window.location.href = '/'; // Se não achar o ID, joga para a tela inicial
             return;
         }
 
-       
+        // ========================================================
+        //         CAPTURAR OS TEXTOS DIGITADOS NA TELA
+        // ========================================================
+        // Certifique-se de que os IDs ('nome', 'cpf', etc.) combinam exatamente com o seu HTML
         const nome = document.getElementById('nome').value;
         const cpf = document.getElementById('cpf').value;
         const dataNascimento = document.getElementById('nascimento').value;
@@ -23,14 +23,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const endereco = document.getElementById('endereco').value;
         const telefone = document.getElementById('telefone').value;
 
-        // Validação simples antes de enviar
-        if (!nome || !dataNascimento || !cpf || !) {
+        // Validação básica para impedir o envio de campos em branco
+        if (!nome || !dataNascimento || !cpf || !cep || !endereco || !telefone) {
             alert('Por favor, preencha todos os campos obrigatórios.');
             return;
         }
 
         try {
-            // 3. Linha de código que envia os dados para a API do Servidor
+            // Envia o pacote completo de dados para a rota do servidor
             const resposta = await fetch('/api/usuarios/finalizar-cadastro', {
                 method: 'PUT',
                 headers: {
@@ -39,7 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({
                     idCliente: idCliente,
                     nome: nome,
-                    data_nascimento: data_nascimento
+                    data_nascimento: dataNascimento,
+                    cpf: cpf,
+                    cep: cep,
+                    endereco: endereco,
+                    telefone: telefone
                 })
             });
 
@@ -47,9 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (resposta.ok) {
                 alert('Cadastro finalizado com sucesso!');
-                
-                // 4. Redireciona o usuário para a tela inicial dele (Home do Cliente)
-                window.location.href = '/home-c';
+                window.location.href = '/home-c'; // Envia para a página inicial logada
             } else {
                 alert(resultado.mensagem || 'Erro ao salvar informações.');
             }

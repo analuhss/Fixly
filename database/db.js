@@ -1,37 +1,33 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-// Cria ou abre o arquivo do banco de dados dentro da pasta database
 const dbPath = path.join(__dirname, 'banco.db');
+const conexao = new sqlite3.Database(dbPath);
 
-const conexao = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('Erro ao conectar ao SQLite:', err.message);
-    } else {
-        console.log('Conectado com sucesso ao banco de dados SQLite!');
-    }
-});
-
-// CRIA A TABELA AUTOMATICAMENTE COM OS CAMPOS OBRIGATÓRIOS E ADICIONAIS
 conexao.serialize(() => {
+    // 1. Tabela de Login (Gera o idCliente automaticamente)
     conexao.run(`
-        CREATE TABLE IF NOT EXISTS usuarios (
+        CREATE TABLE IF NOT EXISTS login (
             idCliente INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
             senha TEXT NOT NULL,
-            tipo TEXT DEFAULT 'cliente',
-            nome TEXT,
-            data_nascimento TEXT,
-            cadastro_completo INTEGER DEFAULT 0
+            tipo TEXT DEFAULT 'cliente' -- Mantemos para diferenciar o Admin
         )
-    `, (err) => {
-        if (err) {
-            console.error('Erro ao criar tabela de usuários:', err.message);
-        } else {
-            console.log('Tabela "usuarios" com campos de perfil atualizada/verificada com sucesso!');
-        }
-    });
+    `);
+
+    // 2. Tabela de Usuários (Recebe o idCliente para o relacionamento)
+    conexao.run(`
+        CREATE TABLE IF NOT EXISTS usuarios (
+            idCliente INTEGER PRIMARY KEY, -- Sem AUTOINCREMENT aqui, pois ela recebe o ID do login
+            nome TEXT NOT NULL,
+            cpf TEXT,
+            dataNascimento TEXT,
+            telefone TEXT,
+            email TEXT,
+            cep TEXT,
+            cadastro_completo INTEGER DEFAULT 1 -- Como os dados entram aqui juntos, o cadastro já nasce completo
+        )
+    `);
 });
 
-// Exporta a conexão para o server.js usar
 module.exports = conexao;
