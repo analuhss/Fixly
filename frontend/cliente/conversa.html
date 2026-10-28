@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversas</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/conversa.css">
+    <link rel="icon" type="image/svg+xml" href="./files/svg/aplicativo/icone.svg">
+</head>
+<body>
+    <header class="navbar">
+        <a class="logo" href="./inicio.html">
+            <img src="../files/svg/fixly.svg" alt="Logo do site fixly">
+        </a>
+
+        <nav class="menu">
+            <a href="./inicio.html">Início</a>
+            <a href="./ordens.html">Ordens</a>
+            <a href="./conversas.html" class="ativo" aria-current="page">Conversas</a>
+        </nav>
+
+        <a class="perfil" href="./perfil.html" aria-label="Perfil">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <circle cx="12" cy="8.5" r="4.2"/>
+                <path d="M3.5 22c0-4.7 3.8-7.5 8.5-7.5s8.5 2.8 8.5 7.5z"/>
+            </svg>
+        </a>
+    </header>
+
+    <main class="conversas">
+        <!-- lista de conversas -->
+        <aside class="painelLista">
+            <h1>Conversas</h1>
+
+            <div class="campoBusca">
+                <label for="busca" class="visual">Buscar conversa ou profissional</label>
+                <input class="info" type="search" id="busca" name="busca" placeholder="buscar conversa ou profissional">
+            </div>
+
+            <ul class="lista">
+                <li>
+                    <button class="conversa ativa" type="button" data-nome="Profissional" data-servico="Geladeira">
+                        <span class="avatar">
+                            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <circle cx="12" cy="8.5" r="4.2"/>
+                                <path d="M3.5 22c0-4.7 3.8-7.5 8.5-7.5s8.5 2.8 8.5 7.5z"/>
+                            </svg>
+                            <span class="novaMsg" role="img" aria-label="Mensagem não lida"></span>
+                        </span>
+
+                        <span class="dados">
+                            <strong>Profissional</strong>
+                            <small>Geladeira</small>
+                        </span>
+
+                        <span class="hora">12:30</span>
+                    </button>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- chat aberto -->
+        <section class="painelChat">
+            <header class="chatTopo">
+                <button class="voltar" type="button" aria-label="Voltar para as conversas">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m15 18-6-6 6-6"/>
+                    </svg>
+                </button>
+
+                <span class="avatar">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <circle cx="12" cy="8.5" r="4.2"/>
+                        <path d="M3.5 22c0-4.7 3.8-7.5 8.5-7.5s8.5 2.8 8.5 7.5z"/>
+                    </svg>
+                </span>
+
+                <div class="dados">
+                    <strong class="chatNome">Profissional</strong>
+                    <small class="chatServico">Geladeira</small>
+                </div>
+            </header>
+
+            <!-- mensagens de exemplo, depois vêm do backend -->
+            <div class="mensagens" role="log" aria-live="polite">
+                <div class="msg enviada">
+                    <p>Olá! Minha geladeira parou de gelar, você consegue me ajudar?</p>
+                    <span>12:30</span>
+                </div>
+
+                <div class="msg recebida">
+                    <p>Olá! Consigo sim, posso passar aí amanhã para dar uma olhada.</p>
+                    <span>12:30</span>
+                </div>
+            </div>
+
+            <form class="enviar">
+                <label for="mensagem" class="visual">Mensagem</label>
+                <input class="info" type="text" id="mensagem" name="mensagem" placeholder="Mensagem" autocomplete="off">
+                <button type="submit" aria-label="Enviar mensagem">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M22 2 11 13"/>
+                        <path d="M22 2 15 22l-4-9-9-4z"/>
+                    </svg>
+                </button>
+            </form>
+        </section>
+    </main>
+
+    <script src="./frontend/js/conversas.js"></script>
+</body>
+</html>

@@ -12,22 +12,26 @@ const conexao = new sqlite3.Database(dbPath, (err) => {
     }
 });
 
-// CRIA A TABELA AUTOMATICAMENTE SE ELA NÃO EXISTIR
+// CRIA A TABELA AUTOMATICAMENTE COM OS CAMPOS OBRIGATÓRIOS E ADICIONAIS
 conexao.serialize(() => {
     conexao.run(`
         CREATE TABLE IF NOT EXISTS usuarios (
             idCliente INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT UNIQUE,
-            senha TEXT
+            email TEXT UNIQUE NOT NULL,
+            senha TEXT NOT NULL,
+            tipo TEXT DEFAULT 'cliente',
+            nome TEXT,
+            data_nascimento TEXT,
+            cadastro_completo INTEGER DEFAULT 0
         )
     `, (err) => {
         if (err) {
             console.error('Erro ao criar tabela de usuários:', err.message);
         } else {
-            console.log('Tabela "usuarios" verificada/criada com sucesso!');
+            console.log('Tabela "usuarios" com campos de perfil atualizada/verificada com sucesso!');
         }
     });
 });
 
-//Exporta a conexão para o server.js usar
+// Exporta a conexão para o server.js usar
 module.exports = conexao;

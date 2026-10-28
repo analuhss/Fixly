@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete seu cadastro</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/cadastro.css">
+
+    <link rel="stylesheet" href="./css/profissionais.css">
+    <link rel="icon" type="image/svg+xml" href="./files/svg/aplicativo/icone.svg">
+</head>
+<body>
+    <form class="cadastro" action="#" method="post" id="cadastro">
+        <div class="card">
+            <h1>Complete seu cadastro</h1>
+
+            <div class="grid">
+                <div class="campo">
+                    <label for="nome">Nome Completo <span class="obrig" aria-hidden="true">*</span></label>
+                    <input type="text" id="nome" name="nome" placeholder="Nome" autocomplete="given-name" required>
+                </div>
+
+                <div class="campo largo">
+                    <label for="cpf">CPF <span class="obrig" aria-hidden="true">*</span></label>
+                    <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14" required>
+                </div>
+
+                <div class="campo largo">
+                    <label for="nascimento">Data aniversário</label>
+                    <input type="date" id="nascimento" name="nascimento" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" autocomplete="bday">
+                </div>
+
+                <div class="campo largo">
+                    <label for="telefone">Telefone ou celular <span class="obrig" aria-hidden="true">*</span></label>
+                    <input type="tel" id="telefone" name="telefone" placeholder="(DDD) Telefone" autocomplete="tel" required>
+                </div>
+                
+                <div class="campo">
+                    <label for="cep">CEP</label>
+                    <input type="text" id="cep" name="cep" placeholder="00000-000" inputmode="numeric" maxlength="9" autocomplete="postal-code">
+                </div>
+
+
+                <div class="campo">
+                    <label for="endereco">Endereço</label>
+                    <input type="text" id="endereco" name="endereco" placeholder="Rua, Bairro., Número" autocomplete="street-address">
+                </div>
+            </div>
+        </div>
+
+        <button type="submit">Cadastrar-se</button>
+    </form>
+</body>
+</html>
