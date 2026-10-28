@@ -1,0 +1,269 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    background-color: #0d0d0d; /* preto do fundo */
+    font-family: "Kanit", Arial, sans-serif;
+    color: #ffffff;
+}
+
+/* ===== Navbar ===== */
+.navegacao {
+    position: relative;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 18px 20px;
+
+    background-color: #0a0a0a; /* preto da navbar */
+    border-bottom: 1px solid #1c1c1c;
+}
+
+.links {
+    display: flex;
+    gap: 32px;
+}
+
+.links a {
+    text-decoration: none;
+    text-transform: uppercase;
+
+    color: #cccccc; /* cinza dos links */
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+
+    transition: 0.2s;
+}
+
+.links a:hover {
+    color: #ffd447; /* amarelo claro */
+}
+
+.links a.ativo {
+    color: #f5c32f; /* amarelo */
+}
+
+/* ícone do perfil (a página atual, por isso fica com a borda amarela) */
+.icone-perfil {
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 38px;
+    height: 38px;
+
+    border: 2px solid #f5c32f; /* amarelo */
+    border-radius: 50%;
+
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5c32f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg>");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 20px;
+
+    transition: 0.2s;
+}
+
+.icone-perfil:hover {
+    background-color: #1c1c1c;
+}
+
+/* ===== Cartão do perfil ===== */
+main {
+    display: flex;
+    justify-content: center;
+
+    padding: 100px 20px 50px; /* espaço em cima para o avatar */
+}
+
+.cartao {
+    position: relative;
+
+    width: 100%;
+    max-width: 460px;
+
+    background-color: #ffffff; /* branco do cartão */
+    border: 8px solid #f5c32f; /* amarelo */
+    border-radius: 32px;
+
+    padding: 64px 36px 40px;
+
+    text-align: center;
+    color: #000000;
+}
+
+.avatar {
+    position: absolute;
+    top: -56px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    width: 96px;
+    height: 96px;
+
+    background-color: #000000;
+    border: 5px solid #f5c32f; /* amarelo */
+    border-radius: 50%;
+
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5c32f' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg>");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 46px;
+}
+
+.info h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #000000;
+}
+
+.info p {
+    margin-top: 2px;
+    margin-bottom: 22px;
+
+    font-size: 14px;
+    font-weight: 500;
+    color: #444444; /* cinza escuro */
+}
+
+.divisor {
+    height: 1px;
+    background-color: #e5e5e5; /* cinza claro */
+    margin-bottom: 22px;
+}
+
+/* ===== Formulário ===== */
+.campo {
+    margin-bottom: 18px;
+    text-align: left;
+}
+
+.campo label {
+    display: block;
+    margin-bottom: 8px;
+
+    font-size: 16px;
+    font-weight: 600;
+    color: #000000;
+}
+
+.caixa {
+    position: relative;
+}
+
+.caixa input {
+    width: 100%;
+    height: 48px;
+
+    border: 1px solid #333333;
+    border-radius: 8px;
+
+    background-color: #ebebeb; /* cinza do input */
+    color: #222222;
+
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 500;
+
+    padding: 0 44px 0 14px; /* espaço à direita para o lápis */
+
+    outline: none;
+
+    transition: 0.2s;
+}
+
+.caixa input::placeholder {
+    color: #c2c2c2; /* cinza do placeholder */
+    font-weight: 600;
+    opacity: 1;
+}
+
+.caixa input:focus {
+    border-color: #f5c32f; /* amarelo */
+    box-shadow: 0 0 0 3px rgba(245, 195, 47, 0.35);
+}
+
+/* lápis de editar, desenhado no fundo do campo */
+.caixa::after {
+    content: "";
+
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 16px;
+    height: 16px;
+
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z'/></svg>");
+    background-repeat: no-repeat;
+    background-size: contain;
+
+    pointer-events: none;
+}
+
+/* ===== Botão ===== */
+.botao {
+    display: block;
+    margin: 26px auto 0;
+
+    width: 100%;
+    max-width: 260px;
+    height: 50px;
+
+    border: none;
+    border-radius: 8px;
+
+    background-color: #f5c32f; /* amarelo */
+    color: #ffffff;
+
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.botao:hover {
+    background-color: #ffd447; /* amarelo claro */
+    transform: translateY(-1px);
+}
+
+.botao:active {
+    transform: translateY(0);
+}
+
+/* ===== Telas pequenas ===== */
+@media (max-width: 520px) {
+    .links {
+        gap: 18px;
+    }
+
+    .links a {
+        font-size: 12px;
+    }
+
+    .icone-perfil {
+        right: 14px;
+        width: 34px;
+        height: 34px;
+    }
+
+    main {
+        padding: 90px 16px 40px;
+    }
+
+    .cartao {
+        padding: 62px 22px 32px;
+        border-radius: 26px;
+    }
+}

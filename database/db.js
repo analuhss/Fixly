@@ -1,9 +1,13 @@
 const sqlite3 = require('sqlite3').verbose();
+
+// A função verbose serve para gerar logs mais detalhados no terminal caso aconteça algum erro 
+
 const path = require('path');
 
 const dbPath = path.join(__dirname, 'banco.db');
 const conexao = new sqlite3.Database(dbPath);
 
+// O comando serialize serve para que todas as operações do banco sejam executadas uma após a outra, de forma sequencial
 conexao.serialize(() => {
     // 1. Tabela de Login (Gera o idCliente automaticamente)
     conexao.run(`
@@ -18,16 +22,49 @@ conexao.serialize(() => {
     // 2. Tabela de Usuários (Recebe o idCliente para o relacionamento)
     conexao.run(`
         CREATE TABLE IF NOT EXISTS usuarios (
-            idCliente INTEGER PRIMARY KEY, -- Sem AUTOINCREMENT aqui, pois ela recebe o ID do login
+            idCliente INTEGER PRIMARY KEY, -- Sem AUTOINCREMENT aqui pois ela recebe o ID do login
             nome TEXT NOT NULL,
             cpf TEXT,
             dataNascimento TEXT,
             telefone TEXT,
             email TEXT,
             cep TEXT,
-            cadastro_completo INTEGER DEFAULT 1 -- Como os dados entram aqui juntos, o cadastro já nasce completo
+            cadastro_completo INTEGER DEFAULT 1
         )
     `);
+
+    conexao.run(`
+        CREATE TABLE IF NOT EXISTS tecnicos,
+        nome TEXT,
+        cpf INTEGER,
+        dataNascimento TEXT,
+        telefone TEXT,
+        cep TEXT,
+        etnia TEXT,
+        admissao DATE,
+        demissao DATE,
+        cargo TEXT,
+        salario FLOAT,
+        idTecnico INTEGER PRIMARY KEY AUTOINCREMENT`);
+
+    conexao.run(`
+        identificacao TEXT,
+        abertura TEXT
+        hora TEXT,
+        descricao TEXT,
+        equipamento TEXT,
+        marca TEXT,
+        perifericos TEXT,
+        diagnostico TEXT,
+        servicoExe TEXT,
+        pecas_mate TEXT,
+        valorfinal FLOAT,
+        processo TEXT,
+        validacao TEXT,
+        idCliente INTEGER,
+        idTecnico INTEGER
+        `)
 });
 
+// Exporta a conexão configurada
 module.exports = conexao;

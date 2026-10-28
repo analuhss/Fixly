@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({
                     idCliente: idCliente,
                     nome: nome,
-                    data_nascimento: dataNascimento,
+                    dataNascimento : dataNascimento,
                     cpf: cpf,
                     cep: cep,
                     endereco: endereco,

@@ -61,6 +61,10 @@ app.get('/cadastro', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/cliente/cadastro.html'));
 });
 
+// ROTA PARA PÁGINA DE PERFIL - CLIENTE 
+app.get('/perfil', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/cliente/perfil.html'));
+});
 
 // =====================================
 //              Cadastro
@@ -89,15 +93,15 @@ app.post('/api/usuarios', (req, res) => {
 
 // Rota PUT usada para atualizar dados adicionais obrigatórios do cliente recém-criado
 app.put('/api/usuarios/finalizar-cadastro', (req, res) => {
-    const { idCliente, nome, data_nascimento } = req.body;
+    const { idCliente, nome, dataNascimento, cpf, cep, endereco, telefone } = req.body;
 
-    if (!idCliente || !nome || !data_nascimento) {
-        return res.status(400).json({ mensagem: 'ID, nome e data de nascimento são obrigatórios!' });
+    if (!idCliente || !nome || !dataNascimento || !cpf || !cep || !endereco || !telefone ) {
+        return res.status(400).json({ mensagem: 'Preencha todos os campos' });
     }
 
     const sql = `
         UPDATE usuarios 
-        SET nome = ?, data_nascimento = ?, cadastro_completo = 1 
+        SET nome = ?, dataNascimento = ?, cpf = ?, cep = ?, endereco = ?, telefone = ?, cadastro_completo = 1 
         WHERE idCliente = ?
     `;
 
