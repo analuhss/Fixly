@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Cadastro de OS</title>
+
+    <!-- FONTES -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CONEXÃO COM JS -->
+    <script src="../js/ordens.js" defer></script>
+    <script src="../js/cadastroOs.js" defer></script>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/cadastroOs.css">
+    
+    <!-- ÍCONE -->
+    <link rel="icon" type="image/svg+xml" href="./files/svg/aplicativo/icone.svg">
+    
+</head>
+<body>
+    <header class="navbar">
+        <a class="logo" href="./inicio.html">
+            <img src="../files/svg/fixly.svg" alt="Logo do site fixly">
+        </a>
+
+        <nav class="menu">
+            <a href="/">Início</a>
+            <a href="./ordens.html" class="ativo" aria-current="page">Ordens</a>
+            <a href="./conversas.html">Conversas</a>
+        </nav>
+
+        <a class="perfil" href="./perfil.html" aria-label="Perfil">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <circle cx="12" cy="8.5" r="4.2"/>
+                <path d="M3.5 22c0-4.7 3.8-7.5 8.5-7.5s8.5 2.8 8.5 7.5z"/>
+            </svg>
+        </a>
+    </header>
+
+    <main>
+        <!-- novalidate: a validação é feita pelo cadastroOS.js, passo a passo -->
+        <form id="formOS" class="cadastro" novalidate>
+            <div class="cartao">
+
+                <!-- ===== Passo 1: cadastro e dados do cliente ===== -->
+                <section class="passo">
+                    <h1>Cadastro de OS</h1>
+
+                    <div class="campo">
+                        <label for="clienteId">Número de Identificação Cliente<span class="obrig" aria-hidden="true">*</span></label>
+                        <input type="text" id="clienteId" name="clienteId" placeholder="Número de Identificação" required>
+                        <small class="dica">É com este número que o cliente vai ver a ordem de serviço.</small>
+                    </div>
+
+                    <div class="linha">
+                        <div class="campo">
+                            <label for="dataAbertura">Data de abertura</label>
+                            <input type="date" id="dataAbertura" name="dataAbertura">
+                        </div>
+
+                        <div class="campo">
+                            <label for="horaAbertura">Horário de abertura</label>
+                            <input type="time" id="horaAbertura" name="horaAbertura">
+                        </div>
+                    </div>
+
+                    <h2>Dados do cliente</h2>
+
+                    <div class="campo">
+                        <label for="nomeCliente">Nome do cliente <span class="obrig" aria-hidden="true">*</span></label>
+                        <input type="text" id="nomeCliente" name="nomeCliente" required>
+                    </div>
+
+                    <div class="campo">
+                        <label for="telefone">Telefone <span class="obrig" aria-hidden="true">*</span></label>
+                        <input type="tel" id="telefone" name="telefone" required>
+                    </div>
+
+                    <div class="campo">
+                        <label for="email">E-mail <span class="obrig" aria-hidden="true">*</span></label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <div class="campo">
+                        <label for="descricao">Descrição do problema</label>
+                        <textarea id="descricao" name="descricao" rows="1"></textarea>
+                    </div>
+                </section>
+
+                <!-- ===== Passo 2: equipamento e custos ===== -->
+                <section class="passo" hidden>
+                    <h2>EQUIPAMENTO</h2>
+
+                    <div class="campo">
+                        <label for="marca">Marca</label>
+                        <input type="text" id="marca" name="marca">
+                    </div>
+
+                    <div class="campo">
+                        <label for="modelo">Modelo</label>
+                        <input type="text" id="modelo" name="modelo">
+                    </div>
+
+                    <div class="campo">
+                        <label for="perifericos">Periféricos</label>
+                        <input type="text" id="perifericos" name="perifericos">
+                    </div>
+
+                    <div class="campo">
+                        <label for="tecnico">Técnico responsável <span class="obrig" aria-hidden="true">*</span></label>
+                        <input type="text" id="tecnico" name="tecnico" required>
+                    </div>
+
+                    <div class="campo">
+                        <label for="diagnostico">Diagnóstico</label>
+                        <input type="text" id="diagnostico" name="diagnostico">
+                    </div>
+
+                    <div class="campo">
+                        <label for="servicos">Serviços executados</label>
+                        <input type="text" id="servicos" name="servicos">
+                    </div>
+
+                    <div class="campo">
+                        <label for="pecas">Peças e materiais utilizados</label>
+                        <input type="text" id="pecas" name="pecas">
+                    </div>
+
+                    <div class="campo">
+                        <label for="dataFinalizacao">Data de finalização</label>
+                        <input type="date" id="dataFinalizacao" name="dataFinalizacao">
+                    </div>
+
+                    <h2>CUSTOS</h2>
+
+                    <div class="custos">
+                        <div class="custo">
+                            <span class="rotulo">Taxa de análise</span>
+                            <span class="taxa">60,00</span>
+                        </div>
+
+                        <div class="custo">
+                            <label for="maoDeObra">Mão de obra</label>
+                            <input type="text" id="maoDeObra" name="maoDeObra" inputmode="decimal" placeholder="0,00">
+                        </div>
+
+                        <div class="custo">
+                            <label for="materiais">Materiais</label>
+                            <input type="text" id="materiais" name="materiais" inputmode="decimal" placeholder="0,00">
+                        </div>
+                    </div>
+
+                    <div class="campo">
+                        <label for="valorFinal">Valor final</label>
+                        <input type="text" id="valorFinal" readonly>
+                        <small class="dica">Soma da taxa de análise, mão de obra e materiais.</small>
+                    </div>
+                </section>
+
+                <!-- ===== Passo 3: status ===== -->
+                <section class="passo" hidden>
+                    <h2>STATUS</h2>
+
+                    <div class="lista-status" role="radiogroup" aria-label="Status da ordem de serviço">
+                        <label class="opcao">
+                            <input type="radio" name="status" value="aberta" checked>
+                            <span>Aberta</span>
+                            <span class="icone ok" aria-hidden="true">&#10003;</span>
+                        </label>
+
+                        <label class="opcao">
+                            <input type="radio" name="status" value="em-analise">
+                            <span>Em análise</span>
+                            <span class="icone aviso" aria-hidden="true">!</span>
+                        </label>
+
+                        <label class="opcao">
+                            <input type="radio" name="status" value="em-andamento">
+                            <span>Em andamento</span>
+                            <span class="icone aviso" aria-hidden="true">!</span>
+                        </label>
+
+                        <label class="opcao">
+                            <input type="radio" name="status" value="pausada">
+                            <span>Pausada</span>
+                            <span class="icone pausa" aria-hidden="true">&#8722;</span>
+                        </label>
+
+                        <label class="opcao">
+                            <input type="radio" name="status" value="fechada">
+                            <span>Fechada</span>
+                            <span class="icone erro" aria-hidden="true">&#10005;</span>
+                        </label>
+                    </div>
+
+                    <h2>VALIDAÇÃO DO CLIENTE</h2>
+
+                    <ul class="lista-status">
+                        <li class="opcao atual">
+                            <span>Em análise</span>
+                            <span class="icone aviso" aria-hidden="true">!</span>
+                        </li>
+
+                        <li class="opcao">
+                            <span>Em andamento</span>
+                            <span class="icone aviso" aria-hidden="true">!</span>
+                        </li>
+
+                        <li class="opcao">
+                            <span>Concluído</span>
+                            <span class="icone ok" aria-hidden="true">&#10003;</span>
+                        </li>
+                    </ul>
+                </section>
+
+                <!-- setas e bolinhas para trocar de passo -->
+                <div class="paginacao">
+                    <button type="button" class="seta" id="passoAnterior" aria-label="Passo anterior">&#8249;</button>
+
+                    <button type="button" class="ponto" aria-label="Passo 1 de 3"></button>
+                    <button type="button" class="ponto" aria-label="Passo 2 de 3"></button>
+                    <button type="button" class="ponto" aria-label="Passo 3 de 3"></button>
+
+                    <button type="button" class="seta" id="passoProximo" aria-label="Próximo passo">&#8250;</button>
+                </div>
+            </div>
+
+            <button type="submit" class="botao" id="botaoCadastrar">Cadastrar OS</button>
+
+            <p class="mensagem" id="mensagem" role="status"></p>
+        </form>
+    </main>
+
+    <script src="./frontend/js/ordens.js"></script>
+    <script src="./frontend/js/cadastroOS.js"></script>
+</body>
+</html>

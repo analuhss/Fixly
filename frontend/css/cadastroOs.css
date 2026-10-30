@@ -1,0 +1,523 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+body {
+    min-height: 100vh;
+    font-family: "Poppins", Arial, Helvetica, sans-serif;
+    color: #000000;
+
+    /* mesmo fundo do login, cadastro, início e conversas */
+    background-color: #0a0a0a;
+    background-image: radial-gradient(circle at 50% 0%, #1c1c1e 0%, #0a0a0a 70%);
+    background-attachment: fixed;
+}
+
+/* ---------- barra de navegação (igual em todas as páginas) ---------- */
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+
+    height: 72px;
+    padding: 0 24px;
+
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+
+    /* mesma fonte em todas as páginas, mesmo que o resto da página use outra */
+    font-family: "Poppins", Arial, Helvetica, sans-serif;
+
+    background-color: #18181a;      /* cinza escuro */
+    border-bottom: 1px solid #2a2a2c;
+}
+
+.logo {
+    justify-self: start;
+    display: block;
+}
+
+.logo img {
+    display: block;
+    height: 30px;
+    width: auto;
+}
+
+.menu {
+    grid-column: 2;
+
+    display: flex;
+    gap: 40px;
+}
+
+.menu a {
+    color: #ffffff;
+    text-decoration: none;
+    text-transform: uppercase;
+
+    font-size: 15px;
+    letter-spacing: 0.5px;
+
+    transition: 0.2s;
+}
+
+.menu a:hover {
+    color: #ffe17f;
+}
+
+.menu a.ativo {
+    color: #f5c32f;                 /* amarelo */
+    font-weight: 600;
+}
+
+.perfil {
+    grid-column: 3;
+    justify-self: end;
+
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+
+    background-color: #9a9a9a;      /* cinza */
+    color: #18181a;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: 0.2s;
+}
+
+.perfil svg {
+    width: 26px;
+    height: 26px;
+}
+
+.perfil:hover,
+.perfil.ativo {                     /* .ativo: usar na página de perfil */
+    box-shadow: 0 0 0 2px #f5c32f;
+}
+
+/* contorno amarelo ao navegar pelo teclado (Tab) */
+.logo:focus-visible,
+.menu a:focus-visible,
+.perfil:focus-visible {
+    outline: 2px solid #f5c32f;
+    outline-offset: 3px;
+}
+
+/* ---------- celular ---------- */
+@media (max-width: 700px) {
+    .navbar {
+        padding: 0 16px;
+    }
+
+    .logo {
+        display: none;
+    }
+
+    .menu {
+        gap: 20px;
+    }
+
+    .menu a {
+        font-size: 13px;
+    }
+}
+
+/* telas bem pequenas (cabe até 4 links, como na navbar do profissional) */
+@media (max-width: 480px) {
+    .navbar {
+        padding: 0 12px;
+    }
+
+    .menu {
+        gap: 10px;
+    }
+
+    .menu a {
+        font-size: 12px;
+        letter-spacing: 0.3px;
+    }
+
+    .perfil {
+        width: 34px;
+        height: 34px;
+    }
+
+    .perfil svg {
+        width: 22px;
+        height: 22px;
+    }
+}
+
+/* ---------- conteúdo ---------- */
+main {
+    display: flex;
+    justify-content: center;
+
+    padding: 32px 16px 60px;
+}
+
+.cadastro {
+    width: 100%;
+    max-width: 520px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+}
+
+/* ===== Cartão ===== */
+.cartao {
+    width: 100%;
+
+    background-color: #ffffff; /* branco do cartão */
+    border: 5px solid #f5c32f; /* amarelo */
+    border-radius: 24px;
+
+    padding: 28px 28px 24px;
+}
+
+.passo h1 {
+    font-size: 30px;
+    font-weight: 700;
+    text-align: center;
+
+    margin-bottom: 22px;
+}
+
+.passo h2 {
+    font-size: 15px;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 0.5px;
+
+    margin: 26px 0 14px;
+}
+
+.passo > h2:first-child {
+    margin-top: 0;
+}
+
+/* ===== Campos ===== */
+.campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    margin-bottom: 16px;
+    min-width: 0;
+}
+
+.linha {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+label {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.obrig {
+    color: #b00000; /* vermelho do asterisco */
+    margin-left: 3px;
+}
+
+.dica {
+    font-size: 12px;
+    font-weight: 400;
+    color: #666666; /* cinza escuro */
+}
+
+input,
+textarea {
+    width: 100%;
+
+    border: 1px solid #333333;
+    border-radius: 8px;
+
+    background-color: #ebebeb; /* cinza do input */
+    color: #222222;
+
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+
+    padding: 0 12px;
+
+    outline: none;
+
+    transition: 0.2s;
+}
+
+input {
+    height: 44px;
+}
+
+textarea {
+    min-height: 44px;
+    padding: 10px 12px;
+
+    line-height: 1.4;
+    overflow: hidden;
+    resize: none;
+}
+
+input::placeholder {
+    color: #c2c2c2; /* cinza do placeholder */
+    font-weight: 600;
+    opacity: 1;
+}
+
+input:focus,
+textarea:focus {
+    border-color: #f5c32f; /* amarelo */
+    box-shadow: 0 0 0 3px rgba(245, 195, 47, 0.35);
+}
+
+input[readonly] {
+    background-color: #e0e0e0;
+    font-weight: 700;
+}
+
+/* ===== Custos ===== */
+.custos {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+
+    margin-bottom: 16px;
+}
+
+.custo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+
+    min-width: 0;
+    text-align: center;
+}
+
+.custo label,
+.custo .rotulo {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.custo input {
+    max-width: 90px;
+    text-align: center;
+}
+
+.taxa {
+    height: 44px;
+
+    display: flex;
+    align-items: center;
+
+    font-size: 15px;
+    font-weight: 500;
+}
+
+/* ===== Status ===== */
+.lista-status {
+    list-style: none;
+
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    background-color: #e9e9e9; /* cinza da caixa */
+    border-radius: 8px;
+
+    padding: 10px 12px;
+}
+
+.opcao {
+    position: relative;
+
+    display: grid;
+    grid-template-columns: 130px 22px;
+    align-items: center;
+    gap: 8px;
+
+    padding: 6px 8px;
+    border-radius: 6px;
+
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: #666666;
+}
+
+label.opcao {
+    cursor: pointer;
+}
+
+/* o radio fica escondido, mas continua funcionando pelo teclado */
+.opcao input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.opcao:has(input:checked),
+.opcao.atual {
+    background-color: #ffffff;
+    color: #000000;
+    font-weight: 700;
+
+    box-shadow: inset 0 0 0 2px #f5c32f; /* amarelo */
+}
+
+.opcao:has(input:focus-visible) {
+    outline: 2px solid #f5c32f;
+    outline-offset: 2px;
+}
+
+.icone {
+    width: 20px;
+    height: 20px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+    color: #ffffff;
+
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.icone.ok {
+    background-color: #4a9a3b; /* verde */
+}
+
+.icone.aviso {
+    background-color: #b59a4a; /* mostarda */
+}
+
+.icone.pausa,
+.icone.erro {
+    background-color: #d94a3d; /* vermelho */
+}
+
+/* ===== Setas e bolinhas ===== */
+.paginacao {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+
+    margin-top: 26px;
+}
+
+.seta {
+    background: none;
+    border: none;
+
+    padding: 0 4px;
+
+    color: #000000;
+    font-size: 32px;
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+.seta:disabled {
+    opacity: 0.25;
+    cursor: default;
+}
+
+.ponto {
+    width: 16px;
+    height: 16px;
+
+    border: 2px solid #000000;
+    border-radius: 50%;
+    background-color: #ffffff;
+
+    padding: 0;
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.ponto.ativo {
+    background-color: #000000;
+}
+
+.seta:focus-visible,
+.ponto:focus-visible {
+    outline: 2px solid #f5c32f;
+    outline-offset: 2px;
+}
+
+/* ===== Botão e mensagem ===== */
+.botao {
+    width: 100%;
+    max-width: 180px;
+    height: 44px;
+
+    border: none;
+    border-radius: 8px;
+
+    background-color: #f5c32f; /* amarelo */
+    color: #ffffff;
+
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.botao:hover {
+    background-color: #ffd447; /* amarelo claro */
+    transform: translateY(-1px);
+}
+
+.botao:disabled {
+    opacity: 0.6;
+    cursor: default;
+    transform: none;
+}
+
+.mensagem {
+    min-height: 24px;
+
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.mensagem.erro {
+    color: #ff6b5e; /* vermelho claro */
+}
+
+@media (max-width: 420px) {
+    .cartao {
+        padding: 24px 18px 20px;
+    }
+
+    .linha {
+        gap: 10px;
+    }
+}

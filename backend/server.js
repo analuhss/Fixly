@@ -62,9 +62,20 @@ app.get('/cadastro', (req, res) => {
 });
 
 // ROTA PARA PÁGINA DE PERFIL - CLIENTE 
-app.get('/perfil', (req, res) => {
+app.get('/perfil-c', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/cliente/perfil.html'));
 });
+
+// ROTA PRA CONVERSA - CLIENTE
+app.get('/conversa-c', (req, res) => {
+    res.sendFile(path.join(__dirname, './frontend/cliente/conversa.html'));
+});
+
+// ROTA PARA CADASTRO DE OS
+app.get('/criar-os', (req, res) => {
+    res.sendFile(path.join(__dirname, './frontend/cliente/criarOs.html'));
+});
+
 
 // =====================================
 //              Cadastro

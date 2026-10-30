@@ -1,81 +1,133 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfil</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
 
-    
-    <link rel="stylesheet" href="../css/perfil.css">
-    <link rel="icon" type="image/svg+xml" href="./files/svg/aplicativo/icone.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Perfil</title>
+
+  <!-- FONTES -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="../css/perfil.css">
+
+    <!-- ICONE -->
+    <link rel="icon" type="image/svg+xml" href="../files/svg/ícone.svg">
+
 </head>
 <body>
-     <header class="navbar">
-        <a class="logo" href="./inicio.html">
-            <img src="../files/svg/fixly.svg" alt="Logo do site fixly">
-        </a>
 
-        <nav class="menu">
-            <a href="./inicio.html">Início</a>
-            <a href="./ordens.html">Ordens</a>
-            <a href="./conversas.html" class="ativo" aria-current="page">Conversas</a>
-        </nav>
+  <header class="topbar">
+    <a href="inicio.html" class="topbar__logo">
+      <img src="../files/svg/fixly.svg" alt="Fixly" height="32">
+    </a>
+    <nav class="topbar__nav" aria-label="Principal">
+      <a href="inicio.html">Início</a>
+      <a href="ordens.html">Ordens</a>
+      <a href="conversas.html">Conversas</a>
+    </nav>
+    <a href="perfil.html" class="topbar__avatar is-active" aria-label="Meu perfil" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5Z"/></svg>
+    </a>
+  </header>
 
-        <a class="perfil" href="./perfil.html" aria-label="Perfil">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <circle cx="12" cy="8.5" r="4.2"/>
-                <path d="M3.5 22c0-4.7 3.8-7.5 8.5-7.5s8.5 2.8 8.5 7.5z"/>
-            </svg>
-        </a>
-    </header>
+  <main class="page">
+    <h1 class="page__title">Meu <span>perfil</span></h1>
+    <p class="page__subtitle">Gerencie seus dados pessoais e a segurança da conta</p>
+    <hr class="page__divider">
 
-    <main>
-        <section class="cartao">
-            <div class="avatar"></div>
+    <div class="profile">
 
-            <div class="info">
-                <h1>Anônimo</h1>
-                <p>São Paulo, Guarulhos</p>
+      <aside class="card card--identity">
+        <div class="avatar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5Z"/></svg>
+          <button type="button" class="avatar__edit" aria-label="Alterar foto">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h3l1.5-2h7L17 7h3v12H4V7Zm8 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/></svg>
+          </button>
+        </div>
+        <h2 class="identity__name">Anônimo</h2>
+        <p class="identity__location">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.500Z"/></svg>
+          Guarulhos, São Paulo
+        </p>
+      </aside>
+
+      <section class="card card--form">
+        <h2 class="card__title">Dados da conta</h2>
+
+        <form id="perfil-form" novalidate>
+          <div class="field">
+            <label for="nome">Nome</label>
+            <div class="input">
+              <input type="text" id="nome" name="nome" placeholder="Seu nome completo" autocomplete="name" readonly>
+              <button type="button" class="input__edit" aria-label="Editar nome" data-target="nome">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.250V21h3.750L17.810 9.940l-3.750-3.750L3 17.250ZM20.710 7.040a1 1 0 0 0 0-1.410l-2.340-2.340a1 1 0 0 0-1.410 0l-1.830 1.830 3.750 3.750 1.830-1.830Z"/></svg>
+              </button>
             </div>
+          </div>
 
-            <div class="divisor"></div>
+          <div class="field">
+            <label for="cpf">CPF</label>
+            <div class="input">
+              <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14" readonly>
+              <button type="button" class="input__edit" aria-label="Editar CPF" data-target="cpf">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.250V21h3.750L17.810 9.940l-3.750-3.750L3 17.250ZM20.710 7.040a1 1 0 0 0 0-1.410l-2.340-2.340a1 1 0 0 0-1.410 0l-1.830 1.830 3.750 3.750 1.830-1.830Z"/></svg>
+              </button>
+            </div>
+          </div>
 
-            <form action="#">
-                <div class="campo">
-                    <label for="nome">Nome</label>
-                    <div class="caixa">
-                        <input type="text" id="nome" name="nome" placeholder="Nome">
-                    </div>
-                </div>
+          <div class="field">
+            <label for="email">E-mail</label>
+            <div class="input">
+              <input type="email" id="email" name="email" placeholder="seu@email.com" autocomplete="email" readonly>
+              <button type="button" class="input__edit" aria-label="Editar e-mail" data-target="email">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.250V21h3.750L17.810 9.940l-3.750-3.750L3 17.250ZM20.710 7.040a1 1 0 0 0 0-1.410l-2.340-2.340a1 1 0 0 0-1.410 0l-1.830 1.830 3.750 3.750 1.830-1.830Z"/></svg>
+              </button>
+            </div>
+          </div>
 
-                <div class="campo">
-                    <label for="cpf">CPF</label>
-                    <div class="caixa">
-                        <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
-                    </div>
-                </div>
+          <div class="actions">
+            <button type="submit" class="btn btn--primary" id="salvar" disabled>Salvar alterações</button>
+            <button type="button" class="btn btn--ghost">Alterar senha</button>
+          </div>
+        </form>
+      </section>
 
-                <div class="campo">
-                    <label for="email">E-mail</label>
-                    <div class="caixa">
-                        <input type="email" id="email" name="email" placeholder="email">
-                    </div>
-                </div>
+    </div>
+  </main>
 
-                <div class="campo">
-                    <label for="senha">Senha</label>
-                    <div class="caixa">
-                        <input type="password" id="senha" name="senha" placeholder="senha">
-                    </div>
-                </div>
+  <script>
+    const form = document.getElementById('perfil-form');
+    const salvar = document.getElementById('salvar');
 
-                <button type="button" class="botao">Alterar senha</button>
-            </form>
-        </section>
-    </main>
+    form.querySelectorAll('.input__edit').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const input = document.getElementById(btn.dataset.target);
+        input.readOnly = false;
+        input.focus();
+        salvar.disabled = false;
+      });
+    });
+
+    document.getElementById('cpf').addEventListener('input', e => {
+      let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+      v = v.replace(/(\d{3})(\d)/, '$1.$2')
+           .replace(/(\d{3})(\d)/, '$1.$2')
+           .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      e.target.value = v;
+    });
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      // TODO: enviar os dados para o back-end
+      form.querySelectorAll('input').forEach(i => i.readOnly = true);
+      salvar.disabled = true;
+    });
+  </script>
 </body>
 </html>
