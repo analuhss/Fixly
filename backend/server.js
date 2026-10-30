@@ -1,31 +1,39 @@
+
+// ==========================================================
+//                        IMPORTANTE:
+// A competência de DELETE será entregue na próxima sprint
+// ==========================================================
+
 //=======================================
 //   Server.js - BACK-END COMPLETO
 //=======================================
 
-// PARTE 1: Importar as ferramentas
 // Importar o dotenv LOGO NO INÍCIO para garantir que o processo leia as variáveis de ambiente antes de tudo
-const path = require('path');                   // ajuda a montar caminhos de pastas
-
 require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
+
+const path = require('path');                   // ajuda a montar caminhos de pastas
+
 const express = require('express');             // biblioteca para criar o servidor
-const fs = require('fs');                       // abreviação de readFiles e writeFiles
 
 const db = require('../database/db.js');
 
 
 // PARTE 2: Criar o Servidor e abrir o banco
-const PORT = process.env.PORT || 3000;          // Correção da ordem para ler do .env corretamente
-const app = express();                          // cria o servidor
+const PORT = process.env.PORT || 3000;          // Essa linha define a porta em que o servidor será executado, 
+// se não estiver definido, o progra,a utilizará 3000
+
+const app = express();                          // cria o servidor 
 
 // Servir os dados para do frontend
 app.use(express.static(path.resolve(__dirname, '..', 'frontend')));
 
-// dados de imagem e svg
+// Rastrear dados de imagem e svg
 app.use('/files', express.static(path.join(__dirname, '../../files')));
 
-// Parte 3: Configurar o servidor (os famosos middlewares)
-app.use(express.json()); // faz o servidor entender JSON
+app.use(express.json());  // Faz o servidor entender JSON - Middleware 
+// (Função que participa do processamento de requisições antes que elas 
+// cheguem à rota responsàvel por responder)
 
 // ==================================
 //       ROTAS DE PÁGINAS (GET)
@@ -68,23 +76,25 @@ app.get('/perfil-c', (req, res) => {
 
 // ROTA PRA CONVERSA - CLIENTE
 app.get('/conversa-c', (req, res) => {
-    res.sendFile(path.join(__dirname, './frontend/cliente/conversa.html'));
+    res.sendFile(path.join(__dirname, '../frontend/cliente/conversa.html'));
 });
 
 // ROTA PARA CADASTRO DE OS
 app.get('/criar-os', (req, res) => {
-    res.sendFile(path.join(__dirname, './frontend/cliente/criarOs.html'));
+    res.sendFile(path.join(__dirname, '../frontend/cliente/criarOs.html'));
 });
 
 
 // =====================================
-//              Cadastro
+//           Cadastro (POST)
 // =====================================
+
+// Aqui ós usamos ele para que esas informações sejam colocadas no nosso banco de dados
 
 app.post('/api/usuarios', (req, res) => {
     const { email, senha } = req.body; 
     
-    // Inserção na tabela de logins (rosa do seu diagrama)
+    // Inserção na tabela de logins
     const sql = "INSERT INTO login (email, senha, tipo) VALUES (?, ?, 'cliente')";
     
     db.run(sql, [email, senha], function(erro) {
@@ -99,10 +109,9 @@ app.post('/api/usuarios', (req, res) => {
 });
 
 // =====================================
-//       FINALIZAR CADASTRO 
+//         FINALIZAR CADASTRO 
 // =====================================
 
-// Rota PUT usada para atualizar dados adicionais obrigatórios do cliente recém-criado
 app.put('/api/usuarios/finalizar-cadastro', (req, res) => {
     const { idCliente, nome, dataNascimento, cpf, cep, endereco, telefone } = req.body;
 
@@ -158,12 +167,13 @@ app.post('/api/login', (req, res) => {
             return res.status(401).json({ mensagem: 'Senha incorreta' });
         } 
         
-        // Retorna o sucesso do Login e os metadados cruciais para o frontend decidir o redirecionamento
+        // Retorna o sucesso do Login
         return res.status(200).json({
             mensagem: 'Login autorizado!',
             id: usuario.idCliente,
             tipo: usuario.tipo,
-            cadastroCompleto: usuario.cadastro_completo // Retorna 0 se for recém-criado, ou 1 se já finalizou
+            cadastroCompleto: usuario.cadastro_completo // Retorna 0 se for 
+            // recém-criado, ou 1 se já finalizou
         });
     });
 });
@@ -226,20 +236,20 @@ function administrador() {
     });
 }
 
+
 // Função para rodar o script do BDD de login
 function iniBDD() {
     const scriptPath = path.resolve(__dirname, '..', 'database', 'script.sql');
     try {
         if (fs.existsSync(scriptPath)) {
             const sql = fs.readFileSync(scriptPath, 'utf8');
-            db.exec(sql); // Correção de 'deb.exec' para 'db.exec'
+            db.exec(sql); 
             console.log('Banco de dados inicializado a partir do script.sql');
         }
     } catch (error) {
         console.error('ERRO ao rodar o script de inicialização do banco de dados:', error.message);
     }
 }
-
 
 // ========================================
 //             INICIALIZAÇÃO

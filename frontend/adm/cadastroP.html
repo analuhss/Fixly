@@ -1,238 +1,222 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cadastro de profissionais | Fixly</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="cadastro.css">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Cadastro de profissionais</title>
+
+  <!-- FONTES -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="../css/cadastroP.css">
+
+  <!-- ÍCONE -->
+   <link rel="icon" type="image/svg+xml" href="../files/svg/ícone.svg">
+  
 </head>
+
 <body>
 
 
-<header>
-  <a class="logo" href="#">
-    <svg viewBox="0 0 22 26"><path d="M13 0 2 15h7l-3 11 14-16h-8z" fill="#f4c542"/></svg>fixly
-  </a>
-  <nav>
-    <a href="#" class="on">INÍCIO</a><a href="#">ORDENS</a><a href="#">CONVERSAS</a>
-  </nav>
-  <div class="avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4.5"/><path d="M3 21c0-4.5 4-7 9-7s9 2.5 9 7z"/></svg></div>
-</header>
+  <header>
+    <a class="logo" href="/">
+        <img src="../files/svg/fixly.svg" alt="Logo do fixly" class="logoF">
+    </a>
+    <nav>
+      <a href="/" class="on">INÍCIO</a><a href="/criar-os">ORDENS</a><a href="/conversa-c">CONVERSAS</a>
+    </nav>
 
-
-<main>
-  <form class="card" id="form" novalidate autocomplete="off">
-    <h1>Cadastro de profissionais</h1>
-    <p class="sub">Preencha os dados para adicionar um novo profissional à equipe.</p>
-
-
-    <div class="grid">
-      <div class="field"><label for="nome">Nome<i>*</i></label>
-        <input id="nome" name="nome" placeholder="Nome" required autocomplete="given-name">
-        <span class="err">Informe o nome.</span></div>
-      <div class="field"><label for="sobrenome">Sobrenome<i>*</i></label>
-        <input id="sobrenome" name="sobrenome" placeholder="Sobrenome" required autocomplete="family-name">
-        <span class="err">Informe o sobrenome.</span></div>
-
-
-      <div class="field"><label for="cpf">CPF<i>*</i></label>
-        <input id="cpf" name="cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14" required>
-        <span class="err">CPF inválido.</span></div>
-      <div class="field"><label for="nasc">Data de nascimento</label>
-        <input id="nasc" name="nasc" type="date">
-        <span class="err">Data inválida. O profissional deve ter 18 anos ou mais.</span></div>
-
-
-      <div class="field"><label for="tel">Telefone ou celular<i>*</i></label>
-        <input id="tel" name="tel" placeholder="(00) 00000-0000" inputmode="tel" maxlength="15" required>
-        <span class="err">Informe um telefone com DDD.</span></div>
-      <div class="field"><label for="email">E-mail<i>*</i></label>
-        <input id="email" name="email" type="email" placeholder="nome@email.com" required autocomplete="email">
-        <span class="err">Informe um e-mail válido.</span></div>
+    <!-- Decidimos manter a estrutura de SVG, para nas próximas entregas ele mude de acordo com o avatr do usuário -->
+    <div class="avatar"><svg viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4.5" />
+        <path d="M3 21c0-4.5 4-7 9-7s9 2.5 9 7z" />
+      </svg>
     </div>
 
-
-    <h2>Informações do endereço</h2>
-    <div class="grid">
-      <div class="field"><label for="cep">CEP</label>
-        <div class="ctl" id="cepctl"><input id="cep" name="cep" placeholder="00000-000" inputmode="numeric" maxlength="9"><span class="spin"></span></div>
-        <span class="err" id="cepErr">CEP não encontrado.</span></div>
-      <div class="field"><label for="cidade">Cidade</label>
-        <input id="cidade" name="cidade" placeholder="Cidade"></div>
+  </header>
 
 
-      <div class="field"><label for="uf">Estado</label>
+  <main>
+    <form class="card" id="form" novalidate autocomplete="off">
+      <!-- Nolidate: Desativa a função automática do formulário realizada pelo navegador no momento do envio -->
+      <!-- Autocomplete: Controla se o navegador pode sugerir ou preencher automaticamnte as informações em um formulário -->
+
+      <h1>Cadastro de profissionais</h1>
+      <p class="sub">Preencha os dados para adicionar um novo profissional à equipe.</p>
+
+
+      <div class="grid">
+
+        <div class="field">
+          
+          <label for="nome">Nome<i>*</i></label>
+
+          <input id="nome" name="nome" placeholder="Nome" required autocomplete="given-name">
+          
+          <span class="err">Informe o nome.</span>
+
+        </div>
+        
+        <div class="field">
+          
+          <label for="sobrenome">Sobrenome<i>*</i></label>
+          
+          <input id="sobrenome" name="sobrenome" placeholder="Sobrenome" required autocomplete="family-name">
+          <!-- Este autocomplete indica ao navegador que o campo deve receber o sobrenome do funcionário,
+           mas estamos pensando em retirar os campos de sobrenome, pois eles só requerem mais esforços -->
+          
+          <span class="err">Informe o sobrenome.</span>
+
+        </div>
+
+
+        <div class="field">
+          
+          <label for="cpf">CPF<i>*</i></label>
+
+          <input id="cpf" name="cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14" required>
+
+          <span class="err">CPF inválido.</span>
+
+        </div>
+        
+        <div class="field">
+          
+          <label for="nasc">Data de nascimento</label>
+
+          <input id="nasc" name="nasc" type="date">
+          
+          <span class="err">Data inválida. O profissional deve ter 18 anos ou mais.</span>
+
+        </div>
+
+
+        <div class="field">
+          
+          <label for="tel">Telefone ou celular<i>*</i></label>
+          <input id="tel" name="tel" placeholder="(00) 00000-0000" inputmode="tel" maxlength="15" required>
+          <span class="err">Informe um telefone com DDD.</span>
+        
+        </div>
+        
+        <div class="field"><label for="email">E-mail<i>*</i></label>
+          
+          <input id="email" name="email" type="email" placeholder="nome@email.com" required autocomplete="email">
+          <span class="err">Informe um e-mail válido.</span>
+        
+        </div>
+      
+      </div>
+
+
+      <h2>Informações do endereço</h2>
+
+      <div class="grid">
+
+        <div class="field">
+          
+          <label for="cep">CEP</label>
+          <div class="ctl" id="cepctl"><input id="cep" name="cep" placeholder="00000-000" inputmode="numeric" maxlength="9"><span class="spin"></span>
+          
+        </div>
+
+        <span class="err" id="cepErr">CEP não encontrado.</span>
+
+        </div>
+
+        <div class="field">
+          <label for="cidade">Cidade</label>
+          <input id="cidade" name="cidade" placeholder="Cidade">
+        </div>
+
+
+        <div class="field">
+          <label for="uf">Estado</label>
+          
         <select id="uf" name="uf" required>
-          <option value="" disabled selected>Selecione</option>
-        </select></div>
-      <div class="field"><label for="endereco">Endereço<i>*</i></label>
-        <input id="endereco" name="endereco" placeholder="Rua, bairro, número" required>
-        <span class="err">Informe o endereço.</span></div>
-    </div>
+          
+          <option value="" selected>Selecione</option>
+          <!-- Selected: serve para que essa opção seja selecionada inicialmente -->
+          
+        </select>
+
+        </div>
+
+        <div class="field">
+          <label for="endereco">Endereço<i>*</i></label>
+          <input id="endereco" name="endereco" placeholder="Rua, bairro, número" required>
+          <span class="err">Informe o endereço.</span>
+        </div>
+      
+      </div>
 
 
-    <h2>Dados profissionais</h2>
-    <div class="grid">
-      <div class="field"><label for="etnia">Etnia</label>
-        <select id="etnia" name="etnia" required>
-          <option value="" disabled selected>Selecione</option>
-          <option>Branca</option><option>Preta</option><option>Parda</option>
-          <option>Amarela</option><option>Indígena</option><option>Prefiro não informar</option>
-        </select></div>
-      <div class="field"><label for="admissao">Data de admissão<i>*</i></label>
-        <input id="admissao" name="admissao" type="date" required>
-        <span class="err">Informe a data de admissão.</span></div>
+      <h2>Dados profissionais</h2>
+
+      <div class="grid">
+        
+        <div class="field"><label for="etnia">Etnia</label>
+          <select id="etnia" name="etnia" required>
+            
+            <option value="" disabled selected>Selecione</option>
+            <!-- Opção sem nada conectada -->
+
+            <option>Branca</option>
+            <option>Preta</option>
+            <option>Parda</option>
+            <option>Amarela</option>
+            <option>Indígena</option>
+            <option>Prefiro não informar</option>
+          
+          </select>
+        </div>
+        
+        <div class="field">
+          <label for="admissao">Data de admissão<i>*</i></label>
+          <input id="admissao" name="admissao" type="date" required>
+          <span class="err">Informe a data de admissão.</span>
+        </div>
+
+        <div class="field">
+          <label for="cargo">Cargo<i>*</i></label>
+          <input id="cargo" name="cargo" list="cargos" placeholder="Ex.: Técnico" required>
+          
+          <!-- OPÇÕES DE TÉCNICOS -->
+          <datalist id="cargos">
+            <option>Técnico</option>
+            <option>Eletricista</option>
+            <option>Encanador</option>
+            <option>Auxiliar</option>
+            <option>Supervisor</option>
+          </datalist>
+
+          <span class="err">Informe o cargo.</span>
+        </div>
+        
+        <div class="field"><label for="salario">Salário</label>
+          <input id="salario" name="salario" placeholder="R$ 0,00" inputmode="numeric">
+        </div>
+
+      </div>
+
+      <div class="actions">
+        <button type="reset" class="ghost">Limpar</button>
+        <button type="submit" class="primary">Cadastrar-se</button>
+      </div>
+
+    </form>
+
+  </main>
 
 
-      <div class="field"><label for="cargo">Cargo<i>*</i></label>
-        <input id="cargo" name="cargo" list="cargos" placeholder="Ex.: Técnico" required>
-        <datalist id="cargos"><option>Técnico</option><option>Eletricista</option><option>Encanador</option><option>Auxiliar</option><option>Supervisor</option></datalist>
-        <span class="err">Informe o cargo.</span></div>
-      <div class="field"><label for="salario">Salário</label>
-        <input id="salario" name="salario" placeholder="R$ 0,00" inputmode="numeric"></div>
-    </div>
-
-
-    <div class="actions">
-      <button type="reset" class="ghost">Limpar</button>
-      <button type="submit" class="primary">Cadastrar-se</button>
-    </div>
-  </form>
-</main>
-
-
-<div class="toast" id="toast" role="status"></div>
-
-
-<script>
-const $ = s => document.querySelector(s);
-const form = $('#form');
-
-
-/* Estados */
-['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO']
-  .forEach(u => $('#uf').add(new Option(u, u)));
-
-
-/* Máscaras */
-const digits = v => v.replace(/\D/g, '');
-const masks = {
-  cpf: v => digits(v).slice(0,11).replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2'),
-  tel: v => { const d = digits(v).slice(0,11);
-    return d.length > 10 ? d.replace(/(\d{2})(\d{5})(\d{4})/,'($1) $2-$3')
-         : d.length > 6 ? d.replace(/(\d{2})(\d{4})(\d{0,4})/,'($1) $2-$3')
-         : d.length > 2 ? d.replace(/(\d{2})(\d+)/,'($1) $2') : d; },
-  cep: v => digits(v).slice(0,8).replace(/(\d{5})(\d)/,'$1-$2'),
-  salario: v => { const d = digits(v); if (!d) return '';
-    return (Number(d)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
-};
-Object.keys(masks).forEach(id => $('#'+id).addEventListener('input', e => { e.target.value = masks[id](e.target.value); }));
-
-
-/* Validações */
-function cpfValido(c){
-  c = digits(c);
-  if (c.length !== 11 || /^(\d)\1+$/.test(c)) return false;
-  for (let t = 9; t < 11; t++){
-    let s = 0;
-    for (let i = 0; i < t; i++) s += c[i] * (t + 1 - i);
-    if (((s * 10) % 11) % 10 != c[t]) return false;
-  }
-  return true;
-}
-function maiorDeIdade(v){
-  if (!v) return true;
-  const n = new Date(v), h = new Date();
-  if (isNaN(n) || n > h) return false;
-  let idade = h.getFullYear() - n.getFullYear();
-  const m = h.getMonth() - n.getMonth();
-  if (m < 0 || (m === 0 && h.getDate() < n.getDate())) idade--;
-  return idade >= 18 && idade < 100;
-}
-const rules = {
-  nome: v => v.trim().length >= 2,
-  sobrenome: v => v.trim().length >= 2,
-  cpf: cpfValido,
-  nasc: maiorDeIdade,
-  tel: v => [10,11].includes(digits(v).length),
-  email: v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v),
-  endereco: v => v.trim().length >= 3,
-  admissao: v => !!v,
-  cargo: v => v.trim().length >= 2
-};
-function check(id){
-  const el = $('#'+id), box = el.closest('.field');
-  const ok = rules[id](el.value);
-  box.classList.toggle('bad', !ok);
-  box.classList.toggle('good', ok);
-  return ok;
-}
-Object.keys(rules).forEach(id => {
-  const el = $('#'+id);
-  el.addEventListener('blur', () => check(id));
-  el.addEventListener('input', () => { if (el.closest('.field').classList.contains('bad')) check(id); });
-});
-
-
-/* CEP automático (ViaCEP) */
-$('#cep').addEventListener('input', async e => {
-  const cepField = e.target.closest('.field'), ctl = $('#cepctl');
-  cepField.classList.remove('bad');
-  const cep = digits(e.target.value);
-  if (cep.length !== 8) return;
-  ctl.classList.add('loading');
-  try {
-    const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-    const d = await r.json();
-    if (d.erro) throw new Error('nf');
-    $('#cidade').value = d.localidade || '';
-    $('#uf').value = d.uf || '';
-    const rua = [d.logradouro, d.bairro].filter(Boolean).join(', ');
-    if (rua) { $('#endereco').value = rua + ', '; $('#endereco').focus(); }
-  } catch {
-    $('#cepErr').textContent = 'CEP não encontrado. Preencha o endereço manualmente.';
-    cepField.classList.add('bad');
-  } finally { ctl.classList.remove('loading'); }
-});
-
-
-/* Toast */
-let tt;
-function toast(msg, erro){
-  const t = $('#toast');
-  t.textContent = msg; t.classList.toggle('err-t', !!erro); t.classList.add('show');
-  clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 3500);
-}
-
-
-/* Envio: salva em localStorage (troque por fetch para sua API) */
-form.addEventListener('submit', e => {
-  e.preventDefault();
-  const results = Object.keys(rules).map(check);
-  if (results.includes(false)) {
-    const primeiro = form.querySelector('.field.bad input, .field.bad select');
-    if (primeiro) primeiro.focus();
-    return toast('Corrija os campos destacados.', true);
-  }
-  const dados = Object.fromEntries(new FormData(form));
-  dados.id = Date.now();
-  try {
-    const lista = JSON.parse(localStorage.getItem('fixly_profissionais') || '[]');
-    if (lista.some(p => digits(p.cpf) === digits(dados.cpf))) {
-      $('#cpf').closest('.field').classList.add('bad');
-      return toast('Já existe um profissional com esse CPF.', true);
-    }
-    lista.push(dados);
-    localStorage.setItem('fixly_profissionais', JSON.stringify(lista));
-  } catch { /* storage indisponível: segue sem persistir */ }
-  form.reset();
-  form.querySelectorAll('.field').forEach(f => f.classList.remove('bad','good'));
-  toast('Profissional cadastrado com sucesso.');
-});
-form.addEventListener('reset', () => form.querySelectorAll('.field').forEach(f => f.classList.remove('bad','good')));
-</script>
+  <div class="toast" id="toast" role="status"></div>
+  
 </body>
+
 </html>

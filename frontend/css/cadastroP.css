@@ -16,6 +16,10 @@
     margin: 0
 }
 
+.logoF{
+    height: 36px;
+}
+
 body {
     font-family: 'Poppins', system-ui, sans-serif;
     color: var(--text);

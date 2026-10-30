@@ -1,5 +1,4 @@
 const sqlite3 = require('sqlite3').verbose();
-
 // A função verbose serve para gerar logs mais detalhados no terminal caso aconteça algum erro 
 
 const path = require('path');
@@ -8,7 +7,6 @@ const dbPath = path.join(__dirname, 'banco.db');
 const conexao = new sqlite3.Database(dbPath);
 
 // O comando serialize serve para que todas as operações do banco sejam executadas uma após a outra, de forma sequencial
-
 conexao.serialize(() => {
     // 1. Tabela de Login (Gera o idCliente automaticamente)
     conexao.run(`
@@ -35,7 +33,7 @@ conexao.serialize(() => {
         )
     `);
 
-    // 3. Tabela de Técnicos (Corrigido: trocado a vírgula por parênteses)
+    // 3. Tabela de Técnicos
     conexao.run(`
         CREATE TABLE IF NOT EXISTS tecnicos (
             idTecnico INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,7 +50,7 @@ conexao.serialize(() => {
         )
     `);
 
-    // 4. Tabela de Chamados/Serviços (Corrigido: adicionado CREATE TABLE e as vírgulas que faltavam)
+    // 4. Tabela de Chamados/Serviços
     conexao.run(`
         CREATE TABLE IF NOT EXISTS os (
             idChamado INTEGER PRIMARY KEY AUTOINCREMENT,

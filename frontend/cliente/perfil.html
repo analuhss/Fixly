@@ -94,40 +94,14 @@
           <div class="actions">
             <button type="submit" class="btn btn--primary" id="salvar" disabled>Salvar alterações</button>
             <button type="button" class="btn btn--ghost">Alterar senha</button>
+            <button type="button" class="btn btn--ghost">Excluir Conta</button>
           </div>
+
         </form>
       </section>
 
     </div>
   </main>
 
-  <script>
-    const form = document.getElementById('perfil-form');
-    const salvar = document.getElementById('salvar');
-
-    form.querySelectorAll('.input__edit').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const input = document.getElementById(btn.dataset.target);
-        input.readOnly = false;
-        input.focus();
-        salvar.disabled = false;
-      });
-    });
-
-    document.getElementById('cpf').addEventListener('input', e => {
-      let v = e.target.value.replace(/\D/g, '').slice(0, 11);
-      v = v.replace(/(\d{3})(\d)/, '$1.$2')
-           .replace(/(\d{3})(\d)/, '$1.$2')
-           .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-      e.target.value = v;
-    });
-
-    form.addEventListener('submit', e => {
-      e.preventDefault();
-      // TODO: enviar os dados para o back-end
-      form.querySelectorAll('input').forEach(i => i.readOnly = true);
-      salvar.disabled = true;
-    });
-  </script>
 </body>
 </html>
