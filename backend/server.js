@@ -101,7 +101,13 @@ app.put('/api/usuarios/finalizar-cadastro', (req, res) => {
 
     const sql = `
         UPDATE usuarios 
-        SET nome = ?, dataNascimento = ?, cpf = ?, cep = ?, endereco = ?, telefone = ?, cadastro_completo = 1 
+        SET nome = ?, 
+        dataNascimento = ?, 
+        cpf = ?, 
+        cep = ?, 
+        endereco = ?, 
+        telefone = ?, 
+        cadastro_completo = 1 
         WHERE idCliente = ?
     `;
 

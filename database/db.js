@@ -8,6 +8,7 @@ const dbPath = path.join(__dirname, 'banco.db');
 const conexao = new sqlite3.Database(dbPath);
 
 // O comando serialize serve para que todas as operações do banco sejam executadas uma após a outra, de forma sequencial
+
 conexao.serialize(() => {
     // 1. Tabela de Login (Gera o idCliente automaticamente)
     conexao.run(`
@@ -29,42 +30,50 @@ conexao.serialize(() => {
             telefone TEXT,
             email TEXT,
             cep TEXT,
+            endereco TEXT,
             cadastro_completo INTEGER DEFAULT 1
         )
     `);
 
+    // 3. Tabela de Técnicos (Corrigido: trocado a vírgula por parênteses)
     conexao.run(`
-        CREATE TABLE IF NOT EXISTS tecnicos,
-        nome TEXT,
-        cpf INTEGER,
-        dataNascimento TEXT,
-        telefone TEXT,
-        cep TEXT,
-        etnia TEXT,
-        admissao DATE,
-        demissao DATE,
-        cargo TEXT,
-        salario FLOAT,
-        idTecnico INTEGER PRIMARY KEY AUTOINCREMENT`);
+        CREATE TABLE IF NOT EXISTS tecnicos (
+            idTecnico INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT,
+            cpf INTEGER,
+            dataNascimento TEXT,
+            telefone TEXT,
+            cep TEXT,
+            etnia TEXT,
+            admissao DATE,
+            demissao DATE,
+            cargo TEXT,
+            salario FLOAT
+        )
+    `);
 
+    // 4. Tabela de Chamados/Serviços (Corrigido: adicionado CREATE TABLE e as vírgulas que faltavam)
     conexao.run(`
-        identificacao TEXT,
-        abertura TEXT
-        hora TEXT,
-        descricao TEXT,
-        equipamento TEXT,
-        marca TEXT,
-        perifericos TEXT,
-        diagnostico TEXT,
-        servicoExe TEXT,
-        pecas_mate TEXT,
-        valorfinal FLOAT,
-        processo TEXT,
-        validacao TEXT,
-        idCliente INTEGER,
-        idTecnico INTEGER
-        `)
+        CREATE TABLE IF NOT EXISTS os (
+            idChamado INTEGER PRIMARY KEY AUTOINCREMENT,
+            identificacao TEXT,
+            abertura TEXT,
+            hora TEXT,
+            descricao TEXT,
+            equipamento TEXT,
+            marca TEXT,
+            perifericos TEXT,
+            diagnostico TEXT,
+            servicoExe TEXT,
+            pecas_mate TEXT,
+            valorfinal FLOAT,
+            processo TEXT,
+            validacao TEXT,
+            idCliente INTEGER,
+            idTecnico INTEGER
+        )
+    `);
 });
 
-// Exporta a conexão configurada
+
 module.exports = conexao;
