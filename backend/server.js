@@ -111,7 +111,7 @@ app.put('/api/usuarios/finalizar-cadastro', (req, res) => {
         WHERE idCliente = ?
     `;
 
-    db.run(sql, [nome, data_nascimento, idCliente], function(erro) {
+    db.run(sql, [nome, dataNascimento, idCliente], function(erro) {
         if (erro) {
             console.error('Erro ao atualizar informações cadastrais:', erro.message);
             return res.status(500).json({ mensagem: 'Erro ao salvar informações no banco de dados.' });
