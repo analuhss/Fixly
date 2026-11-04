@@ -8,6 +8,7 @@ const conexao = new sqlite3.Database(dbPath);
 
 // O comando serialize serve para que todas as operações do banco sejam executadas uma após a outra, de forma sequencial
 conexao.serialize(() => {
+    
     // 1. Tabela de Login (Gera o idCliente automaticamente)
     conexao.run(`
         CREATE TABLE IF NOT EXISTS login (
@@ -72,14 +73,5 @@ conexao.serialize(() => {
         )
     `);
 });
-
-const { Sequelize } = require('sequelize');
-
-const sequelize = new Sequelize({
-    dialect: 'sqlite',
-    storage: '../database/banco.db'
-})
-
-module.exports = sequelize;
 
 module.exports = conexao;
