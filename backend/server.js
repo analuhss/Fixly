@@ -8,11 +8,11 @@
 //   Server.js - BACK-END COMPLETO
 //=======================================
 
-// Importar o dotenv LOGO NO INÍCIO para garantir que o processo leia as variáveis de ambiente antes de tudo
-require('dotenv').config({ path: path.resolve(__dirname, '.env') });
-
 
 const path = require('path');                   // ajuda a montar caminhos de pastas
+
+// Importar o dotenv LOGO NO INÍCIO para garantir que o processo leia as variáveis de ambiente antes de tudo
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
 const express = require('express');             // biblioteca para criar o servidor
 
