@@ -73,5 +73,13 @@ conexao.serialize(() => {
     `);
 });
 
+const { Sequelize } = require('sequelize');
+
+const sequelize = new Sequelize({
+    dialect: 'sqlite',
+    storage: '../database/banco.db'
+})
+
+module.exports = sequelize;
 
 module.exports = conexao;

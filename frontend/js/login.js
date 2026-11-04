@@ -38,8 +38,10 @@ formulario.addEventListener('submit', async (event) => {
 
             } else {
 
-                alert(dados.message) // Exibe a mensagem de senha incorreta
+                alert('Tipo de usuário desconhecido') // Exibe a mensagem de senha incorreta
             }
+        } else {
+            alert(dados.message || 'E-mail ou senha incorretos')
         }
     }   catch (erro) {
         console.error('Erro ao tentar fazer login:', erro);
