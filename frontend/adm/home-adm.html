@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+
+<!-- ============================ -->
+<!--      PÁGINA DASHBOARD        -->
+<!-- ============================ -->
+
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="icon" type="image/svg+xml" href="../files/svg/ícone.svg">
+</head>
+<body>
+    <header class="navbar">
+        <a class="logo" href="./dashboard.html">
+            <img src="./files/svg/fixly.svg" alt="Logo do site fixly">
+        </a>
+
+        <nav class="menu">
+            <a href="./dashboard.html" class="ativo" aria-current="page">Início</a>
+            <a href="./ordens.html">Ordens</a>
+            <a href="./servicos.html">Serviços</a>
+            <a href="./conversas.html">Conversas</a>
+        </nav>
+
+        <a class="perfil" href="./perfil.html" aria-label="Perfil">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <circle cx="12" cy="8.5" r="4.2"/>
+                <path d="M3.5 22c0-4.7 3.8-7.5 8.5-7.5s8.5 2.8 8.5 7.5z"/>
+            </svg>
+        </a>
+    </header>
+
+    <main>
+        <!-- troque "Profissional" pelo nome (ou cargo) de quem está logado -->
+        <h1>Bem vindo, <span>Profissional</span></h1>
+        <p class="subtitulo">Consulte o dashboard do Fixly</p>
+
+        <!-- a pesquisa abre a lista de ordens já filtrada (ordens.html?busca=...) -->
+        <form class="busca" action="./ordens.html" method="get" role="search">
+            <input type="search" name="busca" placeholder="pesquisa" aria-label="Pesquisar ordens de serviço" autocomplete="off">
+            <button type="submit" aria-label="Pesquisar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7"/>
+                    <path d="M20 20l-3.5-3.5"/>
+                </svg>
+            </button>
+        </form>
+
+        <p class="aviso" id="aviso" role="status"></p>
+
+        <!-- ===== Visão geral ===== -->
+        <h2 class="divisor-titulo">Visão Geral</h2>
+
+        <section class="visao" aria-label="Visão geral">
+            <div class="principais">
+                <article class="kpi total">
+                    <p class="kpi-rotulo">Total OS</p>
+                    <p class="kpi-valor" id="totalOS">0</p>
+                </article>
+
+                <article class="kpi dinheiro">
+                    <p class="kpi-rotulo">Rendimento líquido</p>
+                    <p class="kpi-valor" id="rendimento">R$ 0,00</p>
+                </article>
+            </div>
+
+            <div class="por-status">
+                <article class="kpi abertas">
+                    <p class="kpi-rotulo">Novas entradas</p>
+                    <p class="kpi-valor" id="nAbertas">0</p>
+                </article>
+
+                <article class="kpi andamento">
+                    <p class="kpi-rotulo">Andamentos</p>
+                    <p class="kpi-valor" id="nAndamento">0</p>
+                </article>
+
+                <article class="kpi fechadas">
+                    <p class="kpi-rotulo">Fechadas</p>
+                    <p class="kpi-valor" id="nFechadas">0</p>
+                </article>
+
+                <article class="kpi congeladas">
+                    <p class="kpi-rotulo">Congeladas</p>
+                    <p class="kpi-valor" id="nCongeladas">0</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- ===== Análise de negócio ===== -->
+        <h2 class="divisor-titulo">Análise de negócio</h2>
+
+        <section class="analise">
+            <article class="cartao vendas">
+                <h3>Vendas</h3>
+                <ul class="legenda-meses" id="legendaMeses"></ul>
+                <div class="grafico" id="graficoVendas"></div>
+            </article>
+
+            <article class="cartao orcamentos">
+                <h3>Orçamentos</h3>
+
+                <div class="orc-numeros">
+                    <div class="orc novos">
+                        <span class="orc-valor" id="orcNovos">—</span>
+                        <span class="orc-rotulo">Novos</span>
+                    </div>
+
+                    <div class="orc negados">
+                        <span class="orc-valor" id="orcNegados">—</span>
+                        <span class="orc-rotulo">Negados</span>
+                    </div>
+
+                    <div class="orc aprovados">
+                        <span class="orc-valor" id="orcAprovados">—</span>
+                        <span class="orc-rotulo">Aprovados</span>
+                    </div>
+                </div>
+
+                <p class="nota" id="notaOrcamentos" hidden>Ainda não há cadastro de orçamentos para calcular estes números.</p>
+            </article>
+
+            <article class="cartao pedidos">
+                <h3>Pedidos</h3>
+
+                <div class="pizza">
+                    <div class="grafico" id="graficoPedidos"></div>
+                    <ul class="legenda-pedidos" id="legendaPedidos"></ul>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <script src="./frontend/js/ordens.js"></script>
+    <script src="./frontend/js/dashboard.js"></script>
+</body>
+</html>

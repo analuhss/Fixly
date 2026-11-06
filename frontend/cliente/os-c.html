@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitar OS</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/os-c.css">
+    <link rel="icon" type="image/svg+xml" href="../files/svg/ícone.svg">
+</head>
+<body>
+    <header class="navbar">
+        <a class="logo" href="./inicio.html">
+            <img src="./files/svg/fixly.svg" alt="Logo do site fixly">
+        </a>
+
+        <nav class="menu">
+            <a href="./inicio.html">Início</a>
+            <a href="./ordensCliente.html" class="ativo" aria-current="page">Ordens</a>
+            <a href="./conversas.html">Conversas</a>
+        </nav>
+
+        <a class="perfil" href="./perfil.html" aria-label="Perfil">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <circle cx="12" cy="8.5" r="4.2"/>
+                <path d="M3.5 22c0-4.7 3.8-7.5 8.5-7.5s8.5 2.8 8.5 7.5z"/>
+            </svg>
+        </a>
+    </header>
+
+    <main>
+        <form id="formSolicitacao" class="solicitacao">
+            <div class="cartao">
+                <h1>Solicitar OS</h1>
+                <p class="subtitulo">Conte o que aconteceu com o seu equipamento para abrir o pedido.</p>
+
+                <!-- Provisório: este campo só aparece se o número ainda não foi informado.
+                     No app de verdade ele não existe, o número vem do login do cliente. -->
+                <div class="campo" id="grupoId" hidden>
+                    <label for="clienteId">Seu número de identificação <span class="obrig" aria-hidden="true">*</span></label>
+                    <input type="text" id="clienteId" name="clienteId" placeholder="Número de identificação" required>
+                </div>
+
+                <h2>Seus dados</h2>
+
+                <div class="campo">
+                    <label for="nomeCliente">Nome completo <span class="obrig" aria-hidden="true">*</span></label>
+                    <input type="text" id="nomeCliente" name="nomeCliente" placeholder="Nome completo" autocomplete="name" required>
+                </div>
+
+                <div class="campo">
+                    <label for="telefone">Telefone ou celular <span class="obrig" aria-hidden="true">*</span></label>
+                    <input type="tel" id="telefone" name="telefone" placeholder="(DDD) Telefone" autocomplete="tel" required>
+                </div>
+
+                <div class="campo">
+                    <label for="email">E-mail <span class="obrig" aria-hidden="true">*</span></label>
+                    <input type="email" id="email" name="email" placeholder="email" autocomplete="email" required>
+                </div>
+
+                <h2>Equipamento</h2>
+
+                <div class="campo">
+                    <label for="marca">Marca <span class="opcional">(opcional)</span></label>
+                    <input type="text" id="marca" name="marca">
+                </div>
+
+                <div class="campo">
+                    <label for="modelo">Modelo <span class="opcional">(opcional)</span></label>
+                    <input type="text" id="modelo" name="modelo">
+                </div>
+
+                <div class="campo">
+                    <label for="perifericos">O que acompanha o equipamento? <span class="opcional">(opcional)</span></label>
+                    <input type="text" id="perifericos" name="perifericos" placeholder="Ex.: carregador, mouse, capa">
+                </div>
+
+                <h2>Problema</h2>
+
+                <div class="campo">
+                    <label for="descricao">Descrição do problema <span class="obrig" aria-hidden="true">*</span></label>
+                    <textarea id="descricao" name="descricao" rows="3" placeholder="O que está acontecendo? Quando começou?" required></textarea>
+                </div>
+
+                <p class="legenda"><span class="obrig" aria-hidden="true">*</span> Campos obrigatórios</p>
+            </div>
+
+            <button type="submit" class="botao" id="botaoSolicitar">Solicitar OS</button>
+
+            <p class="mensagem" id="mensagem" role="status"></p>
+        </form>
+    </main>
+
+    <script src="./frontend/js/ordens.js"></script>
+    <script src="./frontend/js/solicitarOS.js"></script>
+</body>
+</html>
