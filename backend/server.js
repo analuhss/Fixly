@@ -84,6 +84,10 @@ app.get('/criar-os', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/cliente/criarOs.html'));
 });
 
+// ROTA PARA ORDENS - CLIENTE
+app.get('/ordens-c', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/cliente/ordensC.html'));
+});
 
 // =====================================
 //           Cadastro (POST)
@@ -140,7 +144,6 @@ app.put('/api/usuarios/finalizar-cadastro', (req, res) => {
     });
 });
 
-
 // =====================================
 //               LOGIN
 // =====================================
@@ -178,24 +181,6 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// ====================================
-//           INSERIR CADASTROS
-// ====================================
-
-app.put('/api/usuarios/finalizar-cadastro', (req, res) => {
-    const { idCliente, nome, data_nascimento, cpf, cep, endereco, telefone } = req.body;
-
-    const sql = `
-        UPDATE usuarios 
-        SET nome = ?, data_nascimento = ?, cpf = ?, cep = ?, endereco = ?, telefone = ?, cadastro_completo = 1 
-        WHERE idCliente = ?
-    `;
-
-    db.run(sql, [nome, data_nascimento, cpf, cep, endereco, telefone, idCliente], function(erro) {
-        if (erro) return res.status(500).json({ mensagem: 'Erro ao salvar no banco' });
-        return res.status(200).json({ mensagem: 'Cadastro finalizado com sucesso!' });
-    });
-});
 
 
 // ======================================================
