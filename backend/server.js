@@ -16,6 +16,8 @@ require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
 const express = require('express');             // biblioteca para criar o servidor
 
+const fs = require('fs');
+
 const db = require('../database/db.js');
 
 const cors = require('cors');
@@ -295,35 +297,35 @@ function administrador() {
     const senhaAdmin = process.env.senhaAdm;
 
     if (!emailAdmin || !senhaAdmin) {
-        console.log(' Aviso: Variáveis emailAdm ou senhaAdm não configuradas no arquivo .env');
+        console.log('Aviso: Variáveis emailAdm ou senhaAdm não configuradas no .env');
         return;
     }
 
-    const buscarSql = 'SELECT * FROM usuarios WHERE email = ?';
+    const buscarSql = 'SELECT * FROM login WHERE email = ?';
     
     db.get(buscarSql, [emailAdmin], (erro, usuario) => {
         if (erro) {
-            console.error('Erro ao verificar administrador no banco:', erro.message);
+            console.error('Erro ao verificar admin:', erro.message);
             return;
         }
 
         if (!usuario) {
-            // Conta de administrador padrão já nasce com cadastro_completo = 1
-            const inserirSql = "INSERT INTO usuarios (email, senha, tipo, cadastro_completo) VALUES (?, ?, 'admin', 1)";
-            
-            db.run(inserirSql, [emailAdmin, senhaAdmin], function(err) {
-                if (err) {
-                    console.error('Erro ao inserir admin do .env:', err.message);
-                } else {
-                    console.log(` Administrador padrão (${emailAdmin}) injetado com sucesso no banco pelo servidor!`);
-                }
+            // Inserção caso não exista
+            const inserirSql = "INSERT INTO login (email, senha, tipo) VALUES (?, ?, 'adm')";
+            db.run(inserirSql, [emailAdmin, senhaAdmin], (err) => {
+                if (err) console.error('Erro ao inserir admin:', err.message);
+                else console.log(`Administrador (${emailAdmin}) inserido com sucesso!`);
             });
         } else {
-            console.log('Administrador do .env já está cadastrado e pronto para uso.');
+            // FORÇA A ATUALIZAÇÃO DA SENHA E DO TIPO 'adm' CASO JÁ EXISTA
+            const atualizarSql = "UPDATE login SET senha = ?, tipo = 'adm' WHERE email = ?";
+            db.run(atualizarSql, [senhaAdmin, emailAdmin], (err) => {
+                if (err) console.error('Erro ao atualizar admin:', err.message);
+                else console.log(`Credenciais do administrador (${emailAdmin}) sincronizadas com o .env!`);
+            });
         }
     });
 }
-
 
 // Função para rodar o script do BDD de login
 function iniBDD() {
