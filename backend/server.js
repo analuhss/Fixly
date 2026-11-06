@@ -80,16 +80,15 @@ app.get('/conversa-c', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/cliente/conversa.html'));
 });
 
-// ROTA PARA CADASTRO DE OS
-app.get('/criar-os', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/cliente/criarOs.html'));
+// ROTA PARA CADASTRO DE OS - CLIENTE
+app.get('/os-c', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/cliente/os-c.html'));
 });
 
 // ROTA PARA ORDENS - CLIENTE
 app.get('/ordens-c', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/cliente/ordensC.html'));
 });
-
 // =====================================
 //           Cadastro (POST)
 // =====================================
@@ -182,6 +181,16 @@ app.post('/api/login', (req, res) => {
     });
 });
 
+
+// ===================================
+//      CADASTRO DE OS - CLIENTE
+// ===================================
+
+app.post('/api/ordens', (req, res) => {
+
+    
+
+})
 
 
 // ======================================================
