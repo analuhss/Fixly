@@ -1,9 +1,5 @@
 
 NO TERMINAL:
-npm install express dotenv
-npm install express sqlite3 bcrypt express-session dotenv
-npm install express
-npm install cors
-npm install sqlite3
+npm install express sqlite3 bcrypt express-session dotenv cors
 
 .gitignore com node_modules
