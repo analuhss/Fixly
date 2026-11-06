@@ -22,6 +22,9 @@ const cors = require('cors');
 
 const session = require('express-session');
 
+// No topo absoluto do seu server.js
+require('dotenv').config();
+
 // PARTE 2: Criar o Servidor e abrir o banco
 const PORT = process.env.PORT || 3000;          // Essa linha define a porta em que o servidor será executado, 
 // se não estiver definido, o progra,a utilizará 3000
@@ -107,7 +110,19 @@ app.get('/os-c', (req, res) => {
 // ROTA PARA ORDENS - CLIENTE
 app.get('/ordens-c', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/cliente/ordensC.html'));
+
 });
+
+// ROTA PARA CLIENTE - ORDENS
+app.get('/home-c', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/cliente/homeC.html'));
+});
+
+// ROTA PARA HOME - ADM (DASHBOARD)
+app.get('/home-adm', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/adm/home-adm.html'));
+});
+
 // =====================================
 //           Cadastro (POST)
 // =====================================
@@ -129,7 +144,6 @@ app.post('/api/usuarios', (req, res) => {
         // 1. Pega o ID gerado automaticamente
         const novoIdCliente = this.lastID;
 
-        // 2. Criamos a sessão imediatamente após cadastrar
         req.session.usuario = {
             id: novoIdCliente,
             email: email,
@@ -157,32 +171,35 @@ app.post('/api/usuarios', (req, res) => {
 // =====================================
 
 app.put('/api/usuarios/finalizar-cadastro', (req, res) => {
-    const { idCliente, nome, dataNascimento, cpf, cep, endereco, telefone } = req.body;
 
-    if (!idCliente || !nome || !dataNascimento || !cpf || !cep || !endereco || !telefone ) {
-        return res.status(400).json({ mensagem: 'Preencha todos os campos' });
+    // LOG PARA DIAGNÓSTICO:
+    console.log('Sessão atual em finalizar-cadastro:', req.session);
+
+    // 1. Verifica se o usuário tem sessão ativa
+    if (!req.session || !req.session.usuario) {
+        return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
     }
 
+    const idCliente = req.session.usuario.id;
+    const { nome, dataNascimento, cpf, cep, endereco, telefone } = req.body;
+
+    // 2. Atualiza a tabela 'login' ou 'cliente' usando o idCliente da sessão
     const sql = `
-        UPDATE usuarios 
-        SET nome = ?, 
-        dataNascimento = ?, 
-        cpf = ?, 
-        cep = ?, 
-        endereco = ?, 
-        telefone = ?, 
-        cadastro_completo = 1 
-        WHERE idCliente = ?
+        UPDATE usuarios
+        SET nome = ?, dataNascimento = ?, cpf = ?, cep = ?, endereco = ?, telefone = ?
+        WHERE idClient = ?
     `;
 
-    db.run(sql, [nome, dataNascimento, idCliente], function(erro) {
+    db.run(sql, [nome, dataNascimento, cpf, cep, endereco, telefone, idCliente], function(erro) {
         if (erro) {
-            console.error('Erro ao atualizar informações cadastrais:', erro.message);
+            console.error('Erro ao atualizar cadastro no SQLite:', erro.message);
             return res.status(500).json({ mensagem: 'Erro ao salvar informações no banco de dados.' });
         }
-        return res.status(200).json({ mensagem: 'Informações salvas e cadastro finalizado com sucesso!' });
+
+        return res.json({ mensagem: 'Cadastro finalizado com sucesso!' });
     });
 });
+
 
 // =====================================
 //               LOGIN
@@ -262,6 +279,12 @@ app.post('/api/ordens', (req, res) => {
         });
     });
 });
+
+// ============================================
+//     BUSCAR OS DADOS DO CLIENTE LOGADO
+// ============================================
+
+
 
 // ======================================================
 //      FUNÇÃO PARA CRIAR A SENHA DE ADMINISTRADOR

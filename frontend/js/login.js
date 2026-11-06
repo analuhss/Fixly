@@ -27,7 +27,7 @@ formulario.addEventListener('submit', async (event) => {
             } else if (dados.tipo === 'profissional') {
                 window.location.href = '/profissionais/home';
             } else if (dados.tipo === 'adm') {
-                window.location.href = '/adm/home-adm';
+                window.location.href = '/home-adm';
             } else {
                 // Se cair aqui, significa que 'dados.tipo' veio undefined ou diferente das opções
                 alert('Tipo de usuário desconhecido: ' + dados.tipo); 

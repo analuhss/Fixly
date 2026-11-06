@@ -1,21 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
     const formulario = document.getElementById('cadastro');
 
+    if (!formulario) return;
+
     formulario.addEventListener('submit', async (evento) => {
-        evento.preventDefault(); // Impede o recarregamento automático da página
+        evento.preventDefault();
 
-        const idCliente = localStorage.getItem('idClienteLogado');
-
-        if (!idCliente) {
-            alert('Sessão expirada ou usuário não identificado. Faça login novamente.');
-            window.location.href = '/'; // Se não achar o ID, joga para a tela inicial
-            return;
-        }
-
-        // ========================================================
-        //         CAPTURAR OS TEXTOS DIGITADOS NA TELA
-        // ========================================================
-        // Certifique-se de que os IDs ('nome', 'cpf', etc.) combinam exatamente com o seu HTML
+        // Captura das variáveis individuais dos inputs
         const nome = document.getElementById('nome').value;
         const cpf = document.getElementById('cpf').value;
         const dataNascimento = document.getElementById('nascimento').value;
@@ -23,27 +14,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const endereco = document.getElementById('endereco').value;
         const telefone = document.getElementById('telefone').value;
 
-        // Validação básica para impedir o envio de campos em branco
         if (!nome || !dataNascimento || !cpf || !cep || !endereco || !telefone) {
             alert('Por favor, preencha todos os campos obrigatórios.');
             return;
         }
 
         try {
-            // Envia o pacote completo de dados para a rota do servidor
             const resposta = await fetch('/api/usuarios/finalizar-cadastro', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                credentials: 'include', // <--- Garante o envio do cookie de sessão
                 body: JSON.stringify({
-                    idCliente: idCliente,
-                    nome: nome,
-                    dataNascimento : dataNascimento,
-                    cpf: cpf,
-                    cep: cep,
-                    endereco: endereco,
-                    telefone: telefone
+                    nome,
+                    dataNascimento,
+                    cpf,
+                    cep,
+                    endereco,
+                    telefone
                 })
             });
 
@@ -51,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (resposta.ok) {
                 alert('Cadastro finalizado com sucesso!');
-                window.location.href = '/home-c'; // Envia para a página inicial logada
+                window.location.href = '/home-c';
             } else {
                 alert(resultado.mensagem || 'Erro ao salvar informações.');
             }
