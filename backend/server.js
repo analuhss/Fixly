@@ -35,6 +35,7 @@ app.use(express.json());  // Faz o servidor entender JSON - Middleware
 // (Função que participa do processamento de requisições antes que elas 
 // cheguem à rota responsàvel por responder)
 
+
 // ==================================
 //       ROTAS DE PÁGINAS (GET)
 // ==================================
