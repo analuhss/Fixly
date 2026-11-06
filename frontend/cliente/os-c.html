@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solicitar OS</title>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Solicitar OS</title>
+        
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+        
+        <!-- Logo -->
+        <link rel="stylesheet" href="../css/os-c.css">
+        <link rel="icon" type="image/svg+xml" href="../files/svg/ícone.svg">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Logo -->
-    <link rel="stylesheet" href="../css/os-c.css">
-    <link rel="icon" type="image/svg+xml" href="../files/svg/ícone.svg">
-</head>
+        <!-- Link com o Java -->
+        <script src="../js/ordens-c.js" defer></script>
+        <script src="../js/home-c.js"></script>
+        
+    </head>
 <body>
 
     <!-- Navegação -->
@@ -37,7 +42,7 @@
 
     <!-- Cadastro -->
     <main>
-        <form id="formSolicitacao" class="solicitacao">
+        <form id="formOs-c" class="solicitacao">
             <div class="cartao">
                 <h1>Solicitar OS</h1>
                 <p class="subtitulo">Conte o que aconteceu com o seu equipamento para abrir o pedido.</p>
@@ -46,7 +51,7 @@
                      No app de verdade ele não existe, o número vem do login do cliente. -->
                 <div class="campo" id="grupoId" hidden>
                     <label for="clienteId">Seu número de identificação <span class="obrig" aria-hidden="true">*</span></label>
-                    <input type="text" id="clienteId" name="clienteId" placeholder="Número de identificação" required>
+                    <input type="text" id="clienteId" name="clienteId" placeholder="Número de identificação">
                 </div>
 
                 <h2>Seus dados</h2>
@@ -99,7 +104,6 @@
         </form>
     </main>
 
-    <script src=""></script>
 
 </body>
 </html>

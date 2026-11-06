@@ -18,6 +18,9 @@ const express = require('express');             // biblioteca para criar o servi
 
 const db = require('../database/db.js');
 
+const cors = require('cors');
+
+const session = require('express-session');
 
 // PARTE 2: Criar o Servidor e abrir o banco
 const PORT = process.env.PORT || 3000;          // Essa linha define a porta em que o servidor será executado, 
@@ -34,6 +37,22 @@ app.use('/files', express.static(path.join(__dirname, '../../files')));
 app.use(express.json());  // Faz o servidor entender JSON - Middleware 
 // (Função que participa do processamento de requisições antes que elas 
 // cheguem à rota responsàvel por responder)
+
+app.use(cors({
+    origin: true, 
+    credentials: true
+}));
+
+// 2. Configuração da sessão
+app.use(session({
+    secret: 'sua_chave_secreta',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { 
+        secure: false,
+        httpOnly: true
+    }
+}));
 
 
 // ==================================
@@ -107,8 +126,29 @@ app.post('/api/usuarios', (req, res) => {
             return res.status(500).json({ mensagem: 'Erro interno no servidor ao salvar login' });
         }
         
-        // Retorna o idCliente criado automaticamente pelo banco de dados
-        return res.status(201).json({ mensagem: 'Login criado com sucesso!', id: this.lastID });
+        // 1. Pega o ID gerado automaticamente
+        const novoIdCliente = this.lastID;
+
+        // 2. Criamos a sessão imediatamente após cadastrar
+        req.session.usuario = {
+            id: novoIdCliente,
+            email: email,
+            tipo: 'cliente'
+        };
+
+        // 3. Forçamos a gravação explícita da sessão antes de responder
+        req.session.save((err) => {
+            if (err) {
+                console.error('Erro ao salvar sessão:', err);
+                return res.status(500).json({ mensagem: 'Erro ao criar sessão após cadastro.' });
+            }
+
+            // 4. Retorna a resposta de sucesso com a sessão criada
+            return res.status(201).json({ 
+                mensagem: 'Login criado com sucesso!', 
+                id: novoIdCliente 
+            });
+        });
     });
 });
 
@@ -148,50 +188,80 @@ app.put('/api/usuarios/finalizar-cadastro', (req, res) => {
 //               LOGIN
 // =====================================
 
-app.post('/api/login', (req, res) => { 
+app.post('/api/login', (req, res) => {
     const { email, senha } = req.body;
+
+    const sql = `SELECT * FROM login WHERE email = ?`;
     
-    // Busca o usuário pelo e-mail informado
-    const sql = 'SELECT * FROM usuarios WHERE email = ?';
-    
-    db.get(sql, [email], (erro, usuario) => {
-        if (erro) {
-            console.error('Erro ao consultar o banco:', erro.message);
-            return res.status(500).json({ mensagem: 'Erro interno no servidor' });
+    db.get(sql, [email], (err, usuarioDoBanco) => {
+        if (err || !usuarioDoBanco) {
+            return res.status(401).json({ mensagem: 'E-mail ou senha incorretos.' });
         }
-        
-        // Se não existir usuário 
-        if (!usuario) { 
-            return res.status(401).json({ mensagem: 'Usuário não encontrado' });
+
+        if (usuarioDoBanco.senha !== senha) {
+            return res.status(401).json({ mensagem: 'E-mail ou senha incorretos.' });
         }
-        
-        // Verifica se a senha está correta
-        if (usuario.senha !== senha) {
-            return res.status(401).json({ mensagem: 'Senha incorreta' });
-        } 
-        
-        // Retorna o sucesso do Login
-        return res.status(200).json({
-            mensagem: 'Login autorizado!',
-            id: usuario.idCliente,
-            tipo: usuario.tipo,
-            cadastroCompleto: usuario.cadastro_completo // Retorna 0 se for 
-            // recém-criado, ou 1 se já finalizou
+
+        // Salva a sessão com o tipo do usuário
+        req.session.usuario = {
+            id: usuarioDoBanco.idCliente || usuarioDoBanco.id,
+            email: usuarioDoBanco.email,
+            tipo: usuarioDoBanco.tipo || 'cliente'
+        };
+
+        req.session.save((err) => {
+            if (err) {
+                return res.status(500).json({ mensagem: 'Erro ao salvar sessão.' });
+            }
+
+            // IMPORTANTE: Devolva a propriedade 'tipo' no JSON!
+            return res.json({ 
+                mensagem: 'Login realizado com sucesso!',
+                tipo: usuarioDoBanco.tipo || 'cliente'
+            });
         });
     });
 });
-
-
 // ===================================
 //      CADASTRO DE OS - CLIENTE
 // ===================================
 
 app.post('/api/ordens', (req, res) => {
 
+    // 1. Recebe os dados do formulário do frontend
+    const { equipamento, marca, perifericos, descricao } = req.body;
+
+    // 2. Pega o ID do cliente que está logado na sessão atual
+    if (!req.session || !req.session.usuario) {
+        return res.status(401).json({ message: 'Usuário não autenticado.' });
+    }
+    const idCliente = req.session.usuario.id;
+
+    // 3. Pega a data e hora do momento da criação
+    const dataAtual = new Date();
+    const abertura = dataAtual.toLocaleDateString('pt-BR');
+    const hora = dataAtual.toLocaleTimeString('pt-BR');
+
+    // 4. Insere na sua tabela 'os'
+    // O 'processo' inicia como 'Pendente' e o 'idTecnico' fica vazio (NULL)
+    const sql = `
+        INSERT INTO os (
+            abertura, hora, equipamento, marca, perifericos, descricao, processo, idCliente
+        ) VALUES (?, ?, ?, ?, ?, ?, 'Pendente', ?)
+    `;
     
-
-})
-
+    db.run(sql, [abertura, hora, equipamento, marca, perifericos, descricao, idCliente], function(err) {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'Erro ao abrir chamado no banco de dados.' });
+        }
+        
+        return res.status(201).json({ 
+            message: 'Ordem de serviço aberta com sucesso!',
+            idChamado: this.lastID // Retorna o idChamado gerado[cite: 13]
+        });
+    });
+});
 
 // ======================================================
 //      FUNÇÃO PARA CRIAR A SENHA DE ADMINISTRADOR
