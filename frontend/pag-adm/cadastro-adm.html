@@ -14,7 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- CSS -->
-  <link rel="stylesheet" href="../css/cadastroP.css">
+  <link rel="stylesheet" href="../css/css-adm/cadastroP.css">
 
   <!-- ÍCONE -->
    <link rel="icon" type="image/svg+xml" href="../files/svg/ícone.svg">
@@ -25,20 +25,23 @@
 
 
   <header>
-    <a class="logo" href="/">
+    <a class="logo" href="/home-adm">
         <img src="../files/svg/fixly.svg" alt="Logo do fixly" class="logoF">
     </a>
     <nav>
-      <a href="/" class="on">INÍCIO</a><a href="/criar-os">ORDENS</a><a href="/conversa-c">CONVERSAS</a>
+      <a href="/home-adm" >INÍCIO</a>
+      <a href="/criar-os">ORDENS</a>
+      <a href="/conversa-c">CONVERSAS</a>
+      <a href="/cadastros-adm" class="on" >CADASTROS</a>
     </nav>
 
     <!-- Decidimos manter a estrutura de SVG, para nas próximas entregas ele mude de acordo com o avatr do usuário -->
-    <div class="avatar"><svg viewBox="0 0 24 24">
-        <circle cx="12" cy="8" r="4.5" />
-        <path d="M3 21c0-4.5 4-7 9-7s9 2.5 9 7z" />
-      </svg>
-    </div>
-
+    
+    <a href="/perfil-adm" class="avatar" aria-label="Meu perfil">
+    <img id="topbar-avatar-img" src="" alt="Foto de perfil" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+    <svg id="topbar-avatar-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5Z"/></svg>
+    </a>
+    
   </header>
 
 
@@ -193,7 +196,7 @@
 
       <div class="actions">
         <button type="reset" class="ghost">Limpar</button>
-        <button type="submit" class="primary">Cadastrar-se</button>
+        <button type="submit" class="primary">Cadastrar</button>
       </div>
 
     </form>

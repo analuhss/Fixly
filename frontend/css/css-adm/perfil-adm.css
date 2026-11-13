@@ -277,3 +277,50 @@ svg { fill: currentColor; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+/* Botão de Excluir Conta (Vermelho vivo) */
+.btn--danger {
+  color: #ff4d4d;
+  border-color: #ff4d4d;
+}
+.btn--danger:hover {
+  background: #ff4d4d;
+  color: #fff;
+  border-color: #ff4d4d;
+}
+
+/* Botão de Sair da Conta (Vermelho mais escuro/suave) */
+.btn--logout {
+  color: #4474cc;
+  border-color: #4474cc;
+}
+.btn--logout:hover {
+  background: #4474cc;
+  color: #fff;
+  border-color: #4474cc;
+}
+.btn {
+  /* --- ADICIONE ESTAS 3 LINHAS --- */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* Espaço entre o ícone e o texto */
+  
+  /* Seu CSS existente: */
+  flex: 1 1 180px;
+  height: 48px;
+  padding: 0 24px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background .2s, border-color .2s, opacity .2s;
+}
+
+/* --- ADICIONE ESTA NOVA REGRA PARA O TAMANHO DO ÍCONE --- */
+.btn svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}

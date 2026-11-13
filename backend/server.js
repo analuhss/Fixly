@@ -1,20 +1,14 @@
 
-// ==========================================================
-//                        IMPORTANTE:
-// A competência de DELETE será entregue na próxima sprint
-// ==========================================================
-
 //=======================================
 //   Server.js - BACK-END COMPLETO
 //=======================================
 
-
-const path = require('path');                   // ajuda a montar caminhos de pastas
+const path = require('path');            // -->  ajuda a montar caminhos de pastas
 
 // Importar o dotenv LOGO NO INÍCIO para garantir que o processo leia as variáveis de ambiente antes de tudo
 require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
-const express = require('express');             // biblioteca para criar o servidor
+const express = require('express');      // --> biblioteca para criar o servidor
 
 const fs = require('fs');
 
@@ -22,40 +16,36 @@ const db = require('../database/db.js');
 
 const cors = require('cors');
 
-const session = require('express-session');
+const session = require('express-session');            // --> importa as variáveis
 
-// No topo absoluto do seu server.js
-require('dotenv').config();
+const PORT = process.env.PORT || 3000;   // --> Essa linha define a porta em que o servidor será executado, 
+                                         // se não estiver definido, o programaa utilizará 3000
 
-// PARTE 2: Criar o Servidor e abrir o banco
-const PORT = process.env.PORT || 3000;          // Essa linha define a porta em que o servidor será executado, 
-// se não estiver definido, o progra,a utilizará 3000
+const app = express();                   // --> cria o servidor 
 
-const app = express();                          // cria o servidor 
+app.use(express.static(path.resolve(__dirname, '..', 'frontend'))); // --> Servir os dados para do frontend
 
-// Servir os dados para do frontend
-app.use(express.static(path.resolve(__dirname, '..', 'frontend')));
-
-// Rastrear dados de imagem e svg
-app.use('/files', express.static(path.join(__dirname, '../../files')));
+app.use('/files', express.static(path.join(__dirname, '../../files'))); // Rastrear dados de imagem e svg
 
 app.use(express.json());  // Faz o servidor entender JSON - Middleware 
-// (Função que participa do processamento de requisições antes que elas 
-// cheguem à rota responsàvel por responder)
+                          // (Função que participa do processamento de requisições antes que elas 
+                          // cheguem à rota responsàvel por responder)
 
+//Essa parte do nosso código permite que o frontend como live-server
+//envie cookies de autenticação
 app.use(cors({
     origin: true, 
     credentials: true
 }));
 
-// 2. Configuração da sessão
+//Cria e gerencia a sessão (memória de login) do usuário no servidor
 app.use(session({
-    secret: 'sua_chave_secreta',
-    resave: false,
-    saveUninitialized: false,
+    secret: 'sua_chave_secreta', // --> Chave para criptografar e proteger
+    resave: false,               // --> Ecita salvar sessões sem alterações
+    saveUninitialized: false,    // --> Não salva visitantes que ainda nao fizeram login
     cookie: { 
-        secure: false,
-        httpOnly: true
+        secure: false,           // --> 'false' porque estamos usando localhost
+        httpOnly: true           // --> Medida de segurança cotra roubo de sessão via JS
     }
 }));
 
@@ -64,65 +54,78 @@ app.use(session({
 //       ROTAS DE PÁGINAS (GET)
 // ==================================
 
+// ================= PÁGINAS INICIAIS
+
     // ROTA PARA CONFIGURAR A TELA PRINCIPAL DO INDEX
 app.get('/', (req, res) => {
     res.sendFile(path.resolve(__dirname, '..', 'frontend', 'pag-ini', 'index.html'));
 });
 
     // ROTA PARA A PÁGINA DE CRIAR CONTA
-app.get('/criar-conta', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/pag-ini/criarConta.html'));
-});
+    app.get('/criar-conta', (req, res) => {
+        res.sendFile(path.join(__dirname, '../frontend/pag-ini/criarConta.html'));
+    });
+    
+    // ROTA PARA API - TELA DE FINALIZAÇÃO DE CADASTRO
+    app.get('/cadastro', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/pag-cliente/cadastro-c.html'));
+    });
+    
+// ======================= PÁGINAS CLIENTES
 
     // ROTA PARA HOME - CLIENTE
 app.get('/home-c', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/cliente/homeC.html'));
-});
-
-    // ROTA PARA HOME - PROFISSIONAIS
-app.get('/home-pro', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/profissionais/home.html'));
-});
-
-    // ROTA PARA HOME - ADM
-app.get('/home-adm', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/adm/home-adm.html'));
-});
-
-    // ROTA PARA API - TELA DE FINALIZAÇÃO DE CADASTRO
-app.get('/cadastro', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/cliente/cadastro.html'));
+    res.sendFile(path.join(__dirname, '../frontend/pag-cliente/home-c.html'));
 });
 
 // ROTA PARA PÁGINA DE PERFIL - CLIENTE 
 app.get('/perfil-c', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/cliente/perfil.html'));
+    res.sendFile(path.join(__dirname, '../frontend/pag-cliente/perfil-c.html'));
 });
 
 // ROTA PRA CONVERSA - CLIENTE
 app.get('/conversa-c', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/cliente/conversa.html'));
+    res.sendFile(path.join(__dirname, '../frontend/pag-cliente/conversa-c.html'));
 });
 
 // ROTA PARA CADASTRO DE OS - CLIENTE
 app.get('/os-c', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/cliente/os-c.html'));
+    res.sendFile(path.join(__dirname, '../frontend/pag-cliente/os-c.html'));
 });
 
 // ROTA PARA ORDENS - CLIENTE
 app.get('/ordens-c', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/cliente/ordensC.html'));
+    res.sendFile(path.join(__dirname, '../frontend/pag-cliente/ordens-c.html'));
 
 });
 
-// ROTA PARA CLIENTE - ORDENS
-app.get('/home-c', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/cliente/homeC.html'));
+// ========================= PÁGINAS PROFISSIONAIS
+
+    // ROTA PARA HOME - PROFISSIONAIS
+app.get('/home-pro', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/home-p.html'));
 });
+
+// ============================== PÁGINAS ADM
 
 // ROTA PARA HOME - ADM (DASHBOARD)
 app.get('/home-adm', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/adm/home-adm.html'));
+    res.sendFile(path.join(__dirname, '../frontend/pag-adm/home-adm.html'));
+});
+
+// ROTA PARA ORDENS - ADM
+app.get('/ordens-adm', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/pag-adm/ordens-adm.html'));
+});
+
+// ROTA PARA CONVERSAS - ADM
+app.get('/conversas-adm', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/pag-adm/conversas-adm.html'));
+});
+
+// ROTA PARA PERFIL - ADM
+app.get('/perfil-adm', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/pag-adm/perfil-adm.html'));
 });
 
 // =====================================
@@ -130,7 +133,6 @@ app.get('/home-adm', (req, res) => {
 // =====================================
 
 // Aqui ós usamos ele para que esas informações sejam colocadas no nosso banco de dados
-
 app.post('/api/usuarios', (req, res) => {
     const { email, senha } = req.body; 
     
@@ -173,35 +175,31 @@ app.post('/api/usuarios', (req, res) => {
 // =====================================
 
 app.put('/api/usuarios/finalizar-cadastro', (req, res) => {
-
-    // LOG PARA DIAGNÓSTICO:
-    console.log('Sessão atual em finalizar-cadastro:', req.session);
-
-    // 1. Verifica se o usuário tem sessão ativa
+    // 1. Verifica sessão
     if (!req.session || !req.session.usuario) {
         return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
     }
 
-    const idCliente = req.session.usuario.id;
+    // Pega o ID que está salvo na sessão (veja como ele foi salvo no /api/login)
+    const idCliente = req.session.usuario.id; 
     const { nome, dataNascimento, cpf, cep, endereco, telefone } = req.body;
 
-    // 2. Atualiza a tabela 'login' ou 'cliente' usando o idCliente da sessão
+    // 2. Insere na tabela 'usuarios' vinculando com o idCliente da tabela 'login'
     const sql = `
-        UPDATE usuarios
-        SET nome = ?, dataNascimento = ?, cpf = ?, cep = ?, endereco = ?, telefone = ?
-        WHERE idClient = ?
+        INSERT OR REPLACE INTO usuarios 
+        (idCliente, nome, dataNascimento, cpf, cep, endereco, telefone, cadastro_completo) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, 1)
     `;
 
-    db.run(sql, [nome, dataNascimento, cpf, cep, endereco, telefone, idCliente], function(erro) {
+    db.run(sql, [idCliente, nome, dataNascimento, cpf, cep, endereco, telefone], function(erro) {
         if (erro) {
-            console.error('Erro ao atualizar cadastro no SQLite:', erro.message);
+            console.error('Erro fatal ao inserir na tabela usuarios:', erro.message);
             return res.status(500).json({ mensagem: 'Erro ao salvar informações no banco de dados.' });
         }
 
         return res.json({ mensagem: 'Cadastro finalizado com sucesso!' });
     });
 });
-
 
 // =====================================
 //               LOGIN
@@ -286,7 +284,135 @@ app.post('/api/ordens', (req, res) => {
 //     BUSCAR OS DADOS DO CLIENTE LOGADO
 // ============================================
 
+// 1. BUSCAR DADOS DO PERFIL LOGADO
+app.get('/api/perfil', (req, res) => {
+    if (!req.session || !req.session.usuario) {
+        return res.status(401).json({ mensagem: 'Não autorizado.' });
+    }
+    const idCliente = req.session.usuario.id;
 
+    const sql = `
+    SELECT l.email, u.nome, u.cpf 
+    FROM login l 
+    LEFT JOIN usuarios u ON l.idCliente = u.idCliente 
+    WHERE l.idCliente = ?
+`;
+
+    db.get(sql, [idCliente], (err, row) => {
+        if (err) return res.status(500).json({ mensagem: 'Erro ao buscar perfil.' });
+        res.json(row || {});
+    });
+});
+
+// 2. ATUALIZAR DADOS E FOTO
+app.put('/api/perfil', (req, res) => {
+    if (!req.session || !req.session.usuario) {
+        return res.status(401).json({ mensagem: 'Não autorizado.' });
+    }
+    const idCliente = req.session.usuario.id;
+    const { nome, cpf, email, foto } = req.body;
+
+    db.serialize(() => {
+        // Atualiza o email na tabela login
+        db.run('UPDATE login SET email = ? WHERE idCliente = ?', [email, idCliente], (err) => {
+            if (err) return res.status(500).json({ mensagem: 'E-mail já está em uso ou erro no servidor.' });
+
+            // Atualiza ou insere os dados na tabela usuarios
+            const sqlUser = `
+                INSERT INTO usuarios (idCliente, nome, cpf, email, foto) 
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(idCliente) DO UPDATE SET 
+                nome = excluded.nome, 
+                cpf = excluded.cpf, 
+                email = excluded.email,
+                foto = COALESCE(excluded.foto, usuarios.foto)
+            `;
+            db.run(sqlUser, [idCliente, nome, cpf, email, foto || null], (errUser) => {
+                if (errUser) return res.status(500).json({ mensagem: 'Erro ao atualizar dados.' });
+                res.json({ mensagem: 'Perfil atualizado com sucesso!' });
+            });
+        });
+    });
+});
+
+// 3. ALTERAR SENHA
+app.put('/api/perfil/senha', (req, res) => {
+    if (!req.session || !req.session.usuario) {
+        return res.status(401).json({ mensagem: 'Não autorizado.' });
+    }
+    const idCliente = req.session.usuario.id;
+    const { senhaAtual, novaSenha } = req.body;
+
+    db.get('SELECT senha FROM login WHERE idCliente = ?', [idCliente], (err, row) => {
+        if (err || !row) return res.status(500).json({ mensagem: 'Erro no servidor.' });
+        if (row.senha !== senhaAtual) return res.status(400).json({ mensagem: 'Senha atual incorreta.' });
+
+        db.run('UPDATE login SET senha = ? WHERE idCliente = ?', [novaSenha, idCliente], (errUpdate) => {
+            if (errUpdate) return res.status(500).json({ mensagem: 'Erro ao atualizar senha.' });
+            res.json({ mensagem: 'Senha alterada com sucesso!' });
+        });
+    });
+});
+
+// 4. EXCLUIR CONTA
+app.delete('/api/perfil', (req, res) => {
+    if (!req.session || !req.session.usuario) {
+        return res.status(401).json({ mensagem: 'Não autorizado.' });
+    }
+    const idCliente = req.session.usuario.id;
+
+    db.serialize(() => {
+        db.run('DELETE FROM usuarios WHERE idCliente = ?', [idCliente]);
+        db.run('DELETE FROM login WHERE idCliente = ?', [idCliente], (err) => {
+            if (err) return res.status(500).json({ mensagem: 'Erro ao excluir conta.' });
+            req.session.destroy();
+            res.json({ mensagem: 'Conta excluída permanentemente.' });
+        });
+    });
+});
+
+// 5. SAIR DA SESSÃO (LOGOUT)
+app.post('/api/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) return res.status(500).json({ mensagem: 'Erro ao sair.' });
+        res.clearCookie('connect.sid');
+        res.json({ mensagem: 'Sessão encerrada.' });
+    });
+});
+
+// =======================
+//      APAGAR CONTA
+// =======================
+
+app.delete('/api/perfil', (req, res) => {
+    if (!req.session || !req.session.usuario) {
+        return res.status(401).json({ mensagem: 'Não autorizado.' });
+    }
+    const idCliente = req.session.usuario.id;
+
+    db.serialize(() => {
+        // 1. Apaga os chamados/ordens de serviço desse cliente
+        db.run('DELETE FROM os WHERE idCliente = ?', [idCliente]);
+        
+        // 2. Apaga os dados pessoais na tabela usuarios
+        db.run('DELETE FROM usuarios WHERE idCliente = ?', [idCliente]);
+        
+        // 3. Apaga as credenciais de acesso na tabela login
+        db.run('DELETE FROM login WHERE idCliente = ?', [idCliente], (err) => {
+            if (err) {
+                console.error('Erro ao excluir conta:', err.message);
+                return res.status(500).json({ mensagem: 'Erro ao excluir conta do banco de dados.' });
+            }
+
+            conta
+            
+            // 4. Destrói a sessão e limpa o cookie do navegador
+            req.session.destroy();
+            res.clearCookie('connect.sid');
+            res.json({ mensagem: 'Conta e todos os dados vinculados foram excluídos permanentemente.' });
+        });
+    });
+});
 
 // ======================================================
 //      FUNÇÃO PARA CRIAR A SENHA DE ADMINISTRADOR

@@ -1,57 +1,145 @@
-const express = require('express');
-const router = express.Router(); 
+document.addEventListener('DOMContentLoaded', async () => {
+    const formPerfil = document.getElementById('perfil-form');
+    const btnSalvar = document.getElementById('salvar');
+    const inputFoto = document.getElementById('input-foto');
+    const avatarImg = document.getElementById('avatar-img');
+    const avatarSvg = document.getElementById('avatar-svg');
+    const identityName = document.querySelector('.identity__name');
 
-const db = require('../database/db.js');
+    let fotoBase64 = null;
 
-
-
-router.get('/api/perfil', async (req, res) => {
+    // 1. CARREGAR DADOS AO ABRIR A PÁGINA
     try {
-        const user = await User.findById(req.idCliente);
-        res.json({ nome: user.nome, cpf: user.cpf, email: user.email });
-    } catch (error) {
-        res.status(500).json({ erro: 'Erro ao buscar perfil' });
-    }
-});
+        const res = await fetch('/api/perfil', { credentials: 'include' });
+        if (res.status === 401) {
+            window.location.href = '/login'; // Ajuste para a sua rota de login se necessário
+            return;
+        }
+        const dados = await res.json();
 
-router.put('/api/perfil', async (req, res) => {
-    try {
-        const { nome, cpf, email } = req.body;
-        // CORREÇÃO: Sintaxe do where ajustada para apontar a coluna "id"
-        await User.update({ nome, cpf, email }, { where: { id: req.idCliente } });
-        
-        // CORREÇÃO: Adicionada a resposta de sucesso para a requisição não travar
-        res.json({ mensagem: 'Perfil atualizado com sucesso' });
-    } catch (error) {
-        res.status(500).json({ erro: 'Erro ao atualizar perfil '});
-    }
-});
+        document.getElementById('nome').value = dados.nome || '';
+        document.getElementById('cpf').value = dados.cpf || '';
+        document.getElementById('email').value = dados.email || '';
+        identityName.textContent = dados.nome || 'Administrador';
 
-// ALTERAR SENHA
-// CORREÇÃO: Adicionada a "/" no início da rota e o bloco catch
-router.put('/api/perfil/senha', async (req, res) => {
-    try {
-        const { senhaAtual, novaSenha } = req.body;
-        
-        // AQUI ENTRA A LÓGICA DE BCRYPT
-        // 1. const user = await User.findById(req.idCliente)
-        // 2. const senhaValida = await bcrypt.compare(senhaAtual, user.senha)
-        // 3. const hashNovaSenha = await bcrypt.hash(novaSenha, 10)
-        // 4. await User.update({ senha: hashNovaSenha }, { where: { id: req.idCliente } })
-        
-        res.json({ mensagem: 'Senha alterada com sucesso' });
-    } catch (error) {
-        res.status(500).json({ erro: 'Erro ao alterar a senha' });
+        if (dados.foto) {
+            avatarImg.src = dados.foto;
+            avatarImg.style.display = 'block';
+            avatarSvg.style.display = 'none';
+        }
+    } catch (erro) {
+        console.error('Erro ao carregar perfil:', erro);
     }
-});
 
-router.delete('/api/perfil', async (req, res) => {
-    try {
-        await User.destroy({ where: { id: req.idCliente } });
-        res.json({ mensagem: 'Conta excluída' });
-    } catch (error) {
-        res.status(500).json({ erro: 'Erro ao excluir conta' });
-    }
-});
+    // 2. DESBLOQUEAR CAMPOS AO CLICAR NO ÍCONE DE LÁPIS
+    document.querySelectorAll('.input__edit').forEach(botao => {
+        botao.addEventListener('click', () => {
+            const input = document.getElementById(botao.dataset.target);
+            input.removeAttribute('readonly');
+            input.focus();
+            btnSalvar.disabled = false;
+        });
+    });
 
-module.exports = router; // Agora "router" existe
+    // 3. SELECIONAR E PRÉ-VISUALIZAR NOVA FOTO
+    document.getElementById('btn-alterar-foto').addEventListener('click', () => {
+        inputFoto.click();
+    });
+
+    inputFoto.addEventListener('change', (e) => {
+        const arquivo = e.target.files[0];
+        if (!arquivo) return;
+
+        const leitor = new FileReader();
+        leitor.onload = (evento) => {
+            fotoBase64 = evento.target.result;
+            avatarImg.src = fotoBase64;
+            avatarImg.style.display = 'block';
+            avatarSvg.style.display = 'none';
+            btnSalvar.disabled = false;
+        };
+        leitor.readAsDataURL(arquivo);
+    });
+
+    // 4. SALVAR ALTERAÇÕES (DADOS + FOTO)
+    formPerfil.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nome = document.getElementById('nome').value.trim();
+        const cpf = document.getElementById('cpf').value.trim();
+        const email = document.getElementById('email').value.trim();
+
+        const res = await fetch('/api/perfil', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ nome, cpf, email, foto: fotoBase64 })
+        });
+
+        const resultado = await res.json();
+        alert(resultado.mensagem);
+
+        if (res.ok) {
+            identityName.textContent = nome || 'Usuário';
+            document.querySelectorAll('.input input').forEach(inp => inp.setAttribute('readonly', true));
+            btnSalvar.disabled = true;
+            fotoBase64 = null; // Limpa o buffer após salvar
+        }
+    });
+
+    // 5. MODAL DE ALTERAR SENHA
+    const modalSenha = document.getElementById('modal-senha');
+    document.getElementById('btn-abrir-senha').addEventListener('click', () => modalSenha.showModal());
+    document.getElementById('btn-fechar-modal').addEventListener('click', () => modalSenha.close());
+
+    document.getElementById('form-senha').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const senhaAtual = document.getElementById('senha-atual').value;
+        const novaSenha = document.getElementById('nova-senha').value;
+
+        const res = await fetch('/api/perfil/senha', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ senhaAtual, novaSenha })
+        });
+
+        const resultado = await res.json();
+        alert(resultado.mensagem);
+
+        if (res.ok) {
+            modalSenha.close();
+            e.target.reset();
+        }
+    });
+
+    // 6. EXCLUIR CONTA
+    document.getElementById('btn-excluir').addEventListener('click', async () => {
+        if (!confirm('Tem certeza que deseja excluir sua conta permanentemente? Esta ação não pode ser desfeita.')) {
+            return;
+        }
+
+        const res = await fetch('/api/perfil', {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+
+        const resultado = await res.json();
+        alert(resultado.mensagem);
+
+        if (res.ok) {
+            window.location.href = '/';
+        }
+    });
+
+    // 7. SAIR DA SESSÃO
+    document.getElementById('btn-sair').addEventListener('click', async () => {
+        const res = await fetch('/api/logout', {
+            method: 'POST',
+            credentials: 'include'
+        });
+
+        if (res.ok) {
+            window.location.href = '/';
+        }
+    });
+});

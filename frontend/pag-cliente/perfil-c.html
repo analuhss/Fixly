@@ -3,9 +3,7 @@
 <head>
 
   <meta charset="UTF-8">
-
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <title>Perfil</title>
 
   <!-- FONTES -->
@@ -14,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- CSS -->
-  <link rel="stylesheet" href="../css/perfil.css">
+  <link rel="stylesheet" href="../css/css-cliente/perfil.css">
 
   <!-- ICONE -->
   <link rel="icon" type="image/svg+xml" href="../files/svg/ícone.svg">
@@ -30,9 +28,10 @@
       <img src="../files/svg/fixly.svg" alt="Fixly" height="32">
     </a>
     <nav class="topbar__nav" aria-label="Principal">
-      <a href="home-c">Início</a>
+      <a href="/home-c">Início</a>
       <a href="/ordens-c">Ordens</a>
       <a href="/conversa-c">Conversas</a>
+
     </nav>
     <a href="/perfil-c" class="topbar__avatar is-active" aria-label="Meu perfil" aria-current="page">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5Z"/></svg>
@@ -48,8 +47,17 @@
 
       <aside class="card card--identity">
         <div class="avatar">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5Z"/></svg>
-          <button type="button" class="avatar__edit" aria-label="Alterar foto">
+          <!-- 1. ADICIONADO: Tag img para exibir a foto carregada ou selecionada -->
+          <img id="avatar-img" src="" alt="Foto de perfil" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+          
+          <!-- 2. ALTERADO: Adicionado id="avatar-svg" para esconder o ícone quando houver foto -->
+          <svg id="avatar-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5Z"/></svg>
+          
+          <!-- 3. ADICIONADO: Input de arquivo oculto -->
+          <input type="file" id="input-foto" accept="image/*" hidden>
+          
+          <!-- 4. ALTERADO: Adicionado id="btn-alterar-foto" -->
+          <button type="button" class="avatar__edit" id="btn-alterar-foto" aria-label="Alterar foto">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h3l1.5-2h7L17 7h3v12H4V7Zm8 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/></svg>
           </button>
         </div>
@@ -94,10 +102,20 @@
             </div>
           </div>
 
+          <!-- 5. ALTERADO: Adicionados os IDs nos botões de ação -->
           <div class="actions">
             <button type="submit" class="btn btn--primary" id="salvar" disabled>Salvar alterações</button>
-            <button type="button" class="btn btn--ghost">Alterar senha</button>
-            <button type="button" class="btn btn--ghost">Excluir Conta</button>
+            <button type="button" class="btn btn--ghost" id="btn-abrir-senha">Alterar senha</button>
+            
+            <button type="button" class="btn btn--ghost btn--danger" id="btn-excluir">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+              Excluir Conta
+            </button>
+
+            <button type="button" class="btn btn--ghost btn--logout" id="btn-sair">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+              Sair da Conta
+            </button>
           </div>
 
         </form>
@@ -105,6 +123,25 @@
 
     </div>
   </main>
+
+  <!-- 6. ADICIONADO: Janela Modal para alteração de senha -->
+  <dialog id="modal-senha" style="background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin: auto; width: min(400px, 90%);">
+    <h3 style="margin-bottom: 20px; font-size: 18px;">Alterar Senha</h3>
+    <form id="form-senha">
+      <div class="field">
+        <label for="senha-atual">Senha Atual</label>
+        <div class="input"><input type="password" id="senha-atual" required></div>
+      </div>
+      <div class="field">
+        <label for="nova-senha">Nova Senha</label>
+        <div class="input"><input type="password" id="nova-senha" required></div>
+      </div>
+      <div class="actions" style="margin-top: 24px;">
+        <button type="button" class="btn btn--ghost" id="btn-fechar-modal">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Confirmar</button>
+      </div>
+    </form>
+  </dialog>
 
 </body>
 </html>

@@ -3,8 +3,8 @@ const formulario = document.getElementById('form-login');
 formulario.addEventListener('submit', async (event) => {
     event.preventDefault();
 
-    const email = document.getElementById('email').value;
-    const senha = document.getElementById('senha').value;
+    const email = document.getElementById('email').value.trim(); // o 'trim' serve para mandar as coisas sem espaço
+    const senha = document.getElementById('senha').value.trim();
 
     try {
         const resposta = await fetch('/api/login', {
