@@ -477,8 +477,9 @@ app.get('/api/ordens/cliente', (req, res) => {
 
     const idCliente = req.session.usuario.idCliente || req.session.usuario.id;
 
-    db.all('SELECT * FROM ordens WHERE idCliente = ? ORDER BY id DESC', [idCliente], (err, rows) => {
+    db.all('SELECT rowid AS id, * FROM os WHERE idCliente = ? ORDER BY rowid DESC', [idCliente], (err, rows) => {
         if (err) {
+            console.error('[ERRO SQL ORDENS]:', err.message);
             return res.status(500).json({ mensagem: 'Erro ao buscar ordens.' });
         }
         res.json(rows || []);

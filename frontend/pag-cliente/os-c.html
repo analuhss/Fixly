@@ -16,6 +16,105 @@
         <!-- Link com o Java -->
         <script src="../js/ordens-c.js" defer></script>
     </head>
+    <style>
+    /* Fundo escuro do modal */
+    .modal-os-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.78);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        z-index: 9999;
+    }
+
+    .modal-os-overlay.aberto {
+        display: flex;
+    }
+
+    /* Caixa do modal */
+    .modal-os-box {
+        background: #1a1a1d;
+        border: 1px solid #333338;
+        border-top: 6px solid #f5c542;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 500px;
+        padding: 24px;
+        color: #ffffff;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+        animation: surgirModal 0.2s ease;
+    }
+
+    @keyframes surgirModal {
+        from { opacity: 0; transform: translateY(12px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-os-topo {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #2e2e33;
+        padding-bottom: 14px;
+        margin-bottom: 18px;
+    }
+
+    .modal-os-topo h2 {
+        margin: 0;
+        font-size: 1.35rem;
+        color: #f5c542;
+    }
+
+    .modal-os-fechar {
+        background: transparent;
+        border: none;
+        color: #a1a1aa;
+        font-size: 1.6rem;
+        cursor: pointer;
+        line-height: 1;
+    }
+
+    .modal-os-fechar:hover {
+        color: #ffffff;
+    }
+
+    .modal-os-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 16px;
+    }
+
+    .modal-os-campo {
+        background: #242429;
+        padding: 12px 14px;
+        border-radius: 10px;
+    }
+
+    .modal-os-campo.full {
+        grid-column: 1 / -1;
+    }
+
+    .modal-os-campo span {
+        display: block;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #a1a1aa;
+        margin-bottom: 4px;
+    }
+
+    .modal-os-campo p {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #f4f4f5;
+        word-break: break-word;
+    }
+</style>
+
 <body>
 
     <!-- Navegação -->
