@@ -49,6 +49,7 @@ app.use(session({
     }
 }));
 
+app.use(express.json({ limit: '5mb' }));
 
 // ==================================
 //       ROTAS DE PÁGINAS (GET)
@@ -284,133 +285,184 @@ app.post('/api/ordens', (req, res) => {
 //     BUSCAR OS DADOS DO CLIENTE LOGADO
 // ============================================
 
-// 1. BUSCAR DADOS DO PERFIL LOGADO
+// 1. BUSCAR DADOS DO PERFIL
 app.get('/api/perfil', (req, res) => {
     if (!req.session || !req.session.usuario) {
-        return res.status(401).json({ mensagem: 'Não autorizado.' });
+        return res.status(401).json({ mensagem: 'Sessão inválida. Faça login.' });
     }
-    const idCliente = req.session.usuario.id;
+
+    const idUsuario = req.session.usuario.idCliente || req.session.usuario.id;
 
     const sql = `
-    SELECT l.email, u.nome, u.cpf 
-    FROM login l 
-    LEFT JOIN usuarios u ON l.idCliente = u.idCliente 
-    WHERE l.idCliente = ?
-`;
+        SELECT l.email, u.nome, u.cpf, u.foto 
+        FROM login l 
+        LEFT JOIN usuarios u ON l.idCliente = u.idCliente 
+        WHERE l.idCliente = ?
+    `;
 
-    db.get(sql, [idCliente], (err, row) => {
-        if (err) return res.status(500).json({ mensagem: 'Erro ao buscar perfil.' });
+    db.get(sql, [idUsuario], (err, row) => {
+        if (err) {
+            console.error('Erro SQL:', err.message);
+            return res.status(500).json({ mensagem: 'Erro ao buscar perfil.' });
+        }
         res.json(row || {});
     });
 });
 
-// 2. ATUALIZAR DADOS E FOTO
+// 2. ATUALIZAR DADOS E FOTO DE PERFIL
 app.put('/api/perfil', (req, res) => {
     if (!req.session || !req.session.usuario) {
         return res.status(401).json({ mensagem: 'Não autorizado.' });
     }
-    const idCliente = req.session.usuario.id;
+    
+    const idCliente = req.session.usuario.idCliente || req.session.usuario.id;
     const { nome, cpf, email, foto } = req.body;
 
     db.serialize(() => {
-        // Atualiza o email na tabela login
+        // Atualiza o e-mail na tabela de login primeiro
         db.run('UPDATE login SET email = ? WHERE idCliente = ?', [email, idCliente], (err) => {
-            if (err) return res.status(500).json({ mensagem: 'E-mail já está em uso ou erro no servidor.' });
+            if (err) return res.status(400).json({ mensagem: 'Este e-mail já está em uso.' });
 
-            // Atualiza ou insere os dados na tabela usuarios
+            // Atualiza ou insere os dados na tabela usuarios (incluindo a foto)
             const sqlUser = `
                 INSERT INTO usuarios (idCliente, nome, cpf, email, foto) 
                 VALUES (?, ?, ?, ?, ?)
                 ON CONFLICT(idCliente) DO UPDATE SET 
-                nome = excluded.nome, 
-                cpf = excluded.cpf, 
-                email = excluded.email,
-                foto = COALESCE(excluded.foto, usuarios.foto)
+                    nome = excluded.nome, 
+                    cpf = excluded.cpf, 
+                    email = excluded.email,
+                    foto = COALESCE(excluded.foto, usuarios.foto)
             `;
+
             db.run(sqlUser, [idCliente, nome, cpf, email, foto || null], (errUser) => {
-                if (errUser) return res.status(500).json({ mensagem: 'Erro ao atualizar dados.' });
+                if (errUser) return res.status(500).json({ mensagem: 'Erro ao atualizar perfil.' });
+                
+                // Atualiza o e-mail na sessão ativa
+                req.session.usuario.email = email;
                 res.json({ mensagem: 'Perfil atualizado com sucesso!' });
             });
         });
     });
 });
 
-// 3. ALTERAR SENHA
+// 3. EXCLUIR CONTA DEFINITIVAMENTE
+app.delete('/api/perfil', (req, res) => {
+    if (!req.session || !req.session.usuario) {
+        return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
+    }
+
+    const idCliente = req.session.usuario.idCliente || req.session.usuario.id;
+    console.log(`[DEBUG] Tentando excluir conta do ID: ${idCliente}`);
+
+    db.serialize(() => {
+        // 1. Apaga registros vinculados (caso o cliente tenha ordens/chamados, evita bloqueio de FOREIGN KEY)
+        db.run('DELETE FROM ordens WHERE idCliente = ?', [idCliente], (errOrdens) => {
+            if (errOrdens) console.log('Aviso ao limpar ordens (ignorado se tabela/coluna diferir):', errOrdens.message);
+        });
+
+        // 2. Apaga da tabela usuarios
+        db.run('DELETE FROM usuarios WHERE idCliente = ?', [idCliente], (errUser) => {
+            if (errUser) {
+                console.error('Erro ao deletar de usuarios:', errUser.message);
+                return res.status(500).json({ mensagem: 'Erro ao excluir dados do usuário.' });
+            }
+
+            // 3. Apaga da tabela login
+            db.run('DELETE FROM login WHERE idCliente = ?', [idCliente], function(errLogin) {
+                if (errLogin) {
+                    console.error('Erro ao deletar de login:', errLogin.message);
+                    return res.status(500).json({ mensagem: 'Erro ao excluir credenciais de login.' });
+                }
+
+                console.log(`[SUCESSO] Registros removidos da tabela login: ${this.changes}`);
+
+                if (this.changes === 0) {
+                    return res.status(404).json({ mensagem: 'Usuário não encontrado no banco para exclusão.' });
+                }
+
+                // Encerra a sessão e limpa o cookie
+                req.session.destroy(() => {
+                    res.clearCookie('connect.sid');
+                    res.json({ mensagem: 'Conta excluída permanentemente com sucesso!' });
+                });
+            });
+        });
+    });
+});
+
+// =============================
+//         ALTERAR SENHA
+// =============================
+
+// 4. ALTERAR SENHA
 app.put('/api/perfil/senha', (req, res) => {
     if (!req.session || !req.session.usuario) {
-        return res.status(401).json({ mensagem: 'Não autorizado.' });
+        return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
     }
-    const idCliente = req.session.usuario.id;
+
+    const idCliente = req.session.usuario.idCliente || req.session.usuario.id;
     const { senhaAtual, novaSenha } = req.body;
 
-    db.get('SELECT senha FROM login WHERE idCliente = ?', [idCliente], (err, row) => {
-        if (err || !row) return res.status(500).json({ mensagem: 'Erro no servidor.' });
-        if (row.senha !== senhaAtual) return res.status(400).json({ mensagem: 'Senha atual incorreta.' });
+    if (!senhaAtual || !novaSenha) {
+        return res.status(400).json({ mensagem: 'Preencha a senha atual e a nova senha.' });
+    }
 
-        db.run('UPDATE login SET senha = ? WHERE idCliente = ?', [novaSenha, idCliente], (errUpdate) => {
-            if (errUpdate) return res.status(500).json({ mensagem: 'Erro ao atualizar senha.' });
+    // Busca a senha atual salva no banco
+    db.get('SELECT senha FROM login WHERE idCliente = ?', [idCliente], async (err, row) => {
+        if (err || !row) {
+            return res.status(500).json({ mensagem: 'Erro ao verificar usuário.' });
+        }
+
+        // Verifica se a senha atual confere (suporta hash bcrypt ou texto simples)
+        let senhaValida = false;
+        if (row.senha.startsWith('$2b$') || row.senha.startsWith('$2a$')) {
+            const bcrypt = require('bcrypt');
+            senhaValida = await bcrypt.compare(senhaAtual, row.senha);
+        } else {
+            senhaValida = (senhaAtual === row.senha);
+        }
+
+        if (!senhaValida) {
+            return res.status(401).json({ mensagem: 'A senha atual está incorreta.' });
+        }
+
+        // Criptografa a nova senha se o projeto usa bcrypt, senão salva direto
+        let senhaParaSalvar = novaSenha;
+        try {
+            const bcrypt = require('bcrypt');
+            if (row.senha.startsWith('$2b$') || row.senha.startsWith('$2a$')) {
+                senhaParaSalvar = await bcrypt.hash(novaSenha, 10);
+            }
+        } catch (e) {
+            // Segue sem bcrypt caso não esteja instalado
+        }
+
+        db.run('UPDATE login SET senha = ? WHERE idCliente = ?', [senhaParaSalvar, idCliente], (errUpdate) => {
+            if (errUpdate) {
+                return res.status(500).json({ mensagem: 'Erro ao atualizar a senha.' });
+            }
             res.json({ mensagem: 'Senha alterada com sucesso!' });
         });
     });
 });
 
-// 4. EXCLUIR CONTA
-app.delete('/api/perfil', (req, res) => {
+// ============================
+//    REMOVER FOTO DE PERIL
+// ============================
+
+app.delete('/api/perfil/foto', (req, res) => {
     if (!req.session || !req.session.usuario) {
         return res.status(401).json({ mensagem: 'Não autorizado.' });
     }
-    const idCliente = req.session.usuario.id;
 
-    db.serialize(() => {
-        db.run('DELETE FROM usuarios WHERE idCliente = ?', [idCliente]);
-        db.run('DELETE FROM login WHERE idCliente = ?', [idCliente], (err) => {
-            if (err) return res.status(500).json({ mensagem: 'Erro ao excluir conta.' });
-            req.session.destroy();
-            res.json({ mensagem: 'Conta excluída permanentemente.' });
-        });
-    });
-});
+    const idCliente = req.session.usuario.idCliente || req.session.usuario.id;
 
-// 5. SAIR DA SESSÃO (LOGOUT)
-app.post('/api/logout', (req, res) => {
-    req.session.destroy((err) => {
-        if (err) return res.status(500).json({ mensagem: 'Erro ao sair.' });
-        res.clearCookie('connect.sid');
-        res.json({ mensagem: 'Sessão encerrada.' });
-    });
-});
-
-// =======================
-//      APAGAR CONTA
-// =======================
-
-app.delete('/api/perfil', (req, res) => {
-    if (!req.session || !req.session.usuario) {
-        return res.status(401).json({ mensagem: 'Não autorizado.' });
-    }
-    const idCliente = req.session.usuario.id;
-
-    db.serialize(() => {
-        // 1. Apaga os chamados/ordens de serviço desse cliente
-        db.run('DELETE FROM os WHERE idCliente = ?', [idCliente]);
-        
-        // 2. Apaga os dados pessoais na tabela usuarios
-        db.run('DELETE FROM usuarios WHERE idCliente = ?', [idCliente]);
-        
-        // 3. Apaga as credenciais de acesso na tabela login
-        db.run('DELETE FROM login WHERE idCliente = ?', [idCliente], (err) => {
-            if (err) {
-                console.error('Erro ao excluir conta:', err.message);
-                return res.status(500).json({ mensagem: 'Erro ao excluir conta do banco de dados.' });
-            }
-
-            conta
-            
-            // 4. Destrói a sessão e limpa o cookie do navegador
-            req.session.destroy();
-            res.clearCookie('connect.sid');
-            res.json({ mensagem: 'Conta e todos os dados vinculados foram excluídos permanentemente.' });
-        });
+    db.run('UPDATE usuarios SET foto = NULL WHERE idCliente = ?', [idCliente], (err) => {
+        if (err) {
+            console.error('Erro ao remover foto:', err.message);
+            return res.status(500).json({ mensagem: 'Erro ao remover a foto de perfil.' });
+        }
+        res.json({ mensagem: 'Foto removida com sucesso!' });
     });
 });
 
@@ -466,6 +518,49 @@ function iniBDD() {
         console.error('ERRO ao rodar o script de inicialização do banco de dados:', error.message);
     }
 }
+
+//=====================================
+//    MANTER EMAIL DA SESSÃO ATIVO
+//=====================================
+
+// 2. ATUALIZAR DADOS E FOTO DE PERFIL
+app.put('/api/perfil', (req, res) => {
+    if (!req.session || !req.session.usuario) {
+        return res.status(401).json({ mensagem: 'Não autorizado.' });
+    }
+    
+    // Tenta pegar o ID de todas as formas possíveis
+    const idCliente = req.session.usuario.idCliente || req.session.usuario.id;
+    const { nome, cpf, email, foto } = req.body;
+
+    db.serialize(() => {
+        // Atualiza o e-mail na tabela de login
+        db.run('UPDATE login SET email = ? WHERE idCliente = ?', [email, idCliente], (err) => {
+            if (err) return res.status(400).json({ mensagem: 'Este e-mail já está em uso por outra conta.' });
+
+            // AQUI ESTÁ A VARIÁVEL sqlUser QUE FALTAVA
+            const sqlUser = `
+                INSERT INTO usuarios (idCliente, nome, cpf, email, foto) 
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(idCliente) DO UPDATE SET 
+                    nome = excluded.nome, 
+                    cpf = excluded.cpf, 
+                    email = excluded.email,
+                    foto = COALESCE(excluded.foto, usuarios.foto)
+            `;
+
+            // Agora o db.run já sabe o que é o sqlUser
+            db.run(sqlUser, [idCliente, nome, cpf, email, foto || null], (errUser) => {
+                if (errUser) return res.status(500).json({ mensagem: 'Erro ao atualizar perfil.' });
+                
+                // Mantém o e-mail atualizado na sessão ativa
+                req.session.usuario.email = email;
+                
+                res.json({ mensagem: 'Perfil atualizado com sucesso!' });
+            });
+        });
+    });
+});
 
 // ========================================
 //             INICIALIZAÇÃO

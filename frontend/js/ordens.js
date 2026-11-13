@@ -42,11 +42,5 @@ async function salvarOrdem(ordem) {
     return nova;
 }
 
-// ordens do cliente, da mais nova para a mais antiga
-async function buscarOrdensDoCliente(clienteId) {
-    const id = normalizarId(clienteId);
+// ordens do cliente, da mais nova para a mais antigo
 
-    return lerOrdens()
-        .filter((ordem) => normalizarId(ordem.clienteId) === id)
-        .sort((a, b) => b.numero - a.numero);
-}

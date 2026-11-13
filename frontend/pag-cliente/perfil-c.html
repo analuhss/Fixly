@@ -12,30 +12,32 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- CSS -->
-  <link rel="stylesheet" href="../css/css-cliente/perfil.css">
+  <link rel="stylesheet" href="../css/css-adm/perfil-adm.css">
 
   <!-- ICONE -->
   <link rel="icon" type="image/svg+xml" href="../files/svg/ícone.svg">
 
   <!-- JS -->
   <script src="../js/perfil.js" defer></script>
+  <script src="../js/foto.js" defer></script>
 
 </head>
 <body>
 
   <header class="topbar">
-    <a href="/home-c" class="topbar__logo">
+    <a href="/home-adm" class="topbar__logo">
       <img src="../files/svg/fixly.svg" alt="Fixly" height="32">
     </a>
     <nav class="topbar__nav" aria-label="Principal">
-      <a href="/home-c">Início</a>
-      <a href="/ordens-c">Ordens</a>
-      <a href="/conversa-c">Conversas</a>
-
+      <a href="/home-adm">Início</a>
+      <a href="/ordens-adm">Ordens</a>
+      <a href="/conversa-adm">Conversas</a>
     </nav>
-    <a href="/perfil-c" class="topbar__avatar is-active" aria-label="Meu perfil" aria-current="page">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5Z"/></svg>
-    </a>
+    
+      <a href="/perfil-adm" class="topbar__avatar is-active" aria-label="Meu perfil">
+        <img id="topbar-avatar-img" src="" alt="Foto de perfil" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+        <svg id="topbar-avatar-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5Z"/></svg>
+        </a>
   </header>
 
   <main class="page">
@@ -62,10 +64,7 @@
           </button>
         </div>
         <h2 class="identity__name">Anônimo</h2>
-        <p class="identity__location">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.500Z"/></svg>
-          Guarulhos, São Paulo
-        </p>
+      
       </aside>
 
       <section class="card card--form">
@@ -104,6 +103,10 @@
 
           <!-- 5. ALTERADO: Adicionados os IDs nos botões de ação -->
           <div class="actions">
+
+            <button type="button" id="btn-remover-foto" class="btn btn--ghost" id>
+    Remover foto
+</button>
             <button type="submit" class="btn btn--primary" id="salvar" disabled>Salvar alterações</button>
             <button type="button" class="btn btn--ghost" id="btn-abrir-senha">Alterar senha</button>
             

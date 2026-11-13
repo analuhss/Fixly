@@ -12,7 +12,9 @@
     <link rel="stylesheet" href="../css/css-cliente/ordens-c.css">
     <link rel="icon" type="image/svg+xml" href="../files/svg/ícone.svg">
 
-    <script src="./frontend/js/ordens-c.js" defer></script>
+    <!-- JS -->
+    <script src="../js/ordens-c.js" defer></script>
+    <script src="../js/foto.js" defer></script>
 
 </head>
 <body>
@@ -27,12 +29,11 @@
             <a href="/conversa-c">Conversas</a>
         </nav>
 
-        <a class="perfil" href="/perfil-c" aria-label="Perfil">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <circle cx="12" cy="8.5" r="4.2"/>
-                <path d="M3.5 22c0-4.7 3.8-7.5 8.5-7.5s8.5 2.8 8.5 7.5z"/>
-            </svg>
+        <a href="/perfil-c" class="perfil" aria-label="Meu perfil">
+        <img id="topbar-avatar-img" src="" alt="Foto de perfil" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+        <svg id="topbar-avatar-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5Z"/></svg>
         </a>
+        
     </header>
 
     <main>

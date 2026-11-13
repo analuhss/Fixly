@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const res = await fetch('/api/perfil', { credentials: 'include' });
         if (res.status === 401) {
-            window.location.href = '/login'; // Ajuste para a sua rota de login se necessário
+            window.location.href = '/'; // Ajuste para a sua rota de login se necessário
             return;
         }
         const dados = await res.json();
@@ -143,3 +143,141 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 });
+
+const modalSenha = document.getElementById('modal-senha'); // ID do container do modal
+    const btnConfirmarSenha = document.getElementById('btn-confirmar-senha'); // ID do botão amarelo "Confirmar"
+    const btnCancelarSenha = document.getElementById('btn-cancelar-senha'); // ID do botão "Cancelar"
+    const inputSenhaAtual = document.getElementById('senha-atual'); // ID do input "Senha Atual"
+    const inputNovaSenha = document.getElementById('nova-senha'); // ID do input "Nova Senha"
+
+    if (btnCancelarSenha && modalSenha) {
+        btnCancelarSenha.addEventListener('click', () => {
+            modalSenha.style.display = 'none';
+            if (inputSenhaAtual) inputSenhaAtual.value = '';
+            if (inputNovaSenha) inputNovaSenha.value = '';
+        });
+    }
+
+    if (btnConfirmarSenha) {
+        btnConfirmarSenha.addEventListener('click', async (e) => {
+            e.preventDefault(); // Evita recarregar a página caso esteja dentro de um <form>
+
+            const senhaAtual = inputSenhaAtual ? inputSenhaAtual.value : '';
+            const novaSenha = inputNovaSenha ? inputNovaSenha.value : '';
+
+            if (!senhaAtual || !novaSenha) {
+                alert('Por favor, preencha os dois campos de senha.');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/perfil/senha', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ senhaAtual, novaSenha })
+                });
+
+                const dados = await res.json();
+
+                if (res.ok) {
+                    alert(dados.mensagem || 'Senha alterada com sucesso!');
+                    if (inputSenhaAtual) inputSenhaAtual.value = '';
+                    if (inputNovaSenha) inputNovaSenha.value = '';
+                    if (modalSenha) modalSenha.style.display = 'none';
+                } else {
+                    alert('Erro: ' + (dados.mensagem || 'Não foi possível alterar a senha.'));
+                }
+            } catch (erro) {
+                console.error('Erro ao alterar senha:', erro);
+                alert('Falha na comunicação com o servidor.');
+            }
+        });
+    }
+
+const btnRemoverFoto = document.getElementById('btn-remover-foto');
+    const avatarSvgPadrao = document.getElementById('avatar-svg-padrao'); // Se você tiver um SVG padrão no centro do perfil
+
+    // Mostra o botão de remover se já existir foto ao carregar a página
+    // (Coloque isso dentro do bloco que carrega os dados do GET /api/perfil)
+    if (dados.foto && previewFoto) {
+        previewFoto.src = dados.foto;
+        previewFoto.style.display = 'block';
+        if (btnRemoverFoto) btnRemoverFoto.style.display = 'inline-block';
+    }
+
+    // Também mostra o botão assim que o usuário escolhe uma nova foto no inputFile
+    // (Dentro do reader.onload)
+    if (btnRemoverFoto) btnRemoverFoto.style.display = 'inline-block';
+
+    // Ação de clicar em "Remover foto"
+    if (btnRemoverFoto) {
+        btnRemoverFoto.addEventListener('click', async () => {
+            if (!confirm('Deseja realmente remover sua foto de perfil?')) return;
+
+            try {
+                const res = await fetch('/api/perfil/foto', {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+
+                if (res.ok) {
+                    fotoBase64 = null;
+                    if (inputFoto) inputFoto.value = '';
+                    
+                    if (previewFoto) {
+                        previewFoto.src = '';
+                        previewFoto.style.display = 'none';
+                    }
+                    if (avatarSvgPadrao) {
+                        avatarSvgPadrao.style.display = 'block';
+                    }
+                    
+                    btnRemoverFoto.style.display = 'none';
+
+                    // Atualiza a bolinha do cabeçalho para voltar ao ícone padrão
+                    if (typeof carregarFotoCabecalho === 'function') {
+                        carregarFotoCabecalho();
+                    }
+
+                    alert('Foto removida com sucesso!');
+                } else {
+                    alert('Erro ao remover a foto.');
+                }
+            } catch (erro) {
+                console.error('Erro ao excluir foto:', erro);
+                alert('Falha na comunicação com o servidor.');
+            }
+        });
+    }
+
+// 5. EXCLUIR CONTA
+    const btnExcluirConta = document.getElementById('btn-excluir-conta'); // Verifique se este é o ID no seu HTML
+
+    if (btnExcluirConta) {
+        btnExcluirConta.addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            const confirmacao = confirm('Tem certeza absoluta que deseja excluir sua conta? Essa ação não pode ser desfeita.');
+            if (!confirmacao) return;
+
+            try {
+                const res = await fetch('/api/perfil', {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+
+                const dados = await res.json();
+
+                if (res.ok) {
+                    alert(dados.mensagem || 'Sua conta foi excluída.');
+                    window.location.href = '/'; // Redireciona para a tela inicial ou de login
+                } else {
+                    alert('Erro: ' + (dados.mensagem || 'Não foi possível excluir a conta.'));
+                }
+            } catch (erro) {
+                console.error('Erro na requisição de exclusão:', erro);
+                alert('Falha na comunicação com o servidor.');
+            }
+        });
+    }
