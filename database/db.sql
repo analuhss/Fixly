@@ -53,5 +53,6 @@ CREATE TABLE IF NOT EXISTS os (
     processo TEXT,
     validacao TEXT,
     idCliente INTEGER,
-    idTecnico INTEGER
+    idTecnico INTEGER,
+    status TEXT
 );

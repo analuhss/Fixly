@@ -294,7 +294,7 @@ app.get('/api/perfil', (req, res) => {
     const idUsuario = req.session.usuario.idCliente || req.session.usuario.id;
 
     const sql = `
-        SELECT l.email, u.nome, u.cpf, u.foto 
+        SELECT l.email, u.nome, u.cpf, u.telefone, u.foto 
         FROM login l 
         LEFT JOIN usuarios u ON l.idCliente = u.idCliente 
         WHERE l.idCliente = ?
@@ -463,6 +463,25 @@ app.delete('/api/perfil/foto', (req, res) => {
             return res.status(500).json({ mensagem: 'Erro ao remover a foto de perfil.' });
         }
         res.json({ mensagem: 'Foto removida com sucesso!' });
+    });
+});
+
+// ===================================
+//      BUSCAR ORDENS DE SERVIÇO
+// ===================================
+
+app.get('/api/ordens/cliente', (req, res) => {
+    if (!req.session || !req.session.usuario) {
+        return res.status(401).json({ mensagem: 'Não autorizado.' });
+    }
+
+    const idCliente = req.session.usuario.idCliente || req.session.usuario.id;
+
+    db.all('SELECT * FROM ordens WHERE idCliente = ? ORDER BY id DESC', [idCliente], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ mensagem: 'Erro ao buscar ordens.' });
+        }
+        res.json(rows || []);
     });
 });
 
