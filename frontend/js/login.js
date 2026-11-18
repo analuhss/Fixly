@@ -25,7 +25,7 @@ formulario.addEventListener('submit', async (event) => {
             if (dados.tipo === 'cliente') {
                 window.location.href = '/home-c';
             } else if (dados.tipo === 'profissional') {
-                window.location.href = '/profissionais/home';
+                window.location.href = '/home-p';
             } else if (dados.tipo === 'adm') {
                 window.location.href = '/home-adm';
             } else {

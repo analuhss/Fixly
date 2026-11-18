@@ -103,8 +103,13 @@ app.get('/ordens-c', (req, res) => {
 // ========================= PÁGINAS PROFISSIONAIS
 
     // ROTA PARA HOME - PROFISSIONAIS
-app.get('/home-pro', (req, res) => {
+app.get('/home-p', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/home-p.html'));
+});
+
+// ROTA PARA HOME - PROFISSIONAIS
+app.get('/home-p', (req, res) => {
+res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/home-p.html'));
 });
 
 // ============================== PÁGINAS ADM
@@ -139,6 +144,10 @@ app.get('/usuarios-adm', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/pag-adm/usuarios-adm.html'));
 });
 
+// ROTA PARA PÁGINA DE SOLICITAR OS - ADM
+app.get('/os-adm', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/pag-adm/os-adm.html'));
+});
 
 
 // =====================================
@@ -478,6 +487,162 @@ app.delete('/api/perfil/foto', (req, res) => {
     });
 });
 
+// =========================
+//      ADM CADASTRAR
+// =========================
+
+app.post('/api/usuarios/admin', (req, res) => {
+    const {
+        tipo,
+        nome,
+        cpf,
+        nascimento,
+        telefone,
+        email,
+        senha,
+        cep,
+        endereco,
+        funcao,
+        especialidades
+    } = req.body;
+
+    if (!tipo || !nome || !cpf || !telefone || !email || !senha) {
+        return res.status(400).json({ mensagem: 'Preencha todos os campos obrigatórios.' });
+    }
+
+    if (tipo === 'profissional' && !funcao) {
+        return res.status(400).json({ mensagem: 'Selecione a função do profissional.' });
+    }
+
+    // 1. Cria primeiro o acesso na tabela "login" (vale para cliente, profissional e adm)
+    const sqlLogin = 'INSERT INTO login (email, senha, tipo) VALUES (?, ?, ?)';
+
+    db.run(sqlLogin, [email, senha, tipo], function (erroLogin) {
+        if (erroLogin) {
+            console.error('Erro ao inserir na tabela login:', erroLogin);
+
+            if (erroLogin.message.includes('UNIQUE')) {
+                return res.status(400).json({ mensagem: 'Este e-mail já está cadastrado no sistema.' });
+            }
+
+            return res.status(500).json({ mensagem: 'Erro ao criar login no banco de dados.' });
+        }
+
+        const idGerado = this.lastID; // ID gerado na tabela login
+
+        // 2A. Se for PROFISSIONAL, grava na tabela "tecnicos"
+        if (tipo === 'profissional') {
+            const cargoCompleto = especialidades ? `${funcao} (${especialidades})` : funcao;
+            const dataHoje = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+            const sqlTecnico = `
+                INSERT INTO tecnicos (nome, cpf, dataNascimento, telefone, cep, admissao, cargo)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            `;
+
+            db.run(
+                sqlTecnico,
+                [nome, cpf, nascimento, telefone, cep, dataHoje, cargoCompleto],
+                function (erroTecnico) {
+                    if (erroTecnico) {
+                        console.error('Erro ao inserir na tabela tecnicos:', erroTecnico);
+                        return res.status(500).json({ mensagem: 'Login criado, mas houve erro ao salvar dados do técnico.' });
+                    }
+
+                    return res.status(201).json({
+                        mensagem: 'Profissional cadastrado com sucesso!',
+                        idLogin: idGerado,
+                        idTecnico: this.lastID
+                    });
+                }
+            );
+
+        // 2B. Se for CLIENTE ou ADM, grava na tabela "usuarios" usando o idGerado
+        } else {
+            const sqlUsuario = `
+                INSERT INTO usuarios (idCliente, nome, cpf, dataNascimento, telefone, email, cep, endereco, cadastro_completo)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+            `;
+
+            db.run(
+                sqlUsuario,
+                [idGerado, nome, cpf, nascimento, telefone, email, cep, endereco],
+                function (erroUsuario) {
+                    if (erroUsuario) {
+                        console.error('Erro ao inserir na tabela usuarios:', erroUsuario);
+                        return res.status(500).json({ mensagem: 'Login criado, mas houve erro ao salvar dados do usuário.' });
+                    }
+
+                    return res.status(201).json({
+                        mensagem: 'Usuário cadastrado com sucesso!',
+                        idCliente: idGerado
+                    });
+                }
+            );
+        }
+    });
+});
+
+// =============================
+//      MOSTRAR USUÁRIOS
+// =============================
+
+app.get('/api/usuarios/admin', (req, res) => {
+    console.log('[GET /api/usuarios/admin] A buscar utilizadores no banco...');
+
+    const sqlUsuarios = `
+        SELECT 
+            l.idCliente AS id,
+            COALESCE(u.nome, l.email) AS nome,
+            u.cpf,
+            u.dataNascimento,
+            u.telefone,
+            l.email AS email,
+            u.cep,
+            u.endereco,
+            COALESCE(l.tipo, 'cliente') AS tipo,
+            NULL AS cargo,
+            NULL AS admissao
+        FROM login l
+        LEFT JOIN usuarios u ON l.idCliente = u.idCliente
+        WHERE LOWER(COALESCE(l.tipo, 'cliente')) != 'profissional'
+    `;
+
+    const sqlTecnicos = `
+        SELECT 
+            idTecnico AS id,
+            nome,
+            cpf,
+            dataNascimento,
+            telefone,
+            NULL AS email,
+            cep,
+            NULL AS endereco,
+            'profissional' AS tipo,
+            cargo,
+            admissao
+        FROM tecnicos
+    `;
+
+    db.all(sqlUsuarios, [], (errUsuarios, listaUsuarios) => {
+        if (errUsuarios) {
+            console.error('Erro ao buscar usuários:', errUsuarios);
+            return res.status(500).json({ mensagem: 'Erro ao buscar usuários no banco.' });
+        }
+
+        db.all(sqlTecnicos, [], (errTecnicos, listaTecnicos) => {
+            if (errTecnicos) {
+                console.error('Erro ao buscar técnicos:', errTecnicos);
+                return res.status(500).json({ mensagem: 'Erro ao buscar profissionais no banco.' });
+            }
+
+            const todos = [...listaUsuarios, ...listaTecnicos];
+            console.log(`[GET /api/usuarios/admin] Encontrados: ${listaUsuarios.length} usuários/adms e ${listaTecnicos.length} técnicos.`);
+            res.json(todos);
+        });
+    });
+});
+
 // ===================================
 //      BUSCAR ORDENS DE SERVIÇO
 // ===================================
@@ -495,6 +660,20 @@ app.get('/api/ordens/cliente', (req, res) => {
             return res.status(500).json({ mensagem: 'Erro ao buscar ordens.' });
         }
         res.json(rows || []);
+    });
+});
+
+// ==================
+//     DASHBORD
+// ==================
+
+app.get('/api/ordens/admin', (req, res) => {
+    db.all('SELECT * FROM os', [], (erro, ordens) => {
+        if (erro) {
+            console.error('Erro no banco de dados (Admin):', erro);
+            return res.status(500).json({ mensagem: 'Erro ao buscar ordens no banco.' });
+        }
+        res.json(ordens);
     });
 });
 
@@ -550,6 +729,52 @@ function iniBDD() {
         console.error('ERRO ao rodar o script de inicialização do banco de dados:', error.message);
     }
 }
+
+//=============================================
+//    ADM ADICIONAR TÉCNICOS PARA AS ORDENS
+//=============================================
+
+// 1. Lista os técnicos cadastrados para preencher o <select> do modal
+app.get('/api/tecnicos', (req, res) => {
+    const sql = 'SELECT idTecnico, nome, cargo FROM tecnicos WHERE demissao IS NULL ORDER BY nome ASC';
+
+    db.all(sql, [], (erro, linhas) => {
+        if (erro) {
+            console.error('Erro ao buscar técnicos:', erro);
+            return res.status(500).json({ mensagem: 'Erro ao carregar lista de técnicos.' });
+        }
+        res.json(linhas);
+    });
+});
+
+app.put('/api/ordens/:id/atribuir', (req, res) => {
+    const { id } = req.params;
+    const { idTecnico } = req.body;
+
+    if (!idTecnico) {
+        return res.status(400).json({ mensagem: 'Selecione um técnico válido.' });
+    }
+
+    const sql = `
+        UPDATE os 
+        SET idTecnico = ?,
+            status = 'andamento'
+        WHERE idChamado = ?
+    `;
+
+    db.run(sql, [idTecnico, id], function (erro) {
+        if (erro) {
+            console.error('Erro ao atribuir técnico à OS:', erro);
+            return res.status(500).json({ mensagem: 'Erro ao salvar atribuição no banco de dados.' });
+        }
+
+        if (this.changes === 0) {
+            return res.status(404).json({ mensagem: 'Ordem de serviço não encontrada.' });
+        }
+
+        res.json({ mensagem: 'Técnico atribuído e ordem colocada em andamento!' });
+    });
+});
 
 //=====================================
 //    MANTER EMAIL DA SESSÃO ATIVO

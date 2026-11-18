@@ -1,0 +1,370 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+body {
+    min-height: 100vh;
+    font-family: "Poppins", Arial, Helvetica, sans-serif;
+    color: #000000;
+
+    /* mesmo fundo do login, cadastro, início e conversas */
+    background-color: #0a0a0a;
+    background-image: radial-gradient(circle at 50% 0%, #1c1c1e 0%, #0a0a0a 70%);
+    background-attachment: fixed;
+}
+
+/* ---------- barra de navegação (igual em todas as páginas) ---------- */
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+
+    height: 72px;
+    padding: 0 24px;
+
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+
+    /* mesma fonte em todas as páginas, mesmo que o resto da página use outra */
+    font-family: "Poppins", Arial, Helvetica, sans-serif;
+
+    background-color: #18181a;      /* cinza escuro */
+    border-bottom: 1px solid #2a2a2c;
+}
+
+.logo {
+    justify-self: start;
+    display: block;
+}
+
+.logo img {
+    display: block;
+    height: 30px;
+    width: auto;
+}
+
+.menu {
+    grid-column: 2;
+
+    display: flex;
+    gap: 40px;
+}
+
+.menu a {
+    color: #ffffff;
+    text-decoration: none;
+    text-transform: uppercase;
+
+    font-size: 15px;
+    letter-spacing: 0.5px;
+
+    transition: 0.2s;
+}
+
+.menu a:hover {
+    color: #ffe17f;
+}
+
+.menu a.ativo {
+    color: #f5c32f;                 /* amarelo */
+    font-weight: 600;
+}
+
+.perfil {
+    grid-column: 3;
+    justify-self: end;
+
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+
+    background-color: #9a9a9a;      /* cinza */
+    color: #18181a;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: 0.2s;
+}
+
+.perfil svg {
+    width: 26px;
+    height: 26px;
+}
+
+.perfil:hover,
+.perfil.ativo {                     /* .ativo: usar na página de perfil */
+    box-shadow: 0 0 0 2px #f5c32f;
+}
+
+/* contorno amarelo ao navegar pelo teclado (Tab) */
+.logo:focus-visible,
+.menu a:focus-visible,
+.perfil:focus-visible {
+    outline: 2px solid #f5c32f;
+    outline-offset: 3px;
+}
+
+/* ---------- celular ---------- */
+@media (max-width: 700px) {
+    .navbar {
+        padding: 0 16px;
+    }
+
+    .logo {
+        display: none;
+    }
+
+    .menu {
+        gap: 20px;
+    }
+
+    .menu a {
+        font-size: 13px;
+    }
+}
+
+/* telas bem pequenas (cabe até 4 links, como na navbar do profissional) */
+@media (max-width: 480px) {
+    .navbar {
+        padding: 0 12px;
+    }
+
+    .menu {
+        gap: 10px;
+    }
+
+    .menu a {
+        font-size: 12px;
+        letter-spacing: 0.3px;
+    }
+
+    .perfil {
+        width: 34px;
+        height: 34px;
+    }
+
+    .perfil svg {
+        width: 22px;
+        height: 22px;
+    }
+}
+
+/* ---------- conteúdo ---------- */
+main {
+    display: flex;
+    justify-content: center;
+
+    padding: 32px 16px 60px;
+}
+
+.solicitacao {
+    width: 100%;
+    max-width: 520px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+}
+
+/* ===== Cartão ===== */
+.cartao {
+    width: 100%;
+
+    background-color: #ffffff;      /* branco do cartão */
+    border: 5px solid #f5c32f;      /* amarelo */
+    border-radius: 24px;
+
+    padding: 28px 28px 24px;
+}
+
+.cartao h1 {
+    font-size: 30px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.subtitulo {
+    margin-top: 4px;
+    margin-bottom: 22px;
+
+    font-size: 14px;
+    text-align: center;
+    color: #666666;                 /* cinza escuro */
+}
+
+.cartao h2 {
+    margin: 24px 0 14px;
+
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-align: center;
+}
+
+/* ===== Campos ===== */
+.campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    margin-bottom: 16px;
+    min-width: 0;
+}
+
+label {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.obrig {
+    color: #b00000;                 /* vermelho do asterisco */
+    margin-left: 3px;
+}
+
+.opcional {
+    margin-left: 4px;
+
+    font-size: 12px;
+    font-weight: 400;
+    color: #777777;                 /* cinza */
+}
+
+input,
+textarea {
+    width: 100%;
+
+    border: 1px solid #333333;
+    border-radius: 8px;
+
+    background-color: #ebebeb;      /* cinza do input */
+    color: #222222;
+
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+
+    padding: 0 12px;
+
+    outline: none;
+
+    transition: 0.2s;
+}
+
+input {
+    height: 44px;
+}
+
+textarea {
+    min-height: 88px;
+    padding: 10px 12px;
+
+    line-height: 1.4;
+    overflow: hidden;
+    resize: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #c2c2c2;                 /* cinza do placeholder */
+    font-weight: 600;
+    opacity: 1;
+}
+
+input:focus,
+textarea:focus {
+    border-color: #f5c32f;          /* amarelo */
+    box-shadow: 0 0 0 3px rgba(245, 195, 47, 0.35);
+}
+
+/* campo com erro (só depois que a pessoa mexeu nele) */
+input:user-invalid,
+textarea:user-invalid {
+    border-color: #d94a3d;          /* vermelho */
+    box-shadow: 0 0 0 3px rgba(217, 74, 61, 0.25);
+}
+
+.legenda {
+    margin-top: 8px;
+
+    font-size: 12px;
+    color: #666666;
+}
+
+/* ===== Botão e mensagem ===== */
+.botao {
+    width: 100%;
+    max-width: 220px;
+    height: 48px;
+
+    border: none;
+    border-radius: 8px;
+
+    background-color: #f5c32f;      /* amarelo */
+    color: #ffffff;
+
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.botao:hover {
+    background-color: #ffd447;      /* amarelo claro */
+    transform: translateY(-1px);
+}
+
+.botao:active {
+    transform: translateY(0);
+}
+
+.botao:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 3px;
+}
+
+.botao:disabled {
+    opacity: 0.6;
+    cursor: default;
+    transform: none;
+}
+
+.mensagem {
+    min-height: 24px;
+
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.mensagem a {
+    color: #f5c32f;                 /* amarelo */
+    font-weight: 600;
+}
+
+.mensagem.erro {
+    color: #ff6b5e;                 /* vermelho claro */
+}
+
+@media (max-width: 420px) {
+    .cartao {
+        padding: 24px 18px 20px;
+    }
+
+    .cartao h1 {
+        font-size: 26px;
+    }
+}

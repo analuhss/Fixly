@@ -11,6 +11,8 @@
 
     <link rel="stylesheet" href="../css/css-adm/cad-adm.css">
     <link rel="icon" type="image/svg+xml" href="../files/svg/ícone.svg">
+
+    <script src="../js/cad-adm.js" defer></script>
 </head>
 <body>
     <header class="navbar">
@@ -52,6 +54,11 @@
                         <input type="radio" name="tipo" value="profissional">
                         <span>Profissional</span>
                     </label>
+
+                    <label class="opcao-tipo">
+                        <input type="radio" name="tipo" value="adm">
+                        <span>Adm</span>
+                    </label>
                 </fieldset>
 
                 <h2>Dados pessoais</h2>
@@ -78,11 +85,6 @@
                     </div>
                 </div>
 
-                <div class="campo">
-                    <label for="email">E-mail <span class="obrig" aria-hidden="true">*</span></label>
-                    <input type="email" id="email" name="email" placeholder="email" required>
-                </div>
-
                 <h2>Endereço</h2>
 
                 <div class="campo">
@@ -95,7 +97,7 @@
                     <input type="text" id="endereco" name="endereco" placeholder="Rua, Bairro, Número">
                 </div>
 
-                <!-- aparece só quando o tipo é "Profissional" (o cadastroUsuario.js mostra e esconde) -->
+                <!-- aparece só quando o tipo é "Profissional" (o cad-adm.js mostra e esconde) -->
                 <div id="blocoProfissional" hidden>
                     <h2>Dados profissionais</h2>
 
@@ -115,6 +117,25 @@
                     </div>
                 </div>
 
+                <h2>Dados de acesso</h2>
+
+                <div class="campo">
+                    <label for="email">E-mail de login <span class="obrig" aria-hidden="true">*</span></label>
+                    <input type="email" id="email" name="email" placeholder="email@exemplo.com" autocomplete="new-email" required>
+                </div>
+
+                <div class="linha">
+                    <div class="campo">
+                        <label for="senha">Senha <span class="obrig" aria-hidden="true">*</span></label>
+                        <input type="password" id="senha" name="senha" placeholder="Mínimo 6 caracteres" minlength="6" autocomplete="new-password" required>
+                    </div>
+
+                    <div class="campo">
+                        <label for="confirmarSenha">Confirmar senha <span class="obrig" aria-hidden="true">*</span></label>
+                        <input type="password" id="confirmarSenha" name="confirmarSenha" placeholder="Repita a senha" minlength="6" autocomplete="new-password" required>
+                    </div>
+                </div>
+
                 <p class="legenda"><span class="obrig" aria-hidden="true">*</span> Campos obrigatórios</p>
             </div>
 
@@ -124,7 +145,5 @@
         </form>
     </main>
 
-    <script src="./frontend/js/usuarios.js"></script>
-    <script src="./frontend/js/cadastroUsuario.js"></script>
 </body>
 </html>

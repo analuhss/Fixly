@@ -16,6 +16,10 @@ body {
 }
 
 /* ---------- barra de navegação (igual em todas as páginas) ---------- */
+
+.ativo{
+    color: #f5c32f;
+}
 .navbar {
     position: sticky;
     top: 0;
