@@ -541,9 +541,26 @@ app.post('/api/usuarios/admin', (req, res) => {
             const dataHoje = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
             const sqlTecnico = `
-                INSERT INTO tecnicos (nome, cpf, dataNascimento, telefone, cep, admissao, cargo)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO tecnicos (nome, cpf, dataNascimento, telefone, email, cep, admissao, cargo)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             `;
+
+            db.run(
+                sqlTecnico,
+                [nome, cpf, nascimento, telefone, email, cep, dataHoje, cargoCompleto],
+                function (erroTecnico) {
+                    if (erroTecnico) {
+                        console.error('Erro ao inserir na tabela tecnicos:', erroTecnico);
+                        return res.status(500).json({ mensagem: 'Login criado, mas houve erro ao salvar dados do técnico.' });
+                    }
+
+                    return res.status(201).json({
+                        mensagem: 'Profissional cadastrado com sucesso!',
+                        idLogin: idGerado,
+                        idTecnico: this.lastID
+                    });
+                }
+            );
 
             db.run(
                 sqlTecnico,
@@ -585,6 +602,70 @@ app.post('/api/usuarios/admin', (req, res) => {
                 }
             );
         }
+    });
+});
+
+// ==========================================
+//    BUSCAR ORDENS DO PROFISSIONAL LOGADO
+// ==========================================
+app.get('/api/ordens/profissional', (req, res) => {
+    if (!req.session || !req.session.usuario) {
+        return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
+    }
+
+    const emailLogado = req.session.usuario.email;
+    const idLoginLogado = req.session.usuario.idCliente || req.session.usuario.id;
+
+    // Garante que a coluna email exista antes de consultar
+    db.run("ALTER TABLE tecnicos ADD COLUMN email TEXT", () => {
+        const sqlBuscaTecnico = `
+            SELECT idTecnico FROM tecnicos 
+            WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) OR idTecnico = ?
+            ORDER BY CASE WHEN LOWER(TRIM(email)) = LOWER(TRIM(?)) THEN 0 ELSE 1 END
+            LIMIT 1
+        `;
+
+        db.get(sqlBuscaTecnico, [emailLogado, idLoginLogado, emailLogado], (errTec, tecnico) => {
+            if (errTec) {
+                console.error('Erro SQL ao identificar técnico:', errTec.message);
+                return res.status(500).json({ mensagem: 'Erro ao identificar profissional no banco.' });
+            }
+
+            if (!tecnico) {
+                return res.json([]);
+            }
+
+            const sqlOrdens = `
+                SELECT 
+                    o.*,
+                    COALESCE(o.idChamado, o.rowid) AS id,
+                    COALESCE(u.nome, l.email, 'Cliente não identificado') AS clienteNome,
+                    u.telefone AS clienteTelefone,
+                    u.endereco AS clienteEndereco,
+                    COALESCE(
+                        NULLIF(o.status, ''),
+                        CASE 
+                            WHEN LOWER(o.processo) = 'em andamento' THEN 'andamento'
+                            WHEN LOWER(o.processo) IN ('concluido', 'concluída', 'fechada') THEN 'fechada'
+                            ELSE 'andamento'
+                        END
+                    ) AS status
+                FROM os o
+                LEFT JOIN usuarios u ON o.idCliente = u.idCliente
+                LEFT JOIN login l ON o.idCliente = l.idCliente
+                WHERE o.idTecnico = ?
+                ORDER BY COALESCE(o.idChamado, o.rowid) DESC
+            `;
+
+            db.all(sqlOrdens, [tecnico.idTecnico], (errOs, ordens) => {
+                if (errOs) {
+                    console.error('Erro SQL ao buscar ordens do técnico:', errOs.message);
+                    return res.status(500).json({ mensagem: 'Erro ao carregar ordens de serviço.' });
+                }
+
+                res.json(ordens || []);
+            });
+        });
     });
 });
 
@@ -673,7 +754,25 @@ app.get('/api/ordens/cliente', (req, res) => {
 // ==================
 
 app.get('/api/ordens/admin', (req, res) => {
-    db.all('SELECT * FROM os', [], (erro, ordens) => {
+    const sql = `
+        SELECT 
+            o.*,
+            COALESCE(o.idChamado, o.rowid) AS id,
+            t.nome AS tecnico,
+            COALESCE(
+                NULLIF(o.status, ''),
+                CASE 
+                    WHEN LOWER(o.processo) = 'em andamento' THEN 'andamento'
+                    WHEN LOWER(o.processo) IN ('concluido', 'concluída', 'fechada') THEN 'fechada'
+                    ELSE 'analise'
+                END
+            ) AS status
+        FROM os o
+        LEFT JOIN tecnicos t ON o.idTecnico = t.idTecnico
+        ORDER BY COALESCE(o.idChamado, o.rowid) DESC
+    `;
+
+    db.all(sql, [], (erro, ordens) => {
         if (erro) {
             console.error('Erro no banco de dados (Admin):', erro);
             return res.status(500).json({ mensagem: 'Erro ao buscar ordens no banco.' });
@@ -741,17 +840,28 @@ function iniBDD() {
 
 // 1. Lista os técnicos cadastrados para preencher o <select> do modal
 app.get('/api/tecnicos', (req, res) => {
-    const sql = 'SELECT idTecnico, nome, cargo FROM tecnicos WHERE demissao IS NULL ORDER BY nome ASC';
+    const sql = `
+        SELECT 
+            COALESCE(idTecnico, rowid) AS idTecnico, 
+            nome, 
+            cargo 
+        FROM tecnicos 
+        WHERE demissao IS NULL OR TRIM(demissao) = '' 
+        ORDER BY nome ASC
+    `;
 
     db.all(sql, [], (erro, linhas) => {
         if (erro) {
             console.error('Erro ao buscar técnicos:', erro);
             return res.status(500).json({ mensagem: 'Erro ao carregar lista de técnicos.' });
         }
+
+        console.log(`[GET /api/tecnicos] Técnicos encontrados: ${linhas.length}`);
         res.json(linhas);
     });
 });
 
+// 2. Atribui o técnico à OS e coloca em andamento
 app.put('/api/ordens/:id/atribuir', (req, res) => {
     const { id } = req.params;
     const { idTecnico } = req.body;
@@ -763,11 +873,12 @@ app.put('/api/ordens/:id/atribuir', (req, res) => {
     const sql = `
         UPDATE os 
         SET idTecnico = ?,
-            status = 'andamento'
-        WHERE idChamado = ?
+            status = 'andamento',
+            processo = 'Em andamento'
+        WHERE idChamado = ? OR rowid = ?
     `;
 
-    db.run(sql, [idTecnico, id], function (erro) {
+    db.run(sql, [idTecnico, id, id], function (erro) {
         if (erro) {
             console.error('Erro ao atribuir técnico à OS:', erro);
             return res.status(500).json({ mensagem: 'Erro ao salvar atribuição no banco de dados.' });
@@ -781,6 +892,102 @@ app.put('/api/ordens/:id/atribuir', (req, res) => {
     });
 });
 
+//=============================================
+//    ADM ADICIONAR TÉCNICOS PARA AS ORDENS
+//=============================================
+
+app.put('/api/ordens/:id/atribuir', (req, res) => {
+    const { id } = req.params;
+    const { idTecnico } = req.body;
+
+    if (!idTecnico) {
+        return res.status(400).json({ mensagem: 'Selecione um técnico válido.' });
+    }
+
+    const sql = `
+        UPDATE os 
+        SET idTecnico = ?,
+            status = 'andamento',
+            processo = 'Em andamento'
+        WHERE idChamado = ? OR rowid = ?
+    `;
+
+    db.run(sql, [idTecnico, id, id], function (erro) {
+        if (erro) {
+            console.error('Erro ao atribuir técnico à OS:', erro);
+            return res.status(500).json({ mensagem: 'Erro ao salvar atribuição no banco de dados.' });
+        }
+
+        console.log(`[PUT /api/ordens/${id}/atribuir] Linhas alteradas: ${this.changes} | idTecnico: ${idTecnico}`);
+
+        if (this.changes === 0) {
+            return res.status(404).json({ mensagem: 'Ordem de serviço não encontrada.' });
+        }
+
+        res.json({ mensagem: 'Técnico atribuído e ordem colocada em andamento!' });
+    });
+});
+
+// Rota para o profissional ver apenas as ordens atribuídas a ele
+app.get('/api/ordens/profissional', (req, res) => {
+    if (!req.session || !req.session.usuario) {
+        return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
+    }
+
+    const emailLogado = req.session.usuario.email;
+    const idLoginLogado = req.session.usuario.idCliente || req.session.usuario.id;
+
+    db.run("ALTER TABLE tecnicos ADD COLUMN email TEXT", () => {
+        const sqlBuscaTecnico = `
+            SELECT idTecnico FROM tecnicos 
+            WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) OR idTecnico = ?
+            ORDER BY CASE WHEN LOWER(TRIM(email)) = LOWER(TRIM(?)) THEN 0 ELSE 1 END
+            LIMIT 1
+        `;
+
+        db.get(sqlBuscaTecnico, [emailLogado, idLoginLogado, emailLogado], (errTec, tecnico) => {
+            if (errTec) {
+                console.error('Erro SQL ao identificar técnico:', errTec.message);
+                return res.status(500).json({ mensagem: 'Erro ao identificar profissional no banco.' });
+            }
+
+            if (!tecnico) {
+                return res.json([]);
+            }
+
+            const sqlOrdens = `
+                SELECT 
+                    o.*,
+                    COALESCE(o.idChamado, o.rowid) AS id,
+                    COALESCE(u.nome, l.email, 'Cliente não identificado') AS clienteNome,
+                    u.telefone AS clienteTelefone,
+                    u.endereco AS clienteEndereco,
+                    COALESCE(
+                        NULLIF(o.status, ''),
+                        CASE 
+                            WHEN LOWER(o.processo) = 'em andamento' THEN 'andamento'
+                            WHEN LOWER(o.processo) IN ('concluido', 'concluída', 'fechada') THEN 'fechada'
+                            ELSE 'andamento'
+                        END
+                    ) AS status
+                FROM os o
+                LEFT JOIN usuarios u ON o.idCliente = u.idCliente
+                LEFT JOIN login l ON o.idCliente = l.idCliente
+                WHERE o.idTecnico = ?
+                ORDER BY COALESCE(o.idChamado, o.rowid) DESC
+            `;
+
+            db.all(sqlOrdens, [tecnico.idTecnico], (errOs, ordens) => {
+                if (errOs) {
+                    console.error('Erro SQL ao buscar ordens do técnico:', errOs.message);
+                    return res.status(500).json({ mensagem: 'Erro ao carregar ordens de serviço.' });
+                }
+
+                res.json(ordens || []);
+            });
+        });
+    });
+});
 //=====================================
 //    MANTER EMAIL DA SESSÃO ATIVO
 //=====================================
@@ -829,6 +1036,27 @@ app.put('/api/perfil', (req, res) => {
 // ========================================
 
 iniBDD();
+
+iniBDD();
+
+db.serialize(() => {
+    db.run("ALTER TABLE tecnicos ADD COLUMN email TEXT", () => {
+        // Vincula automaticamente profissionais antigos da tabela login com a tabela tecnicos
+        db.all("SELECT email FROM login WHERE LOWER(tipo) = 'profissional' ORDER BY idCliente ASC", [], (errL, loginsProf) => {
+            db.all("SELECT idTecnico, email FROM tecnicos ORDER BY idTecnico ASC", [], (errT, listaTec) => {
+                if (!errL && !errT && loginsProf && listaTec) {
+                    listaTec.forEach((tec, index) => {
+                        if (!tec.email && loginsProf[index]) {
+                            db.run("UPDATE tecnicos SET email = ? WHERE idTecnico = ?", [loginsProf[index].email, tec.idTecnico]);
+                        }
+                    });
+                }
+            });
+        });
+    });
+});
+
+administrador();
 
 administrador();
 
