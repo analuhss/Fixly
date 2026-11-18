@@ -107,9 +107,14 @@ app.get('/home-p', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/home-p.html'));
 });
 
-// ROTA PARA HOME - PROFISSIONAIS
-app.get('/home-p', (req, res) => {
-res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/home-p.html'));
+// ROTA PARA ORDENS - PROFISSIONAIS
+app.get('/ordens-p', (req, res) => {
+res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/ordens-p.html'));
+});
+
+// ROTA PARA CONVERSAS - PROFISSIONAIS
+app.get('/ordens-p', (req, res) => {
+res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/conversas-p.html'));
 });
 
 // ============================== PÁGINAS ADM

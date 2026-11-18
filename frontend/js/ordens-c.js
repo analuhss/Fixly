@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (resposta.ok) {
                     alert('Chamado aberto com sucesso! Nº: ' + (dados.idChamado || dados.id));
                     formOS.reset();
-                    window.location.href = '/ordens';
+                    window.location.href = '/ordens-c';
                 } else {
                     alert('Erro: ' + (dados.message || dados.mensagem));
                 }
