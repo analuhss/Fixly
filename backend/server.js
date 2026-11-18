@@ -129,6 +129,18 @@ app.get('/perfil-adm', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/pag-adm/perfil-adm.html'));
 });
 
+// ROTA PARA CADASTROS DE USUÁRIOS - ADM
+app.get('/cad-adm', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/pag-adm/cad-adm.html'));
+});
+
+// ROTA PARA PÁGINA DE USUÁRIOS - ADM
+app.get('/usuarios-adm', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/pag-adm/usuarios-adm.html'));
+});
+
+
+
 // =====================================
 //           Cadastro (POST)
 // =====================================
