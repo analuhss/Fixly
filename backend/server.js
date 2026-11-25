@@ -758,7 +758,8 @@ app.put('/api/ordens/:id/status', (req, res) => {
         analise: 'Em análise',
         andamento: 'Em andamento',
         congelada: 'Congelada',
-        fechada: 'Concluída'
+        fechada: 'Concluída',
+        cancelada: 'Cancelada'
     };
 
     if (!mapaProcesso[novoStatus]) {
@@ -876,6 +877,165 @@ app.get('/api/usuarios/admin', (req, res) => {
     });
 });
     
+
+// =========================================================
+// SALVAR DIAGNÓSTICO, VALORES E ENVIAR PARA VALIDAÇÃO DO CLIENTE
+// =========================================================
+app.put('/api/ordens/:id/tecnico-detalhes', (req, res) => {
+    if (!req.session || !req.session.usuario) {
+        return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
+    }
+
+    const idOrdem = req.params.id;
+    const {
+        diagnostico,
+        servico_executado,
+        data_finalizacao,
+        preco_mao_obra,
+        preco_material,
+        processo,
+        enviar_validacao
+    } = req.body;
+
+    const maoObraNum = parseFloat(preco_mao_obra) || 0;
+    const materialNum = parseFloat(preco_material) || 0;
+    const valorTotal = maoObraNum + materialNum;
+
+    const colunasNecessarias = [
+        { nome: 'diagnostico', tipo: 'TEXT' },
+        { nome: 'servico_executado', tipo: 'TEXT' },
+        { nome: 'data_finalizacao', tipo: 'TEXT' },
+        { nome: 'preco_mao_obra', tipo: 'REAL' },
+        { nome: 'preco_material', tipo: 'REAL' },
+        { nome: 'processo', tipo: 'TEXT' },
+        { nome: 'validacao_cliente', tipo: 'TEXT' },
+        { nome: 'valor', tipo: 'REAL' },
+        { nome: 'valorfinal', tipo: 'REAL' },
+        { nome: 'status', tipo: 'TEXT' }
+    ];
+
+    // Garante que todas as colunas existam na tabela "os"
+    let pendentes = colunasNecessarias.length;
+    colunasNecessarias.forEach((col) => {
+        db.run(`ALTER TABLE os ADD COLUMN ${col.nome}${col.tipo}`, () => {
+            pendentes--;
+            if (pendentes === 0) executarUpdate();
+        });
+    });
+
+    function executarUpdate() {
+        db.all('PRAGMA table_info(os)', [], (errCols, colunas) => {
+            if (errCols) {
+                return res.status(500).json({ mensagem: 'Erro ao ler estrutura da tabela os.' });
+            }
+
+            const nomes = colunas.map((c) => c.name);
+            const condicoesId = ['rowid = ?'];
+            const paramsWhere = [idOrdem];
+
+            if (nomes.includes('idChamado')) { condicoesId.push('idChamado = ?'); paramsWhere.push(idOrdem); }
+            if (nomes.includes('idOrdem')) { condicoesId.push('idOrdem = ?'); paramsWhere.push(idOrdem); }
+            if (nomes.includes('id')) { condicoesId.push('id = ?'); paramsWhere.push(idOrdem); }
+
+            // Se o técnico marcou "Enviar para validação do cliente", define validacao_cliente = 'pendente'
+            const statusValidacao = enviar_validacao ? 'pendente' : null;
+
+            const sets = [
+                'diagnostico = ?',
+                'servico_executado = ?',
+                'data_finalizacao = ?',
+                'preco_mao_obra = ?',
+                'preco_material = ?',
+                'processo = ?',
+                'valor = ?',
+                'valorfinal = ?'
+            ];
+            const params = [
+                diagnostico || '',
+                servico_executado || '',
+                data_finalizacao || '',
+                maoObraNum,
+                materialNum,
+                processo || 'Em análise',
+                valorTotal,
+                valorTotal
+            ];
+
+            if (statusValidacao) {
+                sets.push('validacao_cliente = ?');
+                params.push(statusValidacao);
+                sets.push("status = 'analise'");
+            }
+
+            const sql = `UPDATE os SET ${sets.join(', ')} WHERE (${condicoesId.join(' OR ')})`;
+
+            db.run(sql, [...params, ...paramsWhere], function (errUp) {
+                if (errUp) {
+                    console.error('Erro ao salvar dados técnicos da OS:', errUp.message);
+                    return res.status(500).json({ mensagem: 'Erro ao salvar informações técnicas.' });
+                }
+                if (this.changes === 0) {
+                    return res.status(404).json({ mensagem: 'Ordem de serviço não encontrada.' });
+                }
+                return res.json({
+                    mensagem: enviar_validacao
+                        ? 'Dados salvos e enviados para validação do cliente!'
+                        : 'Dados técnicos atualizados com sucesso!'
+                });
+            });
+        });
+    }
+});
+
+// =========================================================
+// RESPOSTA DO CLIENTE À VALIDAÇÃO DO ORÇAMENTO / SERVIÇO
+// =========================================================
+app.put('/api/ordens/:id/validacao-cliente', (req, res) => {
+    if (!req.session || !req.session.usuario) {
+        return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
+    }
+
+    const idOrdem = req.params.id;
+    const decisao = (req.body.decisao || '').toLowerCase().trim(); // 'aprovado' ou 'recusado'
+
+    if (!['aprovado', 'recusado'].includes(decisao)) {
+        return res.status(400).json({ mensagem: 'Decisão inválida.' });
+    }
+
+    const novoStatus = decisao === 'aprovado' ? 'andamento' : 'cancelada';
+    const novoProcesso = decisao === 'aprovado' ? 'Aprovado pelo cliente - Em andamento' : 'Recusado pelo cliente';
+
+    db.all('PRAGMA table_info(os)', [], (errCols, colunas) => {
+        if (errCols) return res.status(500).json({ mensagem: 'Erro ao verificar tabela os.' });
+
+        const nomes = colunas.map((c) => c.name);
+        const condicoesId = ['rowid = ?'];
+        const paramsWhere = [idOrdem];
+
+        if (nomes.includes('idChamado')) { condicoesId.push('idChamado = ?'); paramsWhere.push(idOrdem); }
+        if (nomes.includes('idOrdem')) { condicoesId.push('idOrdem = ?'); paramsWhere.push(idOrdem); }
+        if (nomes.includes('id')) { condicoesId.push('id = ?'); paramsWhere.push(idOrdem); }
+
+        const sql = `
+            UPDATE os 
+            SET validacao_cliente = ?, status = ?, processo = ?
+            WHERE (${condicoesId.join(' OR ')})
+        `;
+
+        db.run(sql, [decisao, novoStatus, novoProcesso, ...paramsWhere], function (errUp) {
+            if (errUp) {
+                console.error('Erro na validação do cliente:', errUp.message);
+                return res.status(500).json({ mensagem: 'Erro ao registrar validação.' });
+            }
+            return res.json({
+                mensagem: decisao === 'aprovado'
+                    ? 'Orçamento aprovado! O técnico foi liberado para executar o serviço.'
+                    : 'Orçamento recusado e ordem encerrada.'
+            });
+        });
+    });
+});
+
 // ===================================
 //      BUSCAR ORDENS DE SERVIÇO
 // ===================================
@@ -1215,6 +1375,13 @@ administrador();
 
 app.listen(PORT, () => {
     console.log(`Servidor rodando em http://localhost:${PORT}`);
+});
+
+// Garante que a coluna "modelo" exista na tabela "os" sem apagar dados existentes
+db.run("ALTER TABLE os ADD COLUMN modelo TEXT", (err) => {
+    if (err && !err.message.includes('duplicate column name')) {
+        console.error('Erro ao criar coluna modelo na tabela os:', err.message);
+    }
 });
 
 module.exports = db;

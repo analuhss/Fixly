@@ -244,6 +244,7 @@ const mapStatus = {
                     </div>
                     <div class="modal-os-grid">
                         <div class="modal-os-campo"><span>Status</span><p id="detalhe-status"></p></div>
+                        <div class="modal-os-campo"><span>Taxa Análise</span><p id="detalhe-status"></p></div>
                         <div class="modal-os-campo"><span>Valor</span><p id="detalhe-valor"></p></div>
                         <div class="modal-os-campo full"><span>Técnico Responsável</span><p id="detalhe-tecnico"></p></div>
                         <div class="modal-os-campo"><span>Marca</span><p id="detalhe-marca"></p></div>
