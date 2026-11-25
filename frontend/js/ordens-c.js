@@ -66,15 +66,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    console.log("[PASSO 4] Elemento #lista encontrado. A procurar ordens no servidor...");
+   console.log("[PASSO 4] Elemento #lista encontrado. A procurar ordens...");
 
-    const mapStatus = {
-        analise:   { texto: 'EM ANÁLISE', classe: 'status-analise' },
-        aberta:    { texto: 'ABERTA',     classe: 'status-aberta' },
-        andamento: { texto: 'ANDAMENTO',  classe: 'status-andamento' },
-        fechada:   { texto: 'FECHADA',    classe: 'status-fechada' },
-        congelada: { texto: 'CONGELADA',  classe: 'status-congelada' }
-    };
+const mapStatus = {
+    analise:   { texto: 'EM ANÁLISE', classe: 'status-analise' },
+    aberta:    { texto: 'ABERTA',     classe: 'status-aberta' },
+    andamento: { texto: 'ANDAMENTO',  classe: 'status-andamento' },
+    fechada:   { texto: 'FECHADA',    classe: 'status-fechada' },
+    congelada: { texto: 'CONGELADA',  classe: 'status-congelada' }
+};
 
     try {
         const res = await fetch('/api/ordens/cliente', { credentials: 'include' });

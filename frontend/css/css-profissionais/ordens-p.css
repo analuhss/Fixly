@@ -4,6 +4,10 @@
     box-sizing: border-box;
 }
 
+[hidden] {
+    display: none !important;
+}
+
 body {
     min-height: 100vh;
     font-family: "Poppins", Arial, Helvetica, sans-serif;
@@ -149,6 +153,99 @@ body {
     }
 
     .perfil svg {
+        width: 22px;
+        height: 22px;
+    }
+}
+
+/* ---------- sino de notificações (ao lado do avatar) ---------- */
+.acoes {
+    grid-column: 3;
+    justify-self: end;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sino {
+    position: relative;
+
+    width: 40px;
+    height: 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #d0d0d4;                 /* cinza claro */
+
+    transition: 0.2s;
+}
+
+.sino svg {
+    width: 24px;
+    height: 24px;
+}
+
+.sino:hover,
+.sino.ativo {
+    color: #f5c32f;                 /* amarelo */
+}
+
+.sino:focus-visible {
+    outline: 2px solid #f5c32f;
+    outline-offset: 3px;
+    border-radius: 50%;
+}
+
+/* número de notificações não lidas */
+.contador {
+    position: absolute;
+    top: 2px;
+    right: 0;
+
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 9px;
+    background-color: #ff6b5e;      /* vermelho */
+    color: #ffffff;
+
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.contador[hidden] {
+    display: none;
+}
+
+/* com o sino, a barra precisa de mais espaço no celular */
+@media (max-width: 480px) {
+    .navbar {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .menu {
+        margin: 0 auto;
+    }
+
+    .acoes {
+        gap: 6px;
+    }
+
+    .sino {
+        width: 30px;
+        height: 30px;
+    }
+
+    .sino svg {
         width: 22px;
         height: 22px;
     }
@@ -510,9 +607,8 @@ h1 span {
         font-size: 28px;
     }
 
-    /* duas colunas, como no protótipo */
     .lista {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
         gap: 12px;
     }
 
@@ -559,4 +655,255 @@ h1 span {
     .lista {
         grid-template-columns: 1fr;
     }
+}
+
+/* ---------- identificação provisória ---------- */
+.identificar {
+    margin: 22px 0;
+    padding: 18px;
+
+    background-color: #1a1a1d;      /* cinza escuro do cartão */
+    border: 1px solid #2a2a2e;
+    border-radius: 20px;
+
+    font-size: 14px;
+    color: #d0d0d4;
+}
+
+.identificar-linha {
+    display: flex;
+    gap: 10px;
+
+    margin-top: 12px;
+}
+
+.identificar input {
+    flex: 1;
+    min-width: 0;
+    height: 48px;
+
+    border: none;
+    border-radius: 10px;
+
+    background-color: #e8e8e8;      /* cinza do input */
+    color: #222222;
+
+    font-family: inherit;
+    font-size: 15px;
+
+    padding: 0 16px;
+
+    outline: none;
+}
+
+.identificar input:focus {
+    box-shadow: 0 0 0 2px #f5c32f;  /* amarelo */
+}
+
+.identificar button {
+    height: 48px;
+
+    border: none;
+    border-radius: 10px;
+
+    background-color: #f5c32f;      /* amarelo */
+    color: #111111;
+
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+
+    padding: 0 22px;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.identificar button:hover {
+    background-color: #ffd447;      /* amarelo claro */
+}
+
+.erro-id {
+    min-height: 20px;
+    margin-top: 10px;
+
+    font-size: 13px;
+    color: #ff6b5e;                 /* vermelho claro */
+}
+
+.identidade {
+    margin: 18px 0 0;
+
+    font-size: 13px;
+    color: #a0a0a8;
+}
+
+.identidade strong {
+    color: #ffffff;
+}
+
+.identidade button {
+    margin-left: 6px;
+
+    border: none;
+    background: none;
+
+    color: #f5c32f;                 /* amarelo */
+    font-family: inherit;
+    font-size: 13px;
+    text-decoration: underline;
+
+    cursor: pointer;
+}
+
+/* ---------- as duas partes (Minhas ordens / Sem técnico) ---------- */
+.abas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+
+    margin-bottom: 14px;
+    padding: 5px;
+
+    background-color: #1a1a1d;
+    border: 1px solid #2a2a2e;
+    border-radius: 14px;
+}
+
+.aba {
+    height: 44px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: transparent;
+    color: #d0d0d4;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.aba:hover {
+    color: #ffffff;
+}
+
+.aba[aria-selected="true"] {
+    background-color: #f5c32f;      /* amarelo */
+    color: #111111;
+}
+
+.aba:focus-visible {
+    outline: 2px solid #f5c32f;
+    outline-offset: 2px;
+}
+
+.contagem {
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 11px;
+    background-color: rgba(255, 255, 255, 0.12);
+
+    font-size: 12px;
+}
+
+.aba[aria-selected="true"] .contagem {
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+/* há ordens esperando por um técnico */
+.aba.chamar:not([aria-selected="true"]) .contagem {
+    background-color: #f5c32f;
+    color: #111111;
+}
+
+/* ---------- detalhes do cartão ---------- */
+.detalhes {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    padding: 10px 12px;
+
+    border-radius: 12px;
+    background-color: #202024;
+}
+
+.linha-info {
+    font-size: 13px;
+    color: #d0d0d4;
+    overflow-wrap: anywhere;
+}
+
+.linha-info strong {
+    display: block;
+
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #8a8a92;
+}
+
+/* o problema mostra no máximo 2 linhas */
+.problema {
+    display: -webkit-box;
+    -webkit-line-clamp: 2; 
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.assumir {
+    height: 42px;
+
+    border: none;
+    border-radius: 8px;
+
+    background-color: #f5c32f;      /* amarelo */
+    color: #111111;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.assumir:hover:not(:disabled) {
+    background-color: #ffd447;      /* amarelo claro */
+    transform: translateY(-1px);
+}
+
+.assumir:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.assumir:focus-visible,
+.identificar button:focus-visible,
+.identidade button:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 3px;
+}
+
+.resumo.erro {
+    color: #ff6b5e;                 /* vermelho claro */
 }

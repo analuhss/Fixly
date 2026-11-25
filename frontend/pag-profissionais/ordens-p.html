@@ -9,14 +9,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="../css/css-profissionais/ordensP.css">
+    <link rel="stylesheet" href="../css/css-profissionais/ordens-p.css">
     <link rel="icon" type="image/svg+xml" href="../files/svg/ícone.svg">
 
     <script src="../js/ordens-p.js" defer></script>
 </head>
+
 <body>
     <header class="navbar">
-        <a class="logo" href="/home-p">
+        <a class="logo" href="/ordens-p">
             <img src="../files/svg/fixly.svg" alt="Logo do site fixly">
         </a>
 
@@ -24,56 +25,93 @@
             <a href="/home-p">Início</a>
             <a href="/ordens-p" class="ativo" aria-current="page">Ordens</a>
             <a href="/conversas-p">Conversas</a>
-              <a href="/usuarios-p">Usuários</a>
+            <a href="/usuarios">Usuarios</a>
         </nav>
 
-        <a class="perfil" href="/perfil-p" aria-label="Perfil">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <circle cx="12" cy="8.5" r="4.2"/>
-                <path d="M3.5 22c0-4.7 3.8-7.5 8.5-7.5s8.5 2.8 8.5 7.5z"/>
-            </svg>
-        </a>
+        <div class="acoes">
+            <a class="sino" href="/noti-p" data-perfil="profissional" aria-label="Notificações">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                <span class="contador" hidden></span>
+            </a>
+
+            <a class="perfil" href="/perfil-p" aria-label="Perfil">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <circle cx="12" cy="8.5" r="4.2"/>
+                    <path d="M3.5 22c0-4.7 3.8-7.5 8.5-7.5s8.5 2.8 8.5 7.5z"/>
+                </svg>
+            </a>
+        </div>
     </header>
 
     <main>
         <h1>Ordens de <span>Serviço</span></h1>
-        <p class="subtitulo">Acompanhe as ordens de serviço</p>
+        <p class="subtitulo">Assuma novas ordens e acompanhe as suas</p>
 
-        <!-- pesquisa -->
-        <form class="busca" id="formBusca" role="search">
-            <input type="search" id="pesquisa" placeholder="pesquisa" aria-label="Pesquisar ordens de serviço" autocomplete="off">
-            <button type="submit" aria-label="Pesquisar">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-                    <circle cx="11" cy="11" r="7"/>
-                    <path d="M20 20l-3.5-3.5"/>
-                </svg>
-            </button>
+        <!-- Provisório: sem login, o profissional informa o número dele. Depois, isso vem do login. -->
+        <form class="identificar" id="formIdentificar" hidden>
+            <p>Informe o seu número de identificação de profissional para continuar.</p>
+
+            <div class="identificar-linha">
+                <input type="text" id="campoNumero" placeholder="Número de identificação" aria-label="Número de identificação" autocomplete="off" required>
+                <button type="submit">Continuar</button>
+            </div>
+
+            <p class="erro-id" id="erroId" role="alert"></p>
         </form>
 
-        <!-- nova ordem -->
-        <div class="nova">
-            <a href="./cadastroOS.html" aria-label="Cadastrar nova ordem de serviço" title="Nova OS">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
-                    <path d="M12 5v14M5 12h14"/>
-                </svg>
-            </a>
+        <div id="conteudo" hidden>
+            <p class="identidade" id="identidade"></p>
+
+            <!-- pesquisa -->
+            <form class="busca" id="formBusca" role="search">
+                <input type="search" id="pesquisa" placeholder="pesquisa" aria-label="Pesquisar ordens de serviço" autocomplete="off">
+                <button type="submit" aria-label="Pesquisar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"/>
+                        <path d="M20 20l-3.5-3.5"/>
+                    </svg>
+                </button>
+            </form>
+
+            <!-- nova ordem -->
+            <div class="nova">
+                <a href="./cadastroOS.html" aria-label="Cadastrar nova ordem de serviço" title="Nova OS">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                </a>
+            </div>
+
+            <hr class="divisor">
+
+            <!-- as duas partes: ordens dele e ordens sem técnico -->
+            <div class="abas" role="tablist" aria-label="Ordens">
+                <button type="button" class="aba" role="tab" data-aba="minhas" aria-selected="true">
+                    Minhas ordens <span class="contagem" id="contMinhas">0</span>
+                </button>
+
+                <button type="button" class="aba" role="tab" data-aba="sem" aria-selected="false">
+                    Sem técnico <span class="contagem" id="contSem">0</span>
+                </button>
+            </div>
+
+            <!-- filtros de status: só fazem sentido nas ordens dele -->
+            <div class="filtros" id="filtros" role="group" aria-label="Filtrar por status">
+                <button type="button" class="filtro" data-filtro="todas" aria-pressed="true">Todas</button>
+                <button type="button" class="filtro" data-filtro="abertas" aria-pressed="false">Abertas</button>
+                <button type="button" class="filtro" data-filtro="andamento" aria-pressed="false">Andamento</button>
+                <button type="button" class="filtro" data-filtro="fechadas" aria-pressed="false">Fechadas</button>
+                <button type="button" class="filtro" data-filtro="congeladas" aria-pressed="false">Congeladas</button>
+            </div>
+
+            <p class="resumo" id="resumo" role="status"></p>
+
+            <!-- os cartões são criados pelo ordensProf.js a partir do modelo abaixo -->
+            <section class="lista" id="lista"></section>
         </div>
-
-        <hr class="divisor">
-
-        <!-- filtros -->
-        <div class="filtros" role="group" aria-label="Filtrar por status">
-            <button type="button" class="filtro" data-filtro="todas" aria-pressed="true">Todas</button>
-            <button type="button" class="filtro" data-filtro="abertas" aria-pressed="false">Abertas</button>
-            <button type="button" class="filtro" data-filtro="andamento" aria-pressed="false">Andamento</button>
-            <button type="button" class="filtro" data-filtro="fechadas" aria-pressed="false">Fechadas</button>
-            <button type="button" class="filtro" data-filtro="congeladas" aria-pressed="false">Congeladas</button>
-        </div>
-
-        <p class="resumo" id="resumo" role="status"></p>
-
-        <!-- os cartões são criados pelo ordensProfissional.js a partir do modelo abaixo -->
-        <section class="lista" id="lista"></section>
     </main>
 
     <template id="modeloCartao">
@@ -104,6 +142,14 @@
 
             <p class="selo"><span class="ponto"></span><span class="selo-texto"></span></p>
 
+            <!-- o que o profissional precisa para decidir se assume -->
+            <div class="detalhes">
+                <p class="linha-info"><strong>Cliente</strong><span class="cliente"></span></p>
+                <p class="linha-info"><strong>Equipamento</strong><span class="equipamento"></span></p>
+                <p class="linha-info"><strong>Problema</strong><span class="problema"></span></p>
+                <p class="linha-info"><strong>Abertura</strong><span class="abertura"></span></p>
+            </div>
+
             <div class="valor">
                 <svg class="icone-valor" viewBox="0 0 24 24" aria-hidden="true">
                     <path fill="currentColor" d="M3 4a1 1 0 0 1 1-1h7.2a1 1 0 0 1 .7.3l9 9a1 1 0 0 1 0 1.4l-7.2 7.2a1 1 0 0 1-1.4 0l-9-9A1 1 0 0 1 3 11.2z"/>
@@ -113,14 +159,11 @@
                     <p class="legenda">Valor da OS</p>
                     <p class="reais"></p>
                 </div>
-                <svg class="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M9 5l7 7-7 7"/>
-                </svg>
             </div>
+
+            <button type="button" class="assumir">Assumir ordem</button>
         </article>
     </template>
 
-    <script src="./frontend/js/ordens.js"></script>
-    <script src="./frontend/js/ordensProfissional.js"></script>
 </body>
 </html>

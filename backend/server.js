@@ -568,70 +568,86 @@ app.post('/api/usuarios/admin', (req, res) => {
     });
 });
 
-// ==========================================
-//    BUSCAR ORDENS DO PROFISSIONAL LOGADO
-// ==========================================
+// ==================================
+//    BUSCAR ORDENS DO PROFISSIONAL 
+// ==================================
 app.get('/api/ordens/profissional', (req, res) => {
     if (!req.session || !req.session.usuario) {
         return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
     }
 
-    const emailLogado = req.session.usuario.email;
+    const emailLogado = (req.session.usuario.email || '').trim().toLowerCase();
     const idLoginLogado = req.session.usuario.idCliente || req.session.usuario.id;
 
-    // Garante que a coluna email exista antes de consultar
-    db.run("ALTER TABLE tecnicos ADD COLUMN email TEXT", () => {
-        const sqlBuscaTecnico = `
-            SELECT idTecnico FROM tecnicos 
-            WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) OR idTecnico = ?
-            ORDER BY CASE WHEN LOWER(TRIM(email)) = LOWER(TRIM(?)) THEN 0 ELSE 1 END
-            LIMIT 1
+    db.all('SELECT * FROM tecnicos', [], (errTec, listaTecnicos) => {
+        if (errTec) {
+            console.error('Erro SQL ao ler tecnicos:', errTec.message);
+            return res.status(500).json({ mensagem: 'Erro ao identificar profissional no banco.' });
+        }
+
+        const tecnico = (listaTecnicos || []).find(
+            (t) =>
+                (t.email && t.email.trim().toLowerCase() === emailLogado) ||
+                Number(t.idTecnico) === Number(idLoginLogado)
+        );
+
+        const idTecnico = tecnico ? Number(tecnico.idTecnico) : -1;
+        const nomeTecnico = tecnico ? (tecnico.nome || '').trim().toLowerCase() : '';
+
+        const sqlOrdens = `
+            SELECT 
+                o.*,
+                o.rowid AS rowid_os,
+                COALESCE(u.nome, l.email, 'Cliente não identificado') AS clienteNome,
+                u.telefone AS clienteTelefone,
+                u.endereco AS clienteEndereco
+            FROM os o
+            LEFT JOIN usuarios u ON o.idCliente = u.idCliente
+            LEFT JOIN login l ON o.idCliente = l.idCliente
+            ORDER BY o.rowid DESC
         `;
 
-        db.get(sqlBuscaTecnico, [emailLogado, idLoginLogado, emailLogado], (errTec, tecnico) => {
-            if (errTec) {
-                console.error('Erro SQL ao identificar técnico:', errTec.message);
-                return res.status(500).json({ mensagem: 'Erro ao identificar profissional no banco.' });
+        db.all(sqlOrdens, [], (errOs, todasOrdens) => {
+            if (errOs) {
+                console.error('Erro SQL ao buscar ordens:', errOs.message);
+                return res.status(500).json({ mensagem: 'Erro ao carregar ordens: ' + errOs.message });
             }
 
-            if (!tecnico) {
-                return res.json([]);
-            }
+            const normalizadas = (todasOrdens || []).map((os) => {
+                const rawStatus = (os.status || os.processo || '').toLowerCase().trim();
+                let statusFinal = 'aberta';
+                if (rawStatus.includes('andamento')) statusFinal = 'andamento';
+                else if (rawStatus.includes('fechada') || rawStatus.includes('conclu')) statusFinal = 'fechada';
+                else if (rawStatus.includes('congelada') || rawStatus.includes('pausada')) statusFinal = 'congelada';
+                else if (rawStatus.includes('analise') || rawStatus.includes('análise')) statusFinal = 'analise';
+                else if (rawStatus) statusFinal = rawStatus;
 
-            const sqlOrdens = `
-                SELECT 
-                    o.*,
-                    COALESCE(o.idChamado, o.rowid) AS id,
-                    COALESCE(u.nome, l.email, 'Cliente não identificado') AS clienteNome,
-                    u.telefone AS clienteTelefone,
-                    u.endereco AS clienteEndereco,
-                    COALESCE(
-                        NULLIF(o.status, ''),
-                        CASE 
-                            WHEN LOWER(o.processo) = 'em andamento' THEN 'andamento'
-                            WHEN LOWER(o.processo) IN ('concluido', 'concluída', 'fechada') THEN 'fechada'
-                            ELSE 'andamento'
-                        END
-                    ) AS status
-                FROM os o
-                LEFT JOIN usuarios u ON o.idCliente = u.idCliente
-                LEFT JOIN login l ON o.idCliente = l.idCliente
-                WHERE o.idTecnico = ?
-                ORDER BY COALESCE(o.idChamado, o.rowid) DESC
-            `;
-
-            db.all(sqlOrdens, [tecnico.idTecnico], (errOs, ordens) => {
-                if (errOs) {
-                    console.error('Erro SQL ao buscar ordens do técnico:', errOs.message);
-                    return res.status(500).json({ mensagem: 'Erro ao carregar ordens de serviço.' });
-                }
-
-                res.json(ordens || []);
+                return {
+                    ...os,
+                    id: os.idChamado || os.idOrdem || os.id || os.rowid_os,
+                    status: statusFinal
+                };
             });
+
+            const atribuidas = normalizadas.filter((os) => {
+                const osIdTec = Number(os.idTecnico || 0);
+                const osNomeTec = (os.tecnico || '').trim().toLowerCase();
+                return (idTecnico > 0 && osIdTec === idTecnico) ||
+                       (nomeTecnico && osNomeTec === nomeTecnico);
+            });
+
+            const disponiveis = normalizadas.filter((os) => {
+                const osIdTec = Number(os.idTecnico || 0);
+                const osNomeTec = (os.tecnico || '').trim().toLowerCase();
+                const semId = osIdTec === 0;
+                const semNome = !osNomeTec || osNomeTec === 'aguardando técnico' || osNomeTec === 'sem técnico';
+                return semId && semNome;
+            });
+
+            return res.json({ atribuidas, disponiveis });
         });
     });
 });
-
 // =============================
 //      MOSTRAR USUÁRIOS
 // =============================
@@ -748,6 +764,7 @@ app.get('/api/ordens/admin', (req, res) => {
         res.json(ordens);
     });
 });
+
 
 // ======================================================
 //      FUNÇÃO PARA CRIAR A SENHA DE ADMINISTRADOR
