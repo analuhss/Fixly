@@ -321,7 +321,7 @@ app.post('/api/ordens', (req, res) => {
 
         return res.status(201).json({
             message: 'Ordem de serviço aberta com sucesso!',
-            idChamado: this.lastID // Retorna o idChamado gerado[cite: 13]
+            idChamado: this.lastID // Retorna o idChamado gerado
         });
     });
 });
@@ -332,15 +332,14 @@ app.post('/api/ordens', (req, res) => {
 
 app.get('/api/perfil', (req, res) => {
     if (!req.session || !req.session.usuario) {
-        return res.status(401).json({ mensagem: 'Não autorizado. Faça login novamente.' });
+        return res.status(401).json({ mensagem: 'Não autorizado. Faça login novamente.' }); // --> verifica se há uma sessão ativa
     }
 
     const usuarioSessao = req.session.usuario;
     const emailLogado = usuarioSessao.email;
     const tipoLogado = (usuarioSessao.tipo || '').toLowerCase();
 
-    // 1. Se for PROFISSIONAL, busca os dados na tabela "tecnicos" pelo e-mail
-    if (tipoLogado === 'profissional') {
+    if (tipoLogado === 'profissional') {  // --> se o pefil logado for de profissional, ele busca os dados da tabela de técnicos.
         const sqlTecnico = `
             SELECT 
                 t.idTecnico AS id,
@@ -361,10 +360,15 @@ app.get('/api/perfil', (req, res) => {
             LIMIT 1
         `;
 
+        // --> COALESCE(NULLIF(TRIM(t.email), ''), l.email) : Garante que o email venha da tabela tecnicos, e se lá estiver vazio, vem da tabela login
+
+        // --> LOWER(TRIM(...)): Compara os e-mails ignorando letras maiúsculas/minúsculas ou espaços adicionais
+
         return db.get(sqlTecnico, [emailLogado], (erro, tecnico) => {
             if (erro) {
                 console.error('Erro ao buscar perfil do profissional:', erro.message);
                 return res.status(500).json({ mensagem: 'Erro ao carregar perfil do profissional.' });
+                // --> Executa a consulta no sqlite. Se houver falha, retorna 500
             }
 
             if (!tecnico) {
@@ -373,13 +377,15 @@ app.get('/api/perfil', (req, res) => {
                     email: emailLogado,
                     tipo: 'profissional'
                 });
+                //--> Se o técnico tiver login, mas ainda nao tiver registro completo na tabela, cria um objeto básico usando a primeira parte do email.
             }
 
             return res.json(tecnico);
+            //--> Se encontar o registro, devolve JSON completo e encerra a função com return
         });
     }
 
-    // 2. Se for CLIENTE ou ADM, busca na tabela "usuarios"
+    // Se for CLIENTE ou ADM, busca na tabela "usuarios"
     const idCliente = usuarioSessao.idCliente || usuarioSessao.id;
     const sqlUsuario = `
         SELECT 
@@ -397,18 +403,24 @@ app.get('/api/perfil', (req, res) => {
         LEFT JOIN usuarios u ON l.idCliente = u.idCliente
         WHERE l.idCliente = ?
     `;
+    //--> Caso o usuário não seja profissional, o fluxo para buscar segue pelo idCliente salvo na sessão
 
-    db.get(sqlUsuario, [idCliente], (erro, usuario) => {
+    //-->(l) -- (u): Cruzamento de tabelas pelo idCliente
+
+    //-->COALESCE(u.nome, l.email): Exibe o nome de cadastro ou, se ainda não tiver sido preenchido, usa o próprio e-mail como fallback.
+
+    db.get(sqlUsuario, [idCliente], (erro, usuario) => { //--> busca o registro pelo idCliente
+
         if (erro) {
             console.error('Erro ao buscar perfil do usuário:', erro.message);
             return res.status(500).json({ mensagem: 'Erro ao carregar perfil.' });
-        }
+        } //--> erros internos do banco
 
         if (!usuario) {
-            return res.status(404).json({ mensagem: 'Perfil não encontrado.' });
+            return res.status(404).json({ mensagem: 'Perfil não encontrado.' }); //--> id não existe
         }
 
-        return res.json(usuario);
+        return res.json(usuario); //-->envia os dados em json para preencher os campos
     });
 });
 
@@ -416,14 +428,14 @@ app.get('/api/perfil', (req, res) => {
 //         ALTERAR SENHA
 // =============================
 
-// 4. ALTERAR SENHA
 app.put('/api/perfil/senha', (req, res) => {
     if (!req.session || !req.session.usuario) {
-        return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
+        return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' }); //--> verifica se há uma sessão ativa
     }
 
     const idCliente = req.session.usuario.idCliente || req.session.usuario.id;
     const { senhaAtual, novaSenha } = req.body;
+    //--> obtém o ID do usuário pela sessão (idCliente) e lê senhaAtual e novaSenha enviados 
 
     if (!senhaAtual || !novaSenha) {
         return res.status(400).json({ mensagem: 'Preencha a senha atual e a nova senha.' });
