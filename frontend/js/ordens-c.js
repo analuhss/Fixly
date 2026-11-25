@@ -263,10 +263,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('detalhe-status').textContent = statusTexto;
         document.getElementById('detalhe-valor').textContent = valorFormatado;
         document.getElementById('detalhe-tecnico').textContent = tecnico;
-        document.getElementById('detalhe-marca').textContent = os.marca || 'Não informada';
-        document.getElementById('detalhe-modelo').textContent = os.modelo || 'Não informado';
-        document.getElementById('detalhe-perifericos').textContent = os.perifericos || 'Nenhum item';
-        document.getElementById('detalhe-descricao').textContent = os.descricao || 'Sem descrição';
+       document.getElementById('detalhe-marca').textContent = os.marca || 'Não informada';
+document.getElementById('detalhe-modelo').textContent = os.modelo || os.equipamento || os.aparelho || 'Não informado';
+document.getElementById('detalhe-perifericos').textContent = os.perifericos || os.acessorios || 'Nenhum item';
+document.getElementById('detalhe-descricao').textContent = os.descricao || os.defeito || 'Sem descrição';
 
         modal.classList.add('aberto');
     }

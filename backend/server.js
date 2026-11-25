@@ -114,7 +114,7 @@ res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/ordens-p.html')
 
 // ROTA PARA CONVERSAS - PROFISSIONAIS
 app.get('/conversas-p', (req, res) => {
-res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/conversas-p.html'));
+res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/conversa-p.html'));
 });
 
 // ROTA PARA CONVERSAS - PROFISSIONAIS
@@ -316,108 +316,85 @@ app.post('/api/ordens', (req, res) => {
 //     BUSCAR OS DADOS DO CLIENTE LOGADO
 // ============================================
 
-// 1. BUSCAR DADOS DO PERFIL
 app.get('/api/perfil', (req, res) => {
     if (!req.session || !req.session.usuario) {
-        return res.status(401).json({ mensagem: 'Sessão inválida. Faça login.' });
+        return res.status(401).json({ mensagem: 'Não autorizado. Faça login novamente.' });
     }
 
-    const idUsuario = req.session.usuario.idCliente || req.session.usuario.id;
+    const usuarioSessao = req.session.usuario;
+    const emailLogado = usuarioSessao.email;
+    const tipoLogado = (usuarioSessao.tipo || '').toLowerCase();
 
-    const sql = `
-        SELECT l.email, u.nome, u.cpf, u.telefone, u.foto 
-        FROM login l 
-        LEFT JOIN usuarios u ON l.idCliente = u.idCliente 
+    // 1. Se for PROFISSIONAL, busca os dados na tabela "tecnicos" pelo e-mail
+    if (tipoLogado === 'profissional') {
+        const sqlTecnico = `
+            SELECT 
+                t.idTecnico AS id,
+                t.nome,
+                t.cpf,
+                t.dataNascimento,
+                t.telefone,
+                COALESCE(NULLIF(TRIM(t.email), ''), l.email) AS email,
+                t.cep,
+                t.cargo,
+                t.admissao,
+                l.tipo,
+                u.foto
+            FROM tecnicos t
+            LEFT JOIN login l ON LOWER(TRIM(t.email)) = LOWER(TRIM(l.email))
+            LEFT JOIN usuarios u ON l.idCliente = u.idCliente
+            WHERE LOWER(TRIM(t.email)) = LOWER(TRIM(?))
+            LIMIT 1
+        `;
+
+        return db.get(sqlTecnico, [emailLogado], (erro, tecnico) => {
+            if (erro) {
+                console.error('Erro ao buscar perfil do profissional:', erro.message);
+                return res.status(500).json({ mensagem: 'Erro ao carregar perfil do profissional.' });
+            }
+
+            if (!tecnico) {
+                return res.json({
+                    nome: emailLogado.split('@')[0],
+                    email: emailLogado,
+                    tipo: 'profissional'
+                });
+            }
+
+            return res.json(tecnico);
+        });
+    }
+
+    // 2. Se for CLIENTE ou ADM, busca na tabela "usuarios"
+    const idCliente = usuarioSessao.idCliente || usuarioSessao.id;
+    const sqlUsuario = `
+        SELECT 
+            l.idCliente AS id,
+            COALESCE(u.nome, l.email) AS nome,
+            u.cpf,
+            u.dataNascimento,
+            u.telefone,
+            l.email,
+            u.cep,
+            u.endereco,
+            u.foto,
+            l.tipo
+        FROM login l
+        LEFT JOIN usuarios u ON l.idCliente = u.idCliente
         WHERE l.idCliente = ?
     `;
 
-    db.get(sql, [idUsuario], (err, row) => {
-        if (err) {
-            console.error('Erro SQL:', err.message);
-            return res.status(500).json({ mensagem: 'Erro ao buscar perfil.' });
+    db.get(sqlUsuario, [idCliente], (erro, usuario) => {
+        if (erro) {
+            console.error('Erro ao buscar perfil do usuário:', erro.message);
+            return res.status(500).json({ mensagem: 'Erro ao carregar perfil.' });
         }
-        res.json(row || {});
-    });
-});
 
-// 2. ATUALIZAR DADOS E FOTO DE PERFIL
-app.put('/api/perfil', (req, res) => {
-    if (!req.session || !req.session.usuario) {
-        return res.status(401).json({ mensagem: 'Não autorizado.' });
-    }
-    
-    const idCliente = req.session.usuario.idCliente || req.session.usuario.id;
-    const { nome, cpf, email, foto } = req.body;
+        if (!usuario) {
+            return res.status(404).json({ mensagem: 'Perfil não encontrado.' });
+        }
 
-    db.serialize(() => {
-        // Atualiza o e-mail na tabela de login primeiro
-        db.run('UPDATE login SET email = ? WHERE idCliente = ?', [email, idCliente], (err) => {
-            if (err) return res.status(400).json({ mensagem: 'Este e-mail já está em uso.' });
-
-            // Atualiza ou insere os dados na tabela usuarios (incluindo a foto)
-            const sqlUser = `
-                INSERT INTO usuarios (idCliente, nome, cpf, email, foto) 
-                VALUES (?, ?, ?, ?, ?)
-                ON CONFLICT(idCliente) DO UPDATE SET 
-                    nome = excluded.nome, 
-                    cpf = excluded.cpf, 
-                    email = excluded.email,
-                    foto = COALESCE(excluded.foto, usuarios.foto)
-            `;
-
-            db.run(sqlUser, [idCliente, nome, cpf, email, foto || null], (errUser) => {
-                if (errUser) return res.status(500).json({ mensagem: 'Erro ao atualizar perfil.' });
-                
-                // Atualiza o e-mail na sessão ativa
-                req.session.usuario.email = email;
-                res.json({ mensagem: 'Perfil atualizado com sucesso!' });
-            });
-        });
-    });
-});
-
-// 3. EXCLUIR CONTA DEFINITIVAMENTE
-app.delete('/api/perfil', (req, res) => {
-    if (!req.session || !req.session.usuario) {
-        return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
-    }
-
-    const idCliente = req.session.usuario.idCliente || req.session.usuario.id;
-    console.log(`[DEBUG] Tentando excluir conta do ID: ${idCliente}`);
-
-    db.serialize(() => {
-        // 1. Apaga registros vinculados (caso o cliente tenha ordens/chamados, evita bloqueio de FOREIGN KEY)
-        db.run('DELETE FROM ordens WHERE idCliente = ?', [idCliente], (errOrdens) => {
-            if (errOrdens) console.log('Aviso ao limpar ordens (ignorado se tabela/coluna diferir):', errOrdens.message);
-        });
-
-        // 2. Apaga da tabela usuarios
-        db.run('DELETE FROM usuarios WHERE idCliente = ?', [idCliente], (errUser) => {
-            if (errUser) {
-                console.error('Erro ao deletar de usuarios:', errUser.message);
-                return res.status(500).json({ mensagem: 'Erro ao excluir dados do usuário.' });
-            }
-
-            // 3. Apaga da tabela login
-            db.run('DELETE FROM login WHERE idCliente = ?', [idCliente], function(errLogin) {
-                if (errLogin) {
-                    console.error('Erro ao deletar de login:', errLogin.message);
-                    return res.status(500).json({ mensagem: 'Erro ao excluir credenciais de login.' });
-                }
-
-                console.log(`[SUCESSO] Registros removidos da tabela login: ${this.changes}`);
-
-                if (this.changes === 0) {
-                    return res.status(404).json({ mensagem: 'Usuário não encontrado no banco para exclusão.' });
-                }
-
-                // Encerra a sessão e limpa o cookie
-                req.session.destroy(() => {
-                    res.clearCookie('connect.sid');
-                    res.json({ mensagem: 'Conta excluída permanentemente com sucesso!' });
-                });
-            });
-        });
+        return res.json(usuario);
     });
 });
 
@@ -715,6 +692,7 @@ app.get('/api/usuarios/admin', (req, res) => {
 //      BUSCAR ORDENS DE SERVIÇO
 // ===================================
 
+// Exemplo para a rota GET /api/ordens/cliente no server.js:
 app.get('/api/ordens/cliente', (req, res) => {
     if (!req.session || !req.session.usuario) {
         return res.status(401).json({ mensagem: 'Não autorizado.' });
@@ -722,12 +700,20 @@ app.get('/api/ordens/cliente', (req, res) => {
 
     const idCliente = req.session.usuario.idCliente || req.session.usuario.id;
 
-    db.all('SELECT rowid AS id, * FROM os WHERE idCliente = ? ORDER BY rowid DESC', [idCliente], (err, rows) => {
-        if (err) {
-            console.error('[ERRO SQL ORDENS]:', err.message);
+    // Se a coluna no banco for "modelo", use SELECT * ; se for "equipamento", inclua "equipamento AS modelo":
+    const sql = `
+        SELECT *
+        FROM ordens
+        WHERE idCliente = ?
+        ORDER BY idOrdem DESC
+    `;
+
+    db.all(sql, [idCliente], (erro, linhas) => {
+        if (erro) {
+            console.error('Erro ao buscar ordens do cliente:', erro.message);
             return res.status(500).json({ mensagem: 'Erro ao buscar ordens.' });
         }
-        res.json(rows || []);
+        return res.json(linhas);
     });
 });
 
