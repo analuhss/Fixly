@@ -648,6 +648,178 @@ app.get('/api/ordens/profissional', (req, res) => {
         });
     });
 });
+
+// ===========================
+//   PROFISIONAL ATRIBUIR-SE
+// ===========================
+
+app.put('/api/ordens/:id/assumir', (req, res) => {
+    if (!req.session || !req.session.usuario) {
+        return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
+    }
+
+    const idOrdem = req.params.id;
+    const emailProfissional = (req.session.usuario.email || '').trim().toLowerCase();
+    const idLoginLogado = req.session.usuario.idCliente || req.session.usuario.id;
+
+    db.all('SELECT * FROM tecnicos', [], (errTec, listaTecnicos) => {
+        if (errTec) {
+            console.error('Erro ao buscar técnicos:', errTec.message);
+            return res.status(500).json({ mensagem: 'Erro interno ao identificar profissional.' });
+        }
+
+        const tecnico = (listaTecnicos || []).find(
+            (t) =>
+                (t.email && t.email.trim().toLowerCase() === emailProfissional) ||
+                Number(t.idTecnico) === Number(idLoginLogado)
+        );
+
+        if (!tecnico) {
+            return res.status(404).json({ mensagem: 'Perfil técnico não encontrado no banco.' });
+        }
+
+        // Descobre dinamicamente as colunas da tabela "os" para evitar erro de coluna inexistente
+        db.all('PRAGMA table_info(os)', [], (errCols, colunas) => {
+            if (errCols) {
+                return res.status(500).json({ mensagem: 'Erro ao verificar estrutura da tabela os.' });
+            }
+
+            const nomesColunas = colunas.map((c) => c.name);
+            const updates = [];
+            const params = [];
+
+            if (nomesColunas.includes('idTecnico')) {
+                updates.push('idTecnico = ?');
+                params.push(tecnico.idTecnico);
+            }
+            if (nomesColunas.includes('tecnico')) {
+                updates.push('tecnico = ?');
+                params.push(tecnico.nome);
+            }
+            if (nomesColunas.includes('status')) {
+                updates.push("status = 'andamento'");
+            }
+            if (nomesColunas.includes('processo')) {
+                updates.push("processo = 'Em andamento'");
+            }
+
+            if (updates.length === 0) {
+                return res.status(500).json({ mensagem: 'Colunas de atribuição não encontradas na tabela os.' });
+            }
+
+            const condicoesId = ['rowid = ?'];
+            const paramsWhere = [idOrdem];
+
+            if (nomesColunas.includes('idChamado')) {
+                condicoesId.push('idChamado = ?');
+                paramsWhere.push(idOrdem);
+            }
+            if (nomesColunas.includes('idOrdem')) {
+                condicoesId.push('idOrdem = ?');
+                paramsWhere.push(idOrdem);
+            }
+            if (nomesColunas.includes('id')) {
+                condicoesId.push('id = ?');
+                paramsWhere.push(idOrdem);
+            }
+
+            const sql = `UPDATE os SET ${updates.join(', ')} WHERE (${condicoesId.join(' OR ')})`;
+
+            db.run(sql, [...params, ...paramsWhere], function (erroUpdate) {
+                if (erroUpdate) {
+                    console.error('Erro ao assumir ordem:', erroUpdate.message);
+                    return res.status(500).json({ mensagem: 'Erro ao atualizar a ordem no banco.' });
+                }
+
+                if (this.changes === 0) {
+                    return res.status(404).json({ mensagem: 'Ordem de serviço não encontrada.' });
+                }
+
+                return res.json({ mensagem: 'Ordem assumida com sucesso!' });
+            });
+        });
+    });
+});
+
+// ==================
+//    FINALZIAR OS
+// ==================
+
+app.put('/api/ordens/:id/status', (req, res) => {
+    if (!req.session || !req.session.usuario) {
+        return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
+    }
+
+    const idOrdem = req.params.id;
+    const novoStatus = (req.body.status || '').toLowerCase().trim();
+
+    const mapaProcesso = {
+        aberta: 'Aberta',
+        analise: 'Em análise',
+        andamento: 'Em andamento',
+        congelada: 'Congelada',
+        fechada: 'Concluída'
+    };
+
+    if (!mapaProcesso[novoStatus]) {
+        return res.status(400).json({ mensagem: 'Status inválido.' });
+    }
+
+    db.all('PRAGMA table_info(os)', [], (errCols, colunas) => {
+        if (errCols) {
+            return res.status(500).json({ mensagem: 'Erro ao verificar estrutura da tabela os.' });
+        }
+
+        const nomesColunas = colunas.map((c) => c.name);
+        const updates = [];
+        const params = [];
+
+        if (nomesColunas.includes('status')) {
+            updates.push('status = ?');
+            params.push(novoStatus);
+        }
+        if (nomesColunas.includes('processo')) {
+            updates.push('processo = ?');
+            params.push(mapaProcesso[novoStatus]);
+        }
+
+        if (updates.length === 0) {
+            return res.status(500).json({ mensagem: 'Colunas de status não encontradas na tabela os.' });
+        }
+
+        const condicoesId = ['rowid = ?'];
+        const paramsWhere = [idOrdem];
+
+        if (nomesColunas.includes('idChamado')) {
+            condicoesId.push('idChamado = ?');
+            paramsWhere.push(idOrdem);
+        }
+        if (nomesColunas.includes('idOrdem')) {
+            condicoesId.push('idOrdem = ?');
+            paramsWhere.push(idOrdem);
+        }
+        if (nomesColunas.includes('id')) {
+            condicoesId.push('id = ?');
+            paramsWhere.push(idOrdem);
+        }
+
+        const sql = `UPDATE os SET ${updates.join(', ')} WHERE (${condicoesId.join(' OR ')})`;
+
+        db.run(sql, [...params, ...paramsWhere], function (erroUpdate) {
+            if (erroUpdate) {
+                console.error('Erro ao atualizar status da OS:', erroUpdate.message);
+                return res.status(500).json({ mensagem: 'Erro ao atualizar status no banco.' });
+            }
+
+            if (this.changes === 0) {
+                return res.status(404).json({ mensagem: 'Ordem de serviço não encontrada.' });
+            }
+
+            return res.json({ mensagem: 'Status atualizado com sucesso!' });
+        });
+    });
+});
+
 // =============================
 //      MOSTRAR USUÁRIOS
 // =============================

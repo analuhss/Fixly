@@ -1,232 +1,5 @@
-document.addEventListener('DOMContentLoaded', async () => {
-    const conteudo = document.getElementById('conteudo');
-    const formIdentificar = document.getElementById('formIdentificar');
-    const lista = document.getElementById('lista');
-    const resumo = document.getElementById('resumo');
-    const filtrosBox = document.getElementById('filtros');
-    const inputPesquisa = document.getElementById('pesquisa');
-    const formBusca = document.getElementById('formBusca');
-    const contMinhas = document.getElementById('contMinhas');
-    const contSem = document.getElementById('contSem');
-    const templateCartao = document.getElementById('modeloCartao');
-    const abas = document.querySelectorAll('.aba');
-    const botoesFiltro = document.querySelectorAll('.filtro');
-
-    // Garante que o formulário provisório fique oculto e o conteúdo principal apareça
-    if (formIdentificar) formIdentificar.hidden = true;
-    if (conteudo) conteudo.hidden = false;
-
-    if (!lista) return;
-
-    const mapStatus = {
-        analise:   { texto: 'EM ANÁLISE', classe: 'status-analise' },
-        aberta:    { texto: 'ABERTA',     classe: 'status-aberta' },
-        andamento: { texto: 'ANDAMENTO',  classe: 'status-andamento' },
-        fechada:   { texto: 'FECHADA',    classe: 'status-fechada' },
-        congelada: { texto: 'CONGELADA',  classe: 'status-congelada' }
-    };
-
-    let ordensMinhas = [];
-    let ordensSemTecnico = [];
-    let abaAtual = 'minhas'; // 'minhas' ou 'sem'
-
-    // =========================================================
-    // 1. BUSCAR ORDENS DO SERVIDOR
-    // =========================================================
-    async function carregarOrdens() {
-        try {
-            const res = await fetch('/api/ordens/profissional', { credentials: 'include' });
-
-            if (res.status === 401) {
-                window.location.href = '/';
-                return;
-            }
-
-            if (!res.ok) {
-                lista.innerHTML = `<p style="color: #ef4444;">Erro ao buscar ordens (Status ${res.status}).</p>`;
-                return;
-            }
-
-            const dados = await res.json();
-
-            if (Array.isArray(dados)) {
-                ordensMinhas = dados;
-                ordensSemTecnico = [];
-            } else {
-                ordensMinhas = dados.atribuidas || [];
-                ordensSemTecnico = dados.disponiveis || [];
-            }
-
-            if (contMinhas) contMinhas.textContent = ordensMinhas.length;
-            if (contSem) contSem.textContent = ordensSemTecnico.length;
-
-            renderizarAbaAtual();
-        } catch (erro) {
-            console.error('Erro ao carregar ordens do profissional:', erro);
-            lista.innerHTML = '<p style="color: #ef4444;">Falha ao comunicar com o servidor.</p>';
-        }
-    }
-
-    // =========================================================
-    // 2. ALTERNAR ENTRE AS DUAS ABAS ("MINHAS ORDENS" E "SEM TÉCNICO")
-    // =========================================================
-    abas.forEach((aba) => {
-        aba.addEventListener('click', () => {
-            abas.forEach((a) => a.setAttribute('aria-selected', 'false'));
-            aba.setAttribute('aria-selected', 'true');
-            abaAtual = aba.dataset.aba || 'minhas';
-
-            // Mostra os filtros de status apenas na aba "Minhas ordens"
-            if (filtrosBox) {
-                filtrosBox.style.display = abaAtual === 'minhas' ? '' : 'none';
-            }
-
-            renderizarAbaAtual();
-        });
-    });
-
-    // =========================================================
-    // 3. FILTROS DE STATUS E PESQUISA
-    // =========================================================
-    botoesFiltro.forEach((botao) => {
-        botao.addEventListener('click', () => {
-            botoesFiltro.forEach((b) => b.setAttribute('aria-pressed', 'false'));
-            botao.setAttribute('aria-pressed', 'true');
-            renderizarAbaAtual();
-        });
-    });
-
-    if (inputPesquisa) {
-        inputPesquisa.addEventListener('input', renderizarAbaAtual);
-    }
-
-    if (formBusca) {
-        formBusca.addEventListener('submit', (e) => {
-            e.preventDefault();
-            renderizarAbaAtual();
-        });
-    }
-
-    // =========================================================
-    // 4. RENDERIZAR CARTÕES USANDO O <template id="modeloCartao">
-    // =========================================================
-    function renderizarAbaAtual() {
-        const base = abaAtual === 'minhas' ? ordensMinhas : ordensSemTecnico;
-        const botaoFiltroAtivo = document.querySelector('.filtro[aria-pressed="true"]');
-        const filtro = (abaAtual === 'minhas' && botaoFiltroAtivo) ? botaoFiltroAtivo.dataset.filtro : 'todas';
-        const termo = (inputPesquisa?.value || '').toLowerCase().trim();
-
-        const filtradas = base.filter((os) => {
-            const status = (os.status || (abaAtual === 'sem' ? 'aberta' : 'andamento')).toLowerCase();
-
-            let bateStatus = false;
-            if (filtro === 'todas') bateStatus = true;
-            else if (filtro === 'abertas' && (status === 'aberta' || status === 'analise')) bateStatus = true;
-            else if (filtro === 'andamento' && status === 'andamento') bateStatus = true;
-            else if (filtro === 'fechadas' && status === 'fechada') bateStatus = true;
-            else if (filtro === 'congeladas' && status === 'congelada') bateStatus = true;
-
-            const textoBusca = [
-                os.id,
-                os.idChamado,
-                os.clienteNome,
-                os.equipamento,
-                os.modelo,
-                os.marca,
-                os.descricao
-            ].filter(Boolean).join(' ').toLowerCase();
-
-            const bateBusca = !termo || textoBusca.includes(termo);
-            return bateStatus && bateBusca;
-        });
-
-        lista.innerHTML = '';
-
-        if (resumo) {
-            if (abaAtual === 'minhas') {
-                resumo.textContent = `${filtradas.length} ordem(ns) atribuída(s) a você`;
-            } else {
-                resumo.textContent = `${filtradas.length} ordem(ns) aguardando técnico`;
-            }
-        }
-
-        if (filtradas.length === 0) {
-            lista.innerHTML = abaAtual === 'minhas'
-                ? '<p style="color: #a1a1aa;">Nenhuma ordem atribuída encontrada.</p>'
-                : '<p style="color: #a1a1aa;">Nenhuma ordem disponível sem técnico no momento.</p>';
-            return;
-        }
-
-        filtradas.forEach((os) => {
-            const numeroOs = os.id || os.idChamado || '---';
-            const statusKey = (os.status || (abaAtual === 'sem' ? 'aberta' : 'andamento')).toLowerCase();
-            const info = mapStatus[statusKey] || mapStatus.andamento;
-            const cliente = os.clienteNome || 'Cliente';
-            const equipamento = os.equipamento || os.modelo || 'Não informado';
-            const valorFormatado = Number(os.valorfinal || os.valor || 0) > 0
-                ? Number(os.valorfinal || os.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-                : 'A definir';
-
-            const clone = templateCartao.content.cloneNode(true);
-            const cartao = clone.querySelector('.cartao-os');
-
-            cartao.classList.add(info.classe);
-            cartao.dataset.status = statusKey;
-            cartao.style.cursor = 'pointer';
-
-            cartao.querySelector('.numero').textContent = `OS# ${numeroOs}`;
-            cartao.querySelector('.nome').textContent = abaAtual === 'minhas' ? (os.tecnico || 'Você') : 'Sem técnico';
-            cartao.querySelector('.selo-texto').textContent = info.texto;
-            cartao.querySelector('.cliente').textContent = cliente;
-            cartao.querySelector('.equipamento').textContent = equipamento;
-            cartao.querySelector('.problema').textContent = os.descricao || 'Sem descrição';
-            cartao.querySelector('.abertura').textContent = os.dataAbertura || os.data || '---';
-            cartao.querySelector('.reais').textContent = valorFormatado;
-
-            const btnAssumir = cartao.querySelector('.assumir');
-            if (btnAssumir) {
-                if (abaAtual === 'sem') {
-                    btnAssumir.hidden = false;
-                    btnAssumir.addEventListener('click', async (e) => {
-                        e.stopPropagation();
-                        btnAssumir.disabled = true;
-                        btnAssumir.textContent = 'Assumindo...';
-
-                        try {
-                            const resp = await fetch(`/api/ordens/${numeroOs}/assumir`, {
-                                method: 'PUT',
-                                credentials: 'include'
-                            });
-                            const retorno = await resp.json();
-
-                            if (resp.ok) {
-                                await carregarOrdens();
-                            } else {
-                                alert(retorno.mensagem || 'Não foi possível assumir esta ordem.');
-                                btnAssumir.disabled = false;
-                                btnAssumir.textContent = 'Assumir ordem';
-                            }
-                        } catch (err) {
-                            alert('Falha de comunicação com o servidor.');
-                            btnAssumir.disabled = false;
-                            btnAssumir.textContent = 'Assumir ordem';
-                        }
-                    });
-                } else {
-                    btnAssumir.remove();
-                }
-            }
-
-            cartao.addEventListener('click', () => {
-                abrirDetalhesOS(os, numeroOs, info.texto, valorFormatado);
-            });
-
-            lista.appendChild(clone);
-        });
-    }
-
-    // =========================================================
-    // 5. MODAL DE DETALHES DA ORDEM
+// =========================================================
+    // 5. MODAL DE DETALHES DA ORDEM (COM ALTERAÇÃO DE STATUS E FINALIZAR)
     // =========================================================
     function abrirDetalhesOS(os, numeroOs, statusTexto, valorFormatado) {
         let modal = document.getElementById('modal-detalhes-os-prof');
@@ -247,6 +20,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .modal-os-campo.full { grid-column: 1 / -1; }
                 .modal-os-campo span { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: #a1a1aa; margin-bottom: 4px; }
                 .modal-os-campo p { margin: 0; font-size: 0.95rem; font-weight: 500; color: #f4f4f5; word-break: break-word; }
+                .modal-os-acoes { margin-top: 20px; padding-top: 16px; border-top: 1px solid #2e2e33; display: flex; flex-direction: column; gap: 12px; }
+                .modal-os-status-row { display: flex; gap: 10px; align-items: center; }
+                .modal-os-select { flex: 1; background: #242429; color: #ffffff; border: 1px solid #3f3f46; border-radius: 10px; padding: 10px 12px; font-size: 0.92rem; font-family: inherit; outline: none; }
+                .modal-os-select:focus { border-color: #f5c542; }
+                .btn-modal-salvar-status { background: #2e2e33; color: #f5c542; border: 1px solid #f5c542; border-radius: 10px; padding: 10px 16px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+                .btn-modal-salvar-status:hover { background: #f5c542; color: #1a1a1d; }
+                .btn-modal-finalizar { width: 100%; background: #22c55e; color: #09090b; border: none; border-radius: 10px; padding: 12px; font-size: 0.98rem; font-weight: 700; cursor: pointer; transition: 0.2s; }
+                .btn-modal-finalizar:hover { filter: brightness(1.08); }
+                .btn-modal-finalizar:disabled, .btn-modal-salvar-status:disabled { opacity: 0.6; cursor: not-allowed; }
             `;
             document.head.appendChild(style);
         }
@@ -272,6 +54,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <div class="modal-os-campo full"><span>O que acompanha</span><p id="prof-detalhe-perifericos"></p></div>
                         <div class="modal-os-campo full"><span>Descrição do Problema</span><p id="prof-detalhe-descricao"></p></div>
                     </div>
+
+                    <div class="modal-os-acoes" id="prof-modal-acoes">
+                        <div class="modal-os-status-row">
+                            <select id="prof-select-status" class="modal-os-select" aria-label="Alterar status da OS">
+                                <option value="aberta">Aberta</option>
+                                <option value="analise">Em Análise</option>
+                                <option value="andamento">Em Andamento</option>
+                                <option value="congelada">Congelada</option>
+                            </select>
+                            <button type="button" id="btn-salvar-status-os" class="btn-modal-salvar-status">Atualizar Status</button>
+                        </div>
+                        <button type="button" id="btn-finalizar-os" class="btn-modal-finalizar">Finalizar Ordem de Serviço</button>
+                    </div>
                 </div>
             `;
             document.body.appendChild(modal);
@@ -291,8 +86,82 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('prof-detalhe-perifericos').textContent = os.perifericos || 'Nenhum item';
         document.getElementById('prof-detalhe-descricao').textContent = os.descricao || 'Sem descrição';
 
+        const boxAcoes = document.getElementById('prof-modal-acoes');
+        const selectStatus = document.getElementById('prof-select-status');
+        const btnSalvarStatus = document.getElementById('btn-salvar-status-os');
+        const btnFinalizar = document.getElementById('btn-finalizar-os');
+
+        // Exibe os controles apenas nas ordens atribuídas ao técnico ("Minhas ordens")
+        if (abaAtual === 'minhas') {
+            boxAcoes.style.display = 'flex';
+            const statusAtual = (os.status || 'andamento').toLowerCase();
+            selectStatus.value = ['aberta', 'analise', 'andamento', 'congelada'].includes(statusAtual)
+                ? statusAtual
+                : 'andamento';
+
+            // Botão "Atualizar Status" (ex: colocar em Andamento)
+            btnSalvarStatus.onclick = async () => {
+                btnSalvarStatus.disabled = true;
+                btnSalvarStatus.textContent = 'Salvando...';
+                try {
+                    const resp = await fetch(`/api/ordens/${numeroOs}/status`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ status: selectStatus.value })
+                    });
+                    const dados = await resp.json();
+                    if (resp.ok) {
+                        modal.classList.remove('aberto');
+                        await carregarOrdens();
+                    } else {
+                        alert(dados.mensagem || 'Erro ao atualizar status.');
+                    }
+                } catch (err) {
+                    alert('Falha de comunicação com o servidor.');
+                } finally {
+                    btnSalvarStatus.disabled = false;
+                    btnSalvarStatus.textContent = 'Atualizar Status';
+                }
+            };
+
+            // Botão "Finalizar Ordem de Serviço"
+            if (statusAtual === 'fechada') {
+                btnFinalizar.disabled = true;
+                btnFinalizar.textContent = 'Ordem já Finalizada';
+            } else {
+                btnFinalizar.disabled = false;
+                btnFinalizar.textContent = 'Finalizar Ordem de Serviço';
+                btnFinalizar.onclick = async () => {
+                    if (!confirm(`Deseja realmente finalizar a OS# ${numeroOs}?`)) return;
+
+                    btnFinalizar.disabled = true;
+                    btnFinalizar.textContent = 'Finalizando...';
+                    try {
+                        const resp = await fetch(`/api/ordens/${numeroOs}/status`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({ status: 'fechada' })
+                        });
+                        const dados = await resp.json();
+                        if (resp.ok) {
+                            modal.classList.remove('aberto');
+                            await carregarOrdens();
+                        } else {
+                            alert(dados.mensagem || 'Erro ao finalizar ordem.');
+                        }
+                    } catch (err) {
+                        alert('Falha de comunicação com o servidor.');
+                    } finally {
+                        btnFinalizar.disabled = false;
+                        btnFinalizar.textContent = 'Finalizar Ordem de Serviço';
+                    }
+                };
+            }
+        } else {
+            boxAcoes.style.display = 'none';
+        }
+
         modal.classList.add('aberto');
     }
-
-    await carregarOrdens();
-});
