@@ -519,12 +519,11 @@ app.post('/api/usuarios/admin', (req, res) => {
         return res.status(400).json({ mensagem: 'Selecione a função do profissional.' });
     }
 
-    // 1. Cria primeiro o acesso na tabela "login" (vale para cliente, profissional e adm)
     const sqlLogin = 'INSERT INTO login (email, senha, tipo) VALUES (?, ?, ?)';
 
     db.run(sqlLogin, [email, senha, tipo], function (erroLogin) {
         if (erroLogin) {
-            console.error('Erro ao inserir na tabela login:', erroLogin);
+            console.error('Erro ao inserir na tabela login:', erroLogin.message);
 
             if (erroLogin.message.includes('UNIQUE')) {
                 return res.status(400).json({ mensagem: 'Este e-mail já está cadastrado no sistema.' });
@@ -533,24 +532,24 @@ app.post('/api/usuarios/admin', (req, res) => {
             return res.status(500).json({ mensagem: 'Erro ao criar login no banco de dados.' });
         }
 
-        const idGerado = this.lastID; // ID gerado na tabela login
+        const idGerado = this.lastID;
 
-        // 2A. Se for PROFISSIONAL, grava na tabela "tecnicos"
+        // 2A. Se for PROFISSIONAL, grava apenas na tabela "tecnicos"
         if (tipo === 'profissional') {
             const cargoCompleto = especialidades ? `${funcao} (${especialidades})` : funcao;
-            const dataHoje = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            const dataHoje = new Date().toISOString().split('T')[0];
 
             const sqlTecnico = `
                 INSERT INTO tecnicos (nome, cpf, dataNascimento, telefone, email, cep, admissao, cargo)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             `;
 
-            db.run(
+            return db.run(
                 sqlTecnico,
                 [nome, cpf, nascimento, telefone, email, cep, dataHoje, cargoCompleto],
                 function (erroTecnico) {
                     if (erroTecnico) {
-                        console.error('Erro ao inserir na tabela tecnicos:', erroTecnico);
+                        console.error('Erro ao inserir na tabela tecnicos:', erroTecnico.message);
                         return res.status(500).json({ mensagem: 'Login criado, mas houve erro ao salvar dados do técnico.' });
                     }
 
@@ -558,50 +557,32 @@ app.post('/api/usuarios/admin', (req, res) => {
                         mensagem: 'Profissional cadastrado com sucesso!',
                         idLogin: idGerado,
                         idTecnico: this.lastID
-                    });
-                }
-            );
-
-            db.run(
-                sqlTecnico,
-                [nome, cpf, nascimento, telefone, cep, dataHoje, cargoCompleto],
-                function (erroTecnico) {
-                    if (erroTecnico) {
-                        console.error('Erro ao inserir na tabela tecnicos:', erroTecnico);
-                        return res.status(500).json({ mensagem: 'Login criado, mas houve erro ao salvar dados do técnico.' });
-                    }
-
-                    return res.status(201).json({
-                        mensagem: 'Profissional cadastrado com sucesso!',
-                        idLogin: idGerado,
-                        idTecnico: this.lastID
-                    });
-                }
-            );
-
-        // 2B. Se for CLIENTE ou ADM, grava na tabela "usuarios" usando o idGerado
-        } else {
-            const sqlUsuario = `
-                INSERT INTO usuarios (idCliente, nome, cpf, dataNascimento, telefone, email, cep, endereco, cadastro_completo)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
-            `;
-
-            db.run(
-                sqlUsuario,
-                [idGerado, nome, cpf, nascimento, telefone, email, cep, endereco],
-                function (erroUsuario) {
-                    if (erroUsuario) {
-                        console.error('Erro ao inserir na tabela usuarios:', erroUsuario);
-                        return res.status(500).json({ mensagem: 'Login criado, mas houve erro ao salvar dados do usuário.' });
-                    }
-
-                    return res.status(201).json({
-                        mensagem: 'Usuário cadastrado com sucesso!',
-                        idCliente: idGerado
                     });
                 }
             );
         }
+
+        // 2B. Se for CLIENTE ou ADM, grava apenas na tabela "usuarios"
+        const sqlUsuario = `
+            INSERT INTO usuarios (idCliente, nome, cpf, dataNascimento, telefone, email, cep, endereco, cadastro_completo)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+        `;
+
+        return db.run(
+            sqlUsuario,
+            [idGerado, nome, cpf, nascimento, telefone, email, cep, endereco],
+            function (erroUsuario) {
+                if (erroUsuario) {
+                    console.error('Erro ao inserir na tabela usuarios:', erroUsuario.message);
+                    return res.status(500).json({ mensagem: 'Login criado, mas houve erro ao salvar dados do usuário.' });
+                }
+
+                return res.status(201).json({
+                    mensagem: 'Usuário cadastrado com sucesso!',
+                    idCliente: idGerado
+                });
+            }
+        );
     });
 });
 
@@ -674,8 +655,6 @@ app.get('/api/ordens/profissional', (req, res) => {
 // =============================
 
 app.get('/api/usuarios/admin', (req, res) => {
-    console.log('[GET /api/usuarios/admin] A buscar utilizadores no banco...');
-
     const sqlUsuarios = `
         SELECT 
             l.idCliente AS id,
@@ -701,7 +680,7 @@ app.get('/api/usuarios/admin', (req, res) => {
             cpf,
             dataNascimento,
             telefone,
-            NULL AS email,
+            email,
             cep,
             NULL AS endereco,
             'profissional' AS tipo,
@@ -722,13 +701,11 @@ app.get('/api/usuarios/admin', (req, res) => {
                 return res.status(500).json({ mensagem: 'Erro ao buscar profissionais no banco.' });
             }
 
-            const todos = [...listaUsuarios, ...listaTecnicos];
-            console.log(`[GET /api/usuarios/admin] Encontrados: ${listaUsuarios.length} usuários/adms e ${listaTecnicos.length} técnicos.`);
-            res.json(todos);
+            return res.json([...listaUsuarios, ...listaTecnicos]);
         });
     });
 });
-
+    
 // ===================================
 //      BUSCAR ORDENS DE SERVIÇO
 // ===================================
@@ -1037,8 +1014,6 @@ app.put('/api/perfil', (req, res) => {
 
 iniBDD();
 
-iniBDD();
-
 db.serialize(() => {
     db.run("ALTER TABLE tecnicos ADD COLUMN email TEXT", () => {
         // Vincula automaticamente profissionais antigos da tabela login com a tabela tecnicos
@@ -1055,8 +1030,6 @@ db.serialize(() => {
         });
     });
 });
-
-administrador();
 
 administrador();
 
