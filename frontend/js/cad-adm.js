@@ -1,3 +1,33 @@
+
+// No topo do arquivo JS do formulário de cadastro do admin:
+if (!window.__cadastroAdminInicializado) {
+    window.__cadastroAdminInicializado = true;
+
+    const form = document.getElementById('formCadastro'); // ajuste para o ID do seu <form>
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btnSubmit = form.querySelector('button[type="submit"]');
+            if (btnSubmit && btnSubmit.disabled) return; // Impede clique duplo
+
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.textContent = 'Salvando...';
+            }
+
+            try {
+                // ... seu código atual do fetch('/api/usuarios/admin', { method: 'POST', ... }) ...
+            } finally {
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.textContent = 'Cadastrar';
+                }
+            }
+        });
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('formUsuario');
     const radiosTipo = document.querySelectorAll('input[name="tipo"]');

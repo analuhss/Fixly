@@ -113,8 +113,13 @@ res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/ordens-p.html')
 });
 
 // ROTA PARA CONVERSAS - PROFISSIONAIS
-app.get('/ordens-p', (req, res) => {
+app.get('/conversas-p', (req, res) => {
 res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/conversas-p.html'));
+});
+
+// ROTA PARA CONVERSAS - PROFISSIONAIS
+app.get('/perfil-p', (req, res) => {
+res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/perfil-p.html'));
 });
 
 // ============================== PÁGINAS ADM
