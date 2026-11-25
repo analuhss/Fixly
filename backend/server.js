@@ -3,6 +3,8 @@
 //   Server.js - BACK-END COMPLETO
 //=======================================
 
+
+
 const path = require('path');            // -->  ajuda a montar caminhos de pastas
 
 // Importar o dotenv LOGO NO INÍCIO para garantir que o processo leia as variáveis de ambiente antes de tudo
@@ -22,6 +24,9 @@ const PORT = process.env.PORT || 3000;   // --> Essa linha define a porta em que
                                          // se não estiver definido, o programaa utilizará 3000
 
 const app = express();                   // --> cria o servidor 
+
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ limit: '15mb', extended: true }));
 
 app.use(express.static(path.resolve(__dirname, '..', 'frontend'))); // --> Servir os dados para do frontend
 
@@ -49,7 +54,10 @@ app.use(session({
     }
 }));
 
-app.use(express.json({ limit: '5mb' }));
+
+db.run("ALTER TABLE os ADD COLUMN data_abertura TEXT", () => {
+    db.run("UPDATE os SET data_abertura = date('now', 'localtime') WHERE data_abertura IS NULL OR data_abertura = ''");
+});
 
 // ==================================
 //       ROTAS DE PÁGINAS (GET)
@@ -120,6 +128,16 @@ res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/conversa-p.html
 // ROTA PARA CONVERSAS - PROFISSIONAIS
 app.get('/perfil-p', (req, res) => {
 res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/perfil-p.html'));
+});
+
+// ROTA PARA USUARIOS - PROFISSIONAIS
+app.get('/usuarios-p', (req, res) => {
+res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/usuarios-p.html'));
+});
+
+// ROTA PARA CADASTRO DE USUARIOS - PROFISSIONAIS
+app.get('/cad-p', (req, res) => {
+res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/cad-p.html'));
 });
 
 // ============================== PÁGINAS ADM
@@ -897,35 +915,33 @@ app.put('/api/ordens/:id/tecnico-detalhes', (req, res) => {
         enviar_validacao
     } = req.body;
 
+    const taxaAnalise = 60.00;
     const maoObraNum = parseFloat(preco_mao_obra) || 0;
     const materialNum = parseFloat(preco_material) || 0;
-    const valorTotal = maoObraNum + materialNum;
+    const valorTotal = taxaAnalise + maoObraNum + materialNum;
 
-    const colunasNecessarias = [
-        { nome: 'diagnostico', tipo: 'TEXT' },
-        { nome: 'servico_executado', tipo: 'TEXT' },
-        { nome: 'data_finalizacao', tipo: 'TEXT' },
-        { nome: 'preco_mao_obra', tipo: 'REAL' },
-        { nome: 'preco_material', tipo: 'REAL' },
-        { nome: 'processo', tipo: 'TEXT' },
-        { nome: 'validacao_cliente', tipo: 'TEXT' },
-        { nome: 'valor', tipo: 'REAL' },
-        { nome: 'valorfinal', tipo: 'REAL' },
-        { nome: 'status', tipo: 'TEXT' }
+    const colunasExtras = [
+        'diagnostico TEXT',
+        'servico_executado TEXT',
+        'data_finalizacao TEXT',
+        'data_abertura TEXT',
+        'preco_mao_obra REAL',
+        'preco_material REAL',
+        'processo TEXT',
+        'validacao_cliente TEXT',
+        'valor REAL',
+        'valorfinal REAL',
+        'status TEXT'
     ];
 
-    // Garante que todas as colunas existam na tabela "os"
-    let pendentes = colunasNecessarias.length;
-    colunasNecessarias.forEach((col) => {
-        db.run(`ALTER TABLE os ADD COLUMN ${col.nome}${col.tipo}`, () => {
-            pendentes--;
-            if (pendentes === 0) executarUpdate();
+    db.serialize(() => {
+        colunasExtras.forEach((colDef) => {
+            db.run(`ALTER TABLE os ADD COLUMN ${colDef}`, () => {});
         });
-    });
 
-    function executarUpdate() {
         db.all('PRAGMA table_info(os)', [], (errCols, colunas) => {
             if (errCols) {
+                console.error('Erro PRAGMA os:', errCols.message);
                 return res.status(500).json({ mensagem: 'Erro ao ler estrutura da tabela os.' });
             }
 
@@ -936,9 +952,6 @@ app.put('/api/ordens/:id/tecnico-detalhes', (req, res) => {
             if (nomes.includes('idChamado')) { condicoesId.push('idChamado = ?'); paramsWhere.push(idOrdem); }
             if (nomes.includes('idOrdem')) { condicoesId.push('idOrdem = ?'); paramsWhere.push(idOrdem); }
             if (nomes.includes('id')) { condicoesId.push('id = ?'); paramsWhere.push(idOrdem); }
-
-            // Se o técnico marcou "Enviar para validação do cliente", define validacao_cliente = 'pendente'
-            const statusValidacao = enviar_validacao ? 'pendente' : null;
 
             const sets = [
                 'diagnostico = ?',
@@ -961,9 +974,8 @@ app.put('/api/ordens/:id/tecnico-detalhes', (req, res) => {
                 valorTotal
             ];
 
-            if (statusValidacao) {
-                sets.push('validacao_cliente = ?');
-                params.push(statusValidacao);
+            if (enviar_validacao) {
+                sets.push("validacao_cliente = 'pendente'");
                 sets.push("status = 'analise'");
             }
 
@@ -972,19 +984,20 @@ app.put('/api/ordens/:id/tecnico-detalhes', (req, res) => {
             db.run(sql, [...params, ...paramsWhere], function (errUp) {
                 if (errUp) {
                     console.error('Erro ao salvar dados técnicos da OS:', errUp.message);
-                    return res.status(500).json({ mensagem: 'Erro ao salvar informações técnicas.' });
+                    return res.status(500).json({ mensagem: 'Erro SQL: ' + errUp.message });
                 }
                 if (this.changes === 0) {
                     return res.status(404).json({ mensagem: 'Ordem de serviço não encontrada.' });
                 }
+                console.log(`[OS# ${idOrdem}] Dados técnicos salvos com sucesso! Total: R$ ${valorTotal.toFixed(2)}`);
                 return res.json({
                     mensagem: enviar_validacao
                         ? 'Dados salvos e enviados para validação do cliente!'
-                        : 'Dados técnicos atualizados com sucesso!'
+                        : 'Dados técnicos salvos com sucesso!'
                 });
             });
         });
-    }
+    });
 });
 
 // =========================================================
@@ -1036,34 +1049,101 @@ app.put('/api/ordens/:id/validacao-cliente', (req, res) => {
     });
 });
 
-// ===================================
-//      BUSCAR ORDENS DE SERVIÇO
-// ===================================
-
-// Exemplo para a rota GET /api/ordens/cliente no server.js:
+// =========================================================
+// LISTAR APENAS AS ORDENS DE SERVIÇO DO CLIENTE LOGADO
+// =========================================================
 app.get('/api/ordens/cliente', (req, res) => {
     if (!req.session || !req.session.usuario) {
-        return res.status(401).json({ mensagem: 'Não autorizado.' });
+        return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
     }
 
-    const idCliente = req.session.usuario.idCliente || req.session.usuario.id;
+    const usuario = req.session.usuario;
+    const idClienteSessao = usuario.idCliente || usuario.id || null;
+    const emailSessao = (usuario.email || '').trim().toLowerCase();
+    const nomeSessao = (usuario.nome || '').trim().toLowerCase();
 
-    // Se a coluna no banco for "modelo", use SELECT * ; se for "equipamento", inclua "equipamento AS modelo":
-    const sql = `
-        SELECT *
-        FROM ordens
-        WHERE idCliente = ?
-        ORDER BY idOrdem DESC
-    `;
-
-    db.all(sql, [idCliente], (erro, linhas) => {
-        if (erro) {
-            console.error('Erro ao buscar ordens do cliente:', erro.message);
-            return res.status(500).json({ mensagem: 'Erro ao buscar ordens.' });
+    db.all('PRAGMA table_info(os)', [], (errCols, colunas) => {
+        if (errCols) {
+            console.error('Erro ao ler estrutura da tabela os:', errCols.message);
+            return res.status(500).json({ mensagem: 'Erro ao consultar estrutura de ordens.' });
         }
-        return res.json(linhas);
+
+        const nomesColunas = colunas.map((c) => c.name);
+        const condicoes = [];
+        const params = [];
+
+        // Filtra pelo ID do cliente se a coluna existir
+        if (idClienteSessao !== null) {
+            if (nomesColunas.includes('idCliente')) {
+                condicoes.push('os.idCliente = ?');
+                params.push(idClienteSessao);
+            }
+            if (nomesColunas.includes('cliente_id')) {
+                condicoes.push('os.cliente_id = ?');
+                params.push(idClienteSessao);
+            }
+            if (nomesColunas.includes('id_cliente')) {
+                condicoes.push('os.id_cliente = ?');
+                params.push(idClienteSessao);
+            }
+        }
+
+        // Também verifica vínculo por e-mail ou nome do cliente caso alguma OS antiga tenha sido gravada assim
+        if (emailSessao) {
+            if (nomesColunas.includes('emailCliente')) {
+                condicoes.push('LOWER(TRIM(os.emailCliente)) = ?');
+                params.push(emailSessao);
+            }
+            if (nomesColunas.includes('clienteEmail')) {
+                condicoes.push('LOWER(TRIM(os.clienteEmail)) = ?');
+                params.push(emailSessao);
+            }
+            if (nomesColunas.includes('cliente')) {
+                condicoes.push('LOWER(TRIM(os.cliente)) = ?');
+                params.push(emailSessao);
+            }
+        }
+
+        if (nomeSessao && nomesColunas.includes('clienteNome')) {
+            condicoes.push('LOWER(TRIM(os.clienteNome)) = ?');
+            params.push(nomeSessao);
+        }
+
+        // Se nenhuma coluna de identificação existir, não retorna ordens de terceiros
+        if (condicoes.length === 0) {
+            return res.json([]);
+        }
+
+        const colunaId = nomesColunas.includes('idChamado')
+            ? 'os.idChamado'
+            : (nomesColunas.includes('idOrdem') ? 'os.idOrdem' : 'os.rowid');
+
+        const sql = `
+            SELECT os.*,
+                   ${colunaId} AS id,
+                   t.nome AS nomeTecnicoTabela
+            FROM os
+            LEFT JOIN tecnicos t ON os.idTecnico = t.idTecnico
+            WHERE (${condicoes.join(' OR ')})
+            ORDER BY os.rowid DESC
+        `;
+
+        db.all(sql, params, (err, linhas) => {
+            if (err) {
+                console.error('Erro SQL ao buscar ordens do cliente:', err.message);
+                return res.status(500).json({ mensagem: 'Erro ao carregar suas ordens de serviço.' });
+            }
+
+            const resultado = (linhas || []).map((os) => ({
+                ...os,
+                id: os.id || os.idChamado || os.idOrdem,
+                tecnico: os.tecnico || os.nomeTecnicoTabela || 'Aguardando técnico'
+            }));
+
+            return res.json(resultado);
+        });
     });
-});
+});     
 
 // ==================
 //     DASHBORD
