@@ -13,6 +13,7 @@
     <link rel="icon" type="image/svg+xml" href="../files/svg/ícone.svg">
 
     <script src="../js/ordens-p.js" defer></script>
+    <script src="../js/foto.js" defer></script>
 </head>
 
 <body>
@@ -25,7 +26,7 @@
             <a href="/home-p">Início</a>
             <a href="/ordens-p" class="ativo" aria-current="page">Ordens</a>
             <a href="/conversas-p">Conversas</a>
-            <a href="/usuarios">Usuarios</a>
+            <a href="/usuarios-p">Usuarios</a>
         </nav>
 
         <div class="acoes">
@@ -37,12 +38,10 @@
                 <span class="contador" hidden></span>
             </a>
 
-            <a class="perfil" href="/perfil-p" aria-label="Perfil">
-                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <circle cx="12" cy="8.5" r="4.2"/>
-                    <path d="M3.5 22c0-4.7 3.8-7.5 8.5-7.5s8.5 2.8 8.5 7.5z"/>
-                </svg>
-            </a>
+             <a href="/perfil-p" class="topbar__avatar is-active" aria-label="Meu perfil">
+        <img id="topbar-avatar-img" src="" alt="Foto de perfil" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+        <svg id="topbar-avatar-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5Z"/></svg>
+        </a>
         </div>
     </header>
 

@@ -3,8 +3,6 @@
 //   Server.js - BACK-END COMPLETO
 //=======================================
 
-
-
 const path = require('path');            // -->  ajuda a montar caminhos de pastas
 
 // Importar o dotenv LOGO NO INÍCIO para garantir que o processo leia as variáveis de ambiente antes de tudo
@@ -21,7 +19,7 @@ const cors = require('cors');
 const session = require('express-session');            // --> importa as variáveis
 
 const PORT = process.env.PORT || 3000;   // --> Essa linha define a porta em que o servidor será executado, 
-                                         // se não estiver definido, o programaa utilizará 3000
+// se não estiver definido, o programaa utilizará 3000
 
 const app = express();                   // --> cria o servidor 
 
@@ -33,13 +31,13 @@ app.use(express.static(path.resolve(__dirname, '..', 'frontend'))); // --> Servi
 app.use('/files', express.static(path.join(__dirname, '../../files'))); // Rastrear dados de imagem e svg
 
 app.use(express.json());  // Faz o servidor entender JSON - Middleware 
-                          // (Função que participa do processamento de requisições antes que elas 
-                          // cheguem à rota responsàvel por responder)
+// (Função que participa do processamento de requisições antes que elas 
+// cheguem à rota responsàvel por responder)
 
 //Essa parte do nosso código permite que o frontend como live-server
 //envie cookies de autenticação
 app.use(cors({
-    origin: true, 
+    origin: true,
     credentials: true
 }));
 
@@ -48,7 +46,7 @@ app.use(session({
     secret: 'sua_chave_secreta', // --> Chave para criptografar e proteger
     resave: false,               // --> Ecita salvar sessões sem alterações
     saveUninitialized: false,    // --> Não salva visitantes que ainda nao fizeram login
-    cookie: { 
+    cookie: {
         secure: false,           // --> 'false' porque estamos usando localhost
         httpOnly: true           // --> Medida de segurança cotra roubo de sessão via JS
     }
@@ -65,24 +63,24 @@ db.run("ALTER TABLE os ADD COLUMN data_abertura TEXT", () => {
 
 // ================= PÁGINAS INICIAIS
 
-    // ROTA PARA CONFIGURAR A TELA PRINCIPAL DO INDEX
+// ROTA PARA CONFIGURAR A TELA PRINCIPAL DO INDEX
 app.get('/', (req, res) => {
     res.sendFile(path.resolve(__dirname, '..', 'frontend', 'pag-ini', 'index.html'));
 });
 
-    // ROTA PARA A PÁGINA DE CRIAR CONTA
-    app.get('/criar-conta', (req, res) => {
-        res.sendFile(path.join(__dirname, '../frontend/pag-ini/criarConta.html'));
-    });
-    
-    // ROTA PARA API - TELA DE FINALIZAÇÃO DE CADASTRO
-    app.get('/cadastro', (req, res) => {
+// ROTA PARA A PÁGINA DE CRIAR CONTA
+app.get('/criar-conta', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/pag-ini/criarConta.html'));
+});
+
+// ROTA PARA API - TELA DE FINALIZAÇÃO DE CADASTRO
+app.get('/cadastro', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/pag-cliente/cadastro-c.html'));
-    });
-    
+});
+
 // ======================= PÁGINAS CLIENTES
 
-    // ROTA PARA HOME - CLIENTE
+// ROTA PARA HOME - CLIENTE
 app.get('/home-c', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/pag-cliente/home-c.html'));
 });
@@ -110,34 +108,34 @@ app.get('/ordens-c', (req, res) => {
 
 // ========================= PÁGINAS PROFISSIONAIS
 
-    // ROTA PARA HOME - PROFISSIONAIS
+// ROTA PARA HOME - PROFISSIONAIS
 app.get('/home-p', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/home-p.html'));
 });
 
 // ROTA PARA ORDENS - PROFISSIONAIS
 app.get('/ordens-p', (req, res) => {
-res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/ordens-p.html'));
+    res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/ordens-p.html'));
 });
 
 // ROTA PARA CONVERSAS - PROFISSIONAIS
 app.get('/conversas-p', (req, res) => {
-res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/conversa-p.html'));
+    res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/conversa-p.html'));
 });
 
 // ROTA PARA CONVERSAS - PROFISSIONAIS
 app.get('/perfil-p', (req, res) => {
-res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/perfil-p.html'));
+    res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/perfil-p.html'));
 });
 
 // ROTA PARA USUARIOS - PROFISSIONAIS
 app.get('/usuarios-p', (req, res) => {
-res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/usuarios-p.html'));
+    res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/usuarios-p.html'));
 });
 
 // ROTA PARA CADASTRO DE USUARIOS - PROFISSIONAIS
 app.get('/cad-p', (req, res) => {
-res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/cad-p.html'));
+    res.sendFile(path.join(__dirname, '../frontend/pag-profissionais/cad-p.html'));
 });
 
 // ============================== PÁGINAS ADM
@@ -177,24 +175,23 @@ app.get('/os-adm', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/pag-adm/os-adm.html'));
 });
 
-
 // =====================================
 //           Cadastro (POST)
 // =====================================
 
 // Aqui ós usamos ele para que esas informações sejam colocadas no nosso banco de dados
 app.post('/api/usuarios', (req, res) => {
-    const { email, senha } = req.body; 
-    
+    const { email, senha } = req.body;
+
     // Inserção na tabela de logins
     const sql = "INSERT INTO login (email, senha, tipo) VALUES (?, ?, 'cliente')";
-    
-    db.run(sql, [email, senha], function(erro) {
+
+    db.run(sql, [email, senha], function (erro) {
         if (erro) {
             console.error('Erro interno no SQLite:', erro.message);
             return res.status(500).json({ mensagem: 'Erro interno no servidor ao salvar login' });
         }
-        
+
         // 1. Pega o ID gerado automaticamente
         const novoIdCliente = this.lastID;
 
@@ -212,9 +209,9 @@ app.post('/api/usuarios', (req, res) => {
             }
 
             // 4. Retorna a resposta de sucesso com a sessão criada
-            return res.status(201).json({ 
-                mensagem: 'Login criado com sucesso!', 
-                id: novoIdCliente 
+            return res.status(201).json({
+                mensagem: 'Login criado com sucesso!',
+                id: novoIdCliente
             });
         });
     });
@@ -231,7 +228,7 @@ app.put('/api/usuarios/finalizar-cadastro', (req, res) => {
     }
 
     // Pega o ID que está salvo na sessão (veja como ele foi salvo no /api/login)
-    const idCliente = req.session.usuario.id; 
+    const idCliente = req.session.usuario.id;
     const { nome, dataNascimento, cpf, cep, endereco, telefone } = req.body;
 
     // 2. Insere na tabela 'usuarios' vinculando com o idCliente da tabela 'login'
@@ -241,7 +238,7 @@ app.put('/api/usuarios/finalizar-cadastro', (req, res) => {
         VALUES (?, ?, ?, ?, ?, ?, ?, 1)
     `;
 
-    db.run(sql, [idCliente, nome, dataNascimento, cpf, cep, endereco, telefone], function(erro) {
+    db.run(sql, [idCliente, nome, dataNascimento, cpf, cep, endereco, telefone], function (erro) {
         if (erro) {
             console.error('Erro fatal ao inserir na tabela usuarios:', erro.message);
             return res.status(500).json({ mensagem: 'Erro ao salvar informações no banco de dados.' });
@@ -256,14 +253,14 @@ app.put('/api/usuarios/finalizar-cadastro', (req, res) => {
 // =====================================
 
 app.post('/api/login', (req, res) => {
-    const { email, senha } = req.body;
+    const { email, senha } = req.body;    // --> recebe os dados
 
     const sql = `SELECT * FROM login WHERE email = ?`;
-    
+
     db.get(sql, [email], (err, usuarioDoBanco) => {
         if (err || !usuarioDoBanco) {
             return res.status(401).json({ mensagem: 'E-mail ou senha incorretos.' });
-        }
+        }                                  // --> compara a senha digitada com a senha salva no banco
 
         if (usuarioDoBanco.senha !== senha) {
             return res.status(401).json({ mensagem: 'E-mail ou senha incorretos.' });
@@ -282,7 +279,7 @@ app.post('/api/login', (req, res) => {
             }
 
             // IMPORTANTE: Devolva a propriedade 'tipo' no JSON!
-            return res.json({ 
+            return res.json({
                 mensagem: 'Login realizado com sucesso!',
                 tipo: usuarioDoBanco.tipo || 'cliente'
             });
@@ -295,35 +292,34 @@ app.post('/api/login', (req, res) => {
 
 app.post('/api/ordens', (req, res) => {
 
-    // 1. Recebe os dados do formulário do frontend
+    // Recebe os dados do formulário do frontend
     const { equipamento, marca, perifericos, descricao } = req.body;
 
-    // 2. Pega o ID do cliente que está logado na sessão atual
+    // Pega o ID do cliente que está logado na sessão atual
     if (!req.session || !req.session.usuario) {
         return res.status(401).json({ message: 'Usuário não autenticado.' });
     }
     const idCliente = req.session.usuario.id;
 
-    // 3. Pega a data e hora do momento da criação
+    // Pega a data e hora do momento da criação
     const dataAtual = new Date();
     const abertura = dataAtual.toLocaleDateString('pt-BR');
     const hora = dataAtual.toLocaleTimeString('pt-BR');
 
-    // 4. Insere na sua tabela 'os'
-    // O 'processo' inicia como 'Pendente' e o 'idTecnico' fica vazio (NULL)
+    // Insere na sua tabela 'os'
     const sql = `
         INSERT INTO os (
             abertura, hora, equipamento, marca, perifericos, descricao, processo, idCliente
         ) VALUES (?, ?, ?, ?, ?, ?, 'Pendente', ?)
     `;
-    
-    db.run(sql, [abertura, hora, equipamento, marca, perifericos, descricao, idCliente], function(err) {
+
+    db.run(sql, [abertura, hora, equipamento, marca, perifericos, descricao, idCliente], function (err) {
         if (err) {
             console.error(err);
             return res.status(500).json({ message: 'Erro ao abrir chamado no banco de dados.' });
         }
-        
-        return res.status(201).json({ 
+
+        return res.status(201).json({
             message: 'Ordem de serviço aberta com sucesso!',
             idChamado: this.lastID // Retorna o idChamado gerado[cite: 13]
         });
@@ -651,7 +647,7 @@ app.get('/api/ordens/profissional', (req, res) => {
                 const osIdTec = Number(os.idTecnico || 0);
                 const osNomeTec = (os.tecnico || '').trim().toLowerCase();
                 return (idTecnico > 0 && osIdTec === idTecnico) ||
-                       (nomeTecnico && osNomeTec === nomeTecnico);
+                    (nomeTecnico && osNomeTec === nomeTecnico);
             });
 
             const disponiveis = normalizadas.filter((os) => {
@@ -894,7 +890,7 @@ app.get('/api/usuarios/admin', (req, res) => {
         });
     });
 });
-    
+
 
 // =========================================================
 // SALVAR DIAGNÓSTICO, VALORES E ENVIAR PARA VALIDAÇÃO DO CLIENTE
@@ -936,7 +932,7 @@ app.put('/api/ordens/:id/tecnico-detalhes', (req, res) => {
 
     db.serialize(() => {
         colunasExtras.forEach((colDef) => {
-            db.run(`ALTER TABLE os ADD COLUMN ${colDef}`, () => {});
+            db.run(`ALTER TABLE os ADD COLUMN ${colDef}`, () => { });
         });
 
         db.all('PRAGMA table_info(os)', [], (errCols, colunas) => {
@@ -1143,7 +1139,7 @@ app.get('/api/ordens/cliente', (req, res) => {
             return res.json(resultado);
         });
     });
-});     
+});
 
 // ==================
 //     DASHBORD
@@ -1192,7 +1188,7 @@ function administrador() {
     }
 
     const buscarSql = 'SELECT * FROM login WHERE email = ?';
-    
+
     db.get(buscarSql, [emailAdmin], (erro, usuario) => {
         if (erro) {
             console.error('Erro ao verificar admin:', erro.message);
@@ -1223,7 +1219,7 @@ function iniBDD() {
     try {
         if (fs.existsSync(scriptPath)) {
             const sql = fs.readFileSync(scriptPath, 'utf8');
-            db.exec(sql); 
+            db.exec(sql);
             console.log('Banco de dados inicializado a partir do script.sql');
         }
     } catch (error) {
@@ -1394,7 +1390,7 @@ app.put('/api/perfil', (req, res) => {
     if (!req.session || !req.session.usuario) {
         return res.status(401).json({ mensagem: 'Não autorizado.' });
     }
-    
+
     // Tenta pegar o ID de todas as formas possíveis
     const idCliente = req.session.usuario.idCliente || req.session.usuario.id;
     const { nome, cpf, email, foto } = req.body;
@@ -1418,10 +1414,10 @@ app.put('/api/perfil', (req, res) => {
             // Agora o db.run já sabe o que é o sqlUser
             db.run(sqlUser, [idCliente, nome, cpf, email, foto || null], (errUser) => {
                 if (errUser) return res.status(500).json({ mensagem: 'Erro ao atualizar perfil.' });
-                
+
                 // Mantém o e-mail atualizado na sessão ativa
                 req.session.usuario.email = email;
-                
+
                 res.json({ mensagem: 'Perfil atualizado com sucesso!' });
             });
         });

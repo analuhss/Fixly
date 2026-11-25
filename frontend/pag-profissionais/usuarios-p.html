@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuários</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/css-adm/ordens-adm.css">
+    <link rel="icon" type="image/svg+xml" href="../files/svg/ícone.svg">
+
+    <script src="../js/usuarios-p.js" defer></script>
+    <script src="../js/foto.js" defer></script>
+
+    <style>
+        /* Cores dos selos de perfil */
+        .perfil-cliente .ponto { background-color: #3b82f6; }
+        .perfil-cliente .selo-texto { color: #60a5fa; }
+
+        .perfil-profissional .ponto { background-color: #f5c542; }
+        .perfil-profissional .selo-texto { color: #f5c542; }
+
+        .perfil-adm .ponto { background-color: #22c55e; }
+        .perfil-adm .selo-texto { color: #4ade80; }
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <a class="logo" href="/home-p">
+            <img src="../files/svg/fixly.svg" alt="Logo do site fixly">
+        </a>
+
+        <nav class="menu">
+            <a href="/home-p">INÍCIO</a>
+            <a href="/ordens-p">ORDENS</a>
+            <a href="/conversas-p">CONVERSAS</a>
+            <a class="ativo" href="/usuarios-p">USUÁRIOS</a>
+        </nav>
+
+           
+        <a href="/perfil-p" class="perfil" aria-label="Meu perfil">
+        <img id="topbar-avatar-img" src="" alt="Foto de perfil" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+        <svg id="topbar-avatar-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5Z"/></svg>
+        </a>
+    </header>
+
+    <main>
+        <h1>Usuários <span>Cadastrados</span></h1>
+        <p class="subtitulo">Gerencie clientes</p>
+
+        <!-- pesquisa -->
+        <form class="busca" id="formBusca" role="search">
+            <input type="search" id="pesquisa" placeholder="Pesquisar por nome, CPF, e-mail ou função..." aria-label="Pesquisar usuários" autocomplete="off">
+            <button type="submit" aria-label="Pesquisar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7"/>
+                    <path d="M20 20l-3.5-3.5"/>
+                </svg>
+            </button>
+        </form>
+
+        <!-- botão novo usuário (ajuste o href caso a rota da tela de cadastro tenha outro nome) -->
+        <div class="nova">
+            <a href="/cad-p" aria-label="Cadastrar novo usuário" title="Novo Usuário">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                    <path d="M12 5v14M5 12h14"/>
+                </svg>
+            </a>
+        </div>
+
+        <hr class="divisor">
+
+        <p class="resumo" id="resumo" role="status"></p>
+
+        <section class="lista" id="lista"></section>
+    </main>
+</body>
+</html>

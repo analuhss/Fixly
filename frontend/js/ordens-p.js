@@ -159,10 +159,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             const statusKey = (os.status || (abaAtual === 'sem' ? 'aberta' : 'andamento')).toLowerCase();
             const info = mapStatus[statusKey] || mapStatus.andamento;
             const cliente = os.clienteNome || 'Cliente';
-            const equipamento = os.equipamento || os.modelo || 'Não informado';
+            const equipamento = os.modelo || os.equipamento || 'Não informado';
+            const rawAbertura = os.data_abertura || os.dataAbertura || os.data || '';
+            const dataAberturaCard = rawAbertura.includes('-')
+                ? rawAbertura.split('T')[0].split('-').reverse().join('/')
+                : (rawAbertura || '---');
             const valorFormatado = Number(os.valorfinal || os.valor || 0) > 0
                 ? Number(os.valorfinal || os.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-                : 'A definir';
+                : 'R$ 60,00';
 
             const clone = templateCartao.content.cloneNode(true);
             const cartao = clone.querySelector('.cartao-os');
@@ -177,7 +181,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             cartao.querySelector('.cliente').textContent = cliente;
             cartao.querySelector('.equipamento').textContent = equipamento;
             cartao.querySelector('.problema').textContent = os.descricao || 'Sem descrição';
-            cartao.querySelector('.abertura').textContent = os.dataAbertura || os.data || '---';
+            cartao.querySelector('.abertura').textContent = dataAberturaCard;
             cartao.querySelector('.reais').textContent = valorFormatado;
 
             const btnAssumir = cartao.querySelector('.assumir');
@@ -223,7 +227,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // =========================================================
-    // 5. MODAL DE DETALHES DA ORDEM (TÉCNICO + ORÇAMENTO + VALIDAÇÃO)
+    // 5. MODAL DE DETALHES DA ORDEM (DATA ABERTURA + LAUDO + VALIDAÇÃO)
     // =========================================================
     function abrirDetalhesOS(os, numeroOs, statusTexto, valorFormatado) {
         let modal = document.getElementById('modal-detalhes-os-prof');
@@ -283,12 +287,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     <div class="modal-os-grid">
                         <div class="modal-os-campo"><span>Status</span><p id="prof-detalhe-status"></p></div>
-                        <div class="modal-os-campo"><span>Taxa de Análise</span><p id="prof-detalhe-status"></p></div>
+                        <div class="modal-os-campo"><span>Data de Abertura</span><p id="prof-detalhe-abertura"></p></div>
+                        <div class="modal-os-campo"><span>Taxa de Análise (Fixa)</span><p id="prof-detalhe-analise">R$ 60,00</p></div>
                         <div class="modal-os-campo"><span>Valor Total</span><p id="prof-detalhe-valor"></p></div>
                         <div class="modal-os-campo"><span>Cliente</span><p id="prof-detalhe-cliente"></p></div>
                         <div class="modal-os-campo"><span>Telefone do Cliente</span><p id="prof-detalhe-telefone"></p></div>
                         <div class="modal-os-campo full"><span>Endereço</span><p id="prof-detalhe-endereco"></p></div>
-                        <div class="modal-os-campo"><span>Equipamento</span><p id="prof-detalhe-equipamento"></p></div>
+                        <div class="modal-os-campo"><span>Equipamento / Modelo</span><p id="prof-detalhe-equipamento"></p></div>
                         <div class="modal-os-campo"><span>Marca</span><p id="prof-detalhe-marca"></p></div>
                         <div class="modal-os-campo full"><span>O que acompanha</span><p id="prof-detalhe-perifericos"></p></div>
                         <div class="modal-os-campo full"><span>Descrição do Problema</span><p id="prof-detalhe-descricao"></p></div>
@@ -359,13 +364,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('aberto'); });
         }
 
+        const rawAbertura = os.data_abertura || os.dataAbertura || os.data || '';
+        let dataAberturaFormatada = 'Não informada';
+        if (rawAbertura) {
+            dataAberturaFormatada = rawAbertura.includes('-')
+                ? rawAbertura.split('T')[0].split('-').reverse().join('/')
+                : rawAbertura;
+        }
+
         document.getElementById('prof-detalhe-titulo').textContent = `OS# ${numeroOs}`;
         document.getElementById('prof-detalhe-status').textContent = statusTexto;
-        document.getElementById('prof-detalhe-valor').textContent = valorFormatado;
+        document.getElementById('prof-detalhe-abertura').textContent = dataAberturaFormatada;
+        document.getElementById('prof-detalhe-analise').textContent = 'R$ 60,00';
         document.getElementById('prof-detalhe-cliente').textContent = os.clienteNome || 'Não informado';
         document.getElementById('prof-detalhe-telefone').textContent = os.clienteTelefone || 'Não informado';
         document.getElementById('prof-detalhe-endereco').textContent = os.clienteEndereco || 'Não informado';
-        document.getElementById('prof-detalhe-equipamento').textContent = os.equipamento || os.modelo || 'Não informado';
+        document.getElementById('prof-detalhe-equipamento').textContent = os.modelo || os.equipamento || 'Não informado';
         document.getElementById('prof-detalhe-marca').textContent = os.marca || 'Não informada';
         document.getElementById('prof-detalhe-perifericos').textContent = os.perifericos || 'Nenhum item';
         document.getElementById('prof-detalhe-descricao').textContent = os.descricao || 'Sem descrição';
@@ -386,13 +400,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         inputProcesso.value = os.processo || '';
 
         const TAXA_ANALISE = 60;
-
         const atualizarTotalPreview = () => {
-            const total = (parseFloat(inputMaoObra.value) || 0) + (parseFloat(inputMaterial.value) || 0);
-            document.getElementById('prof-detalhe-valor').textContent = total > 0
-                ? total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-                : 'A definir';
+            const total = TAXA_ANALISE + (parseFloat(inputMaoObra.value) || 0) + (parseFloat(inputMaterial.value) || 0);
+            document.getElementById('prof-detalhe-valor').textContent = total.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
         };
+        atualizarTotalPreview();
         inputMaoObra.oninput = atualizarTotalPreview;
         inputMaterial.oninput = atualizarTotalPreview;
 
@@ -434,7 +449,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             btnEnviarValidacao.onclick = async () => {
                 btnEnviarValidacao.disabled = true;
-                btnEnviarValidacao.textContent = 'Enviando para o cliente...';
+                btnEnviarValidacao.textContent = 'Salvando e enviando...';
                 try {
                     const resp = await fetch(`/api/ordens/${numeroOs}/tecnico-detalhes`, {
                         method: 'PUT',
@@ -456,7 +471,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         modal.classList.remove('aberto');
                         await carregarOrdens();
                     } else {
-                        alert(dados.mensagem || 'Erro ao enviar validação.');
+                        alert(dados.mensagem || 'Erro ao salvar e enviar validação.');
                     }
                 } catch (err) {
                     alert('Falha de comunicação com o servidor.');
@@ -470,7 +485,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 btnSalvarStatus.disabled = true;
                 btnSalvarStatus.textContent = 'Salvando...';
                 try {
-                    await fetch(`/api/ordens/${numeroOs}/tecnico-detalhes`, {
+                    const respDet = await fetch(`/api/ordens/${numeroOs}/tecnico-detalhes`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         credentials: 'include',
@@ -484,6 +499,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                             enviar_validacao: false
                         })
                     });
+
+                    if (!respDet.ok) {
+                        const errDet = await respDet.json();
+                        alert(errDet.mensagem || 'Erro ao salvar os campos técnicos.');
+                        return;
+                    }
 
                     const resp = await fetch(`/api/ordens/${numeroOs}/status`, {
                         method: 'PUT',

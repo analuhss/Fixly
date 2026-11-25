@@ -564,3 +564,17 @@ h1 span {
         grid-template-columns: 1fr;
     }
 }
+
+.topbar__avatar {
+  justify-self: end;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #a5a5aa;
+  color: var(--surface);
+  transition: box-shadow .2s;
+}
+.topbar__avatar svg { width: 24px; height: 24px; }
+.topbar__avatar.is-active { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }

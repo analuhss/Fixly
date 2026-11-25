@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar usuário</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/css-adm/cad-adm.css">
+    <link rel="icon" type="image/svg+xml" href="../files/svg/ícone.svg">
+
+    <script src="../js/cad-p.js" defer></script>
+</head>
+<body>
+    <header class="navbar">
+        <a class="logo" href="/home-p">
+            <img src="../files/svg/fixly.svg" alt="Logo do site fixly">
+        </a>
+
+        <nav class="menu">
+            <a href="/home-p">Início</a>
+            <a href="/ordens-p">Ordens</a>
+            <a href="/conversas-p">Conversas</a>
+            <a href="/usuarios-p" class="ativo" aria-current="page">Usuários</a>
+        </nav>
+
+        <a class="perfil" href="/perfil-p" aria-label="Perfil">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <circle cx="12" cy="8.5" r="4.2"/>
+                <path d="M3.5 22c0-4.7 3.8-7.5 8.5-7.5s8.5 2.8 8.5 7.5z"/>
+            </svg>
+        </a>
+    </header>
+
+    <main>
+        <!-- autocomplete="off": o navegador não deve preencher com os dados do próprio administrador -->
+        <form id="formUsuario" class="cadastro" autocomplete="off">
+            <div class="cartao">
+                <h1>Cadastrar usuário</h1>
+                <p class="subtitulo">Escolha o tipo e preencha os dados da pessoa.</p>
+
+                <fieldset class="tipo">
+                    <legend>Tipo de usuário <span class="obrig" aria-hidden="true">*</span></legend>
+
+                    <label class="opcao-tipo">
+                        <input type="radio" name="tipo" value="cliente" checked>
+                        <span>Cliente</span>
+                    </label>
+
+                </fieldset>
+
+                <h2>Dados pessoais</h2>
+
+                <div class="campo">
+                    <label for="nome">Nome completo <span class="obrig" aria-hidden="true">*</span></label>
+                    <input type="text" id="nome" name="nome" placeholder="Nome completo" required>
+                </div>
+
+                <div class="campo">
+                    <label for="cpf">CPF <span class="obrig" aria-hidden="true">*</span></label>
+                    <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14" pattern="\d{3}\.\d{3}\.\d{3}-\d{2}" title="Digite os 11 números do CPF" required>
+                </div>
+
+                <div class="linha">
+                    <div class="campo">
+                        <label for="nascimento">Data de nascimento <span class="opcional">(opcional)</span></label>
+                        <input type="date" id="nascimento" name="nascimento">
+                    </div>
+
+                    <div class="campo">
+                        <label for="telefone">Telefone <span class="obrig" aria-hidden="true">*</span></label>
+                        <input type="tel" id="telefone" name="telefone" placeholder="(DDD) Telefone" inputmode="numeric" maxlength="15" pattern="\(\d{2}\) \d{4,5}-\d{4}" title="Digite o DDD e o número" required>
+                    </div>
+                </div>
+
+                <h2>Endereço</h2>
+
+                <div class="campo">
+                    <label for="cep">CEP <span class="opcional">(opcional)</span></label>
+                    <input type="text" id="cep" name="cep" placeholder="00000-000" inputmode="numeric" maxlength="9" pattern="\d{5}-\d{3}" title="Digite os 8 números do CEP">
+                </div>
+
+                <div class="campo">
+                    <label for="endereco">Endereço <span class="opcional">(opcional)</span></label>
+                    <input type="text" id="endereco" name="endereco" placeholder="Rua, Bairro, Número">
+                </div>
+
+                <!-- aparece só quando o tipo é "Profissional" (o cad-adm.js mostra e esconde) -->
+                <div id="blocoProfissional" hidden>
+                    <h2>Dados profissionais</h2>
+
+                    <div class="campo">
+                        <label for="funcao">Função <span class="obrig" aria-hidden="true">*</span></label>
+                        <select id="funcao" name="funcao">
+                            <option value="" selected disabled>Selecione</option>
+                            <option value="Técnico">Técnico</option>
+                            <option value="Vendedor">Vendedor</option>
+                            <option value="Gerente">Gerente</option>
+                        </select>
+                    </div>
+
+                    <div class="campo">
+                        <label for="especialidades">Especialidades <span class="opcional">(opcional)</span></label>
+                        <input type="text" id="especialidades" name="especialidades" placeholder="Ex.: geladeiras, computadores">
+                    </div>
+                </div>
+
+                <h2>Dados de acesso</h2>
+
+                <div class="campo">
+                    <label for="email">E-mail de login <span class="obrig" aria-hidden="true">*</span></label>
+                    <input type="email" id="email" name="email" placeholder="email@exemplo.com" autocomplete="new-email" required>
+                </div>
+
+                <div class="linha">
+                    <div class="campo">
+                        <label for="senha">Senha <span class="obrig" aria-hidden="true">*</span></label>
+                        <input type="password" id="senha" name="senha" placeholder="Mínimo 6 caracteres" minlength="6" autocomplete="new-password" required>
+                    </div>
+
+                    <div class="campo">
+                        <label for="confirmarSenha">Confirmar senha <span class="obrig" aria-hidden="true">*</span></label>
+                        <input type="password" id="confirmarSenha" name="confirmarSenha" placeholder="Repita a senha" minlength="6" autocomplete="new-password" required>
+                    </div>
+                </div>
+
+                <p class="legenda"><span class="obrig" aria-hidden="true">*</span> Campos obrigatórios</p>
+            </div>
+
+            <button type="submit" class="botao" id="botaoCadastrar">Cadastrar</button>
+
+            <p class="mensagem" id="mensagem" role="status"></p>
+        </form>
+    </main>
+
+</body>
+</html>
