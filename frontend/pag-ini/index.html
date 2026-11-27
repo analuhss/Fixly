@@ -28,10 +28,16 @@
                         <label for="email" class="visually-hidden">E-mail</label>
                         <input class="info" type="email" id="email" name="email" placeholder="email" required>
                     </div>
-                    <div>
-                        <label for="password" class="visually-hidden">Senha</label>
-                        <input class="info" type="password" id="senha" name="password" placeholder="senha" required>
-                    </div>
+                   <div style="position: relative; display: flex; align-items: center;">
+    <label for="senha" class="visually-hidden">Senha</label>
+    <input class="info" type="password" id="senha" name="password" placeholder="senha" required style="width: 100%; padding-right: 42px; position: relative; z-index: 1;">
+    <button type="button" id="btn-olho-login" aria-label="Mostrar ou ocultar senha" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); z-index: 10 !important; pointer-events: auto !important; background: transparent !important; border: none !important; width: auto !important; height: auto !important; padding: 6px !important; margin: 0 !important; cursor: pointer !important; display: flex; align-items: center; justify-content: center; box-shadow: none !important;">
+        <svg width="20" height="20" viewBox="0 0 24 24" style="pointer-events: none; fill: none !important; stroke: #52525b !important; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+        </svg>
+    </button>
+</div>
                 </div>
 
                 <div class="entar">

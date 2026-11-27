@@ -32,7 +32,7 @@
     <nav class="topbar__nav">
       <a href="/home-adm" >INÍCIO</a>
       <a href="/ordens-adm">ORDENS</a>
-      <a href="/conversas-adm">CONVERSAS</a>
+      <!-- <a href="/conversas-adm">CONVERSAS</a> -->
       <a href="/usuarios-adm" class="on" >USUÁRIOS</a>
     </nav>
     
@@ -127,18 +127,36 @@
     </div>
   </main>
 
-  <!-- 6. ADICIONADO: Janela Modal para alteração de senha -->
-  <dialog id="modal-senha" style="background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin: auto; width: min(400px, 90%);">
+<!-- Janela Modal para alteração de senha -->
+  <dialog id="modal-senha" style="background: var(--surface, #1a1a1d); color: var(--text, #fff); border: 1px solid var(--border, #2e2e33); border-radius: var(--radius, 16px); padding: 28px; margin: auto; width: min(400px, 90%);">
     <h3 style="margin-bottom: 20px; font-size: 18px;">Alterar Senha</h3>
     <form id="form-senha">
       <div class="field">
         <label for="senha-atual">Senha Atual</label>
-        <div class="input"><input type="password" id="senha-atual" required></div>
+        <div class="input" style="position: relative; display: flex; align-items: center;">
+          <input type="password" id="senha-atual" placeholder="Digite sua senha atual" required style="width: 100%; padding-right: 42px; color: #18181b;">
+          <button type="button" class="btn-olho-senha" data-alvo="senha-atual" aria-label="Mostrar ou ocultar senha atual" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent !important; border: none !important; width: auto !important; height: auto !important; padding: 4px !important; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" style="fill: none !important; stroke: #52525b !important; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
       </div>
+
       <div class="field">
         <label for="nova-senha">Nova Senha</label>
-        <div class="input"><input type="password" id="nova-senha" required></div>
+        <div class="input" style="position: relative; display: flex; align-items: center;">
+          <input type="password" id="nova-senha" placeholder="Digite a nova senha" required style="width: 100%; padding-right: 42px; color: #18181b;">
+          <button type="button" class="btn-olho-senha" data-alvo="nova-senha" aria-label="Mostrar ou ocultar nova senha" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent !important; border: none !important; width: auto !important; height: auto !important; padding: 4px !important; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" style="fill: none !important; stroke: #52525b !important; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
       </div>
+
       <div class="actions" style="margin-top: 24px;">
         <button type="button" class="btn btn--ghost" id="btn-fechar-modal">Cancelar</button>
         <button type="submit" class="btn btn--primary">Confirmar</button>

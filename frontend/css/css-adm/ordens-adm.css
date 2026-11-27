@@ -376,11 +376,22 @@ h1 span {
 }
 
 /* cor de cada status (mesmas cores da página do cliente) */
-.cartao-os[data-status="aberta"]       { --cor: #f5c32f; } /* amarelo */
-.cartao-os[data-status="em-analise"]   { --cor: #ff9f43; } /* laranja */
-.cartao-os[data-status="em-andamento"] { --cor: #5b9bff; } /* azul */
-.cartao-os[data-status="pausada"]      { --cor: #9a9aa0; } /* cinza */
-.cartao-os[data-status="fechada"]      { --cor: #ff6b5e; } /* vermelho */
+/* cor de cada status (aceita formato com hífen e formato curto do banco) */
+.cartao-os[data-status="aberta"],
+.cartao-os[data-status="pendente"]     { --cor: #f5c32f; } /* amarelo */
+
+.cartao-os[data-status="em-analise"],
+.cartao-os[data-status="analise"]      { --cor: #ff9f43; } /* laranja */
+
+.cartao-os[data-status="em-andamento"],
+.cartao-os[data-status="andamento"]    { --cor: #5b9bff; } /* azul */
+
+.cartao-os[data-status="pausada"],
+.cartao-os[data-status="congelada"]    { --cor: #9a9aa0; } /* cinza */
+
+.cartao-os[data-status="fechada"],
+.cartao-os[data-status="concluida"],
+.cartao-os[data-status="cancelada"]    { --cor: #ff6b5e; } /* vermelho */
 
 .linha-topo,
 .linha-tecnico {
@@ -566,15 +577,15 @@ h1 span {
 }
 
 .topbar__avatar {
-  justify-self: end;
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #a5a5aa;
-  color: var(--surface);
-  transition: box-shadow .2s;
+    justify-self: end;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #a5a5aa;
+    color: var(--surface);
+    transition: box-shadow .2s;
 }
 .topbar__avatar svg { width: 24px; height: 24px; }
 .topbar__avatar.is-active { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }

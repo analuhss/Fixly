@@ -10,7 +10,7 @@ const contasFixas = [
         senha: '123',
         nome: 'Ana Luiza',
         cpf: '111.111.111-11',
-        nascimento: '1990-01-10',
+        nascimento: '2009-30-08',
         telefone: '(11) 99999-0001',
         cep: '07000-000',
         endereco: 'Av. Paulo Faccini, 100 - Guarulhos/SP'
@@ -21,7 +21,7 @@ const contasFixas = [
         senha: '123',
         nome: 'Any',
         cpf: '111.111.111-22',
-        nascimento: '1990-01-10',
+        nascimento: '2009-07-31',
         telefone: '(11) 99999-0002',
         cep: '07000-000',
         endereco: 'Av. Paulo Faccini, 100 - Guarulhos/SP'
@@ -32,7 +32,7 @@ const contasFixas = [
         senha: '123',
         nome: 'Luana',
         cpf: '111.111.111-33',
-        nascimento: '1990-01-10',
+        nascimento: '2009-07-29',
         telefone: '(11) 99999-0003',
         cep: '07000-000',
         endereco: 'Av. Paulo Faccini, 100 - Guarulhos/SP'
@@ -43,7 +43,7 @@ const contasFixas = [
         senha: '123',
         nome: 'Brayan',
         cpf: '111.111.111-44',
-        nascimento: '1990-01-10',
+        nascimento: '2010-04-10',
         telefone: '(11) 99999-0004',
         cep: '07000-000',
         endereco: 'Av. Paulo Faccini, 100 - Guarulhos/SP'

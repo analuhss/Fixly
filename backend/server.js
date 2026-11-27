@@ -12,6 +12,8 @@ const express = require('express');      // --> biblioteca para criar o servidor
 
 const fs = require('fs');
 
+const bcrypt = require('bcrypt');
+
 const {
     db,
     cadastrarUsuario,
@@ -201,18 +203,20 @@ app.get('/os-adm', (req, res) => {
 });
 
 // =====================================
-//           Cadastro (POST)
-// =====================================
-
-// =====================================
 //      CADASTRO DE NOVOS USUÁRIOS
 // =====================================
 app.post('/api/usuarios', async (req, res) => {
     try {
         const { email, senha } = req.body;
 
-        // Cadastra o novo usuário no banco e recupera o ID gerado
-        const resultadoCadastro = await cadastrarUsuario(email, senha);
+        if (!email || !senha) {
+            return res.status(400).json({ mensagem: 'E-mail e senha são obrigatórios.' });
+        }
+
+        const senhaHash = await bcrypt.hash(senha, 10);
+
+        // Cadastra o novo usuário no banco já com a senha criptografada
+        const resultadoCadastro = await cadastrarUsuario(email, senhaHash);
         const novoIdUsuario = resultadoCadastro.id;
 
         req.session.usuario = {
@@ -391,38 +395,22 @@ app.put('/api/perfil/senha', async (req, res) => {
     }
 
     try {
-        // Busca a senha atual salva no banco
         const row = await buscarSenhaPorId(idCliente);
 
         if (!row) {
             return res.status(404).json({ mensagem: 'Usuário não encontrado.' });
         }
 
-        // Verifica se a senha atual confere (suporta hash bcrypt ou texto simples)
         const usaBcrypt = row.senha.startsWith('$2b$') || row.senha.startsWith('$2a$');
-        let senhaValida = false;
-
-        if (usaBcrypt) {
-            const bcrypt = require('bcrypt');
-            senhaValida = await bcrypt.compare(senhaAtual, row.senha);
-        } else {
-            senhaValida = (senhaAtual === row.senha);
-        }
+        const senhaValida = usaBcrypt
+            ? await bcrypt.compare(senhaAtual, row.senha)
+            : (senhaAtual === row.senha);
 
         if (!senhaValida) {
             return res.status(401).json({ mensagem: 'A senha atual está incorreta.' });
         }
 
-        // Criptografa a nova senha se a conta já usa bcrypt, senão salva direto
-        let senhaParaSalvar = novaSenha;
-        if (usaBcrypt) {
-            try {
-                const bcrypt = require('bcrypt');
-                senhaParaSalvar = await bcrypt.hash(novaSenha, 10);
-            } catch (e) {
-                // Segue sem bcrypt caso não esteja instalado
-            }
-        }
+        const senhaParaSalvar = await bcrypt.hash(novaSenha, 10);
 
         await atualizarSenha(idCliente, senhaParaSalvar);
         return res.json({ mensagem: 'Senha alterada com sucesso!' });
@@ -480,7 +468,8 @@ app.post('/api/usuarios/admin', async (req, res) => {
     // 1. Cria o login
     let idGerado;
     try {
-        const resultadoLogin = await criarLoginPorTipo(email, senha, tipo);
+        const senhaHash = await bcrypt.hash(senha, 10);
+        const resultadoLogin = await criarLoginPorTipo(email, senhaHash, tipo);
         idGerado = resultadoLogin.id;
     } catch (erroLogin) {
         console.error('Erro ao inserir na tabela login:', erroLogin.message);
