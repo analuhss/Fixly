@@ -3,117 +3,19 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Solicitar OS</title>
-        
+        <title>Solicitar OS | Fixly</title>
+
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-        
-        <!-- Logo -->
+
+        <!-- CSS (inclui também os estilos do modal, que antes ficavam aqui dentro) -->
         <link rel="stylesheet" href="../css/css-cliente/os-c.css">
         <link rel="icon" type="image/svg+xml" href="../files/svg/ícone.svg">
 
         <!-- Link com o Java -->
         <script src="../js/ordens-c.js" defer></script>
     </head>
-    <style>
-    /* Fundo escuro do modal */
-    .modal-os-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.78);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        z-index: 9999;
-    }
-
-    .modal-os-overlay.aberto {
-        display: flex;
-    }
-
-    /* Caixa do modal */
-    .modal-os-box {
-        background: #1a1a1d;
-        border: 1px solid #333338;
-        border-top: 6px solid #f5c542;
-        border-radius: 16px;
-        width: 100%;
-        max-width: 500px;
-        padding: 24px;
-        color: #ffffff;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
-        animation: surgirModal 0.2s ease;
-    }
-
-    @keyframes surgirModal {
-        from { opacity: 0; transform: translateY(12px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .modal-os-topo {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid #2e2e33;
-        padding-bottom: 14px;
-        margin-bottom: 18px;
-    }
-
-    .modal-os-topo h2 {
-        margin: 0;
-        font-size: 1.35rem;
-        color: #f5c542;
-    }
-
-    .modal-os-fechar {
-        background: transparent;
-        border: none;
-        color: #a1a1aa;
-        font-size: 1.6rem;
-        cursor: pointer;
-        line-height: 1;
-    }
-
-    .modal-os-fechar:hover {
-        color: #ffffff;
-    }
-
-    .modal-os-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px;
-        margin-bottom: 16px;
-    }
-
-    .modal-os-campo {
-        background: #242429;
-        padding: 12px 14px;
-        border-radius: 10px;
-    }
-
-    .modal-os-campo.full {
-        grid-column: 1 / -1;
-    }
-
-    .modal-os-campo span {
-        display: block;
-        font-size: 0.72rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #a1a1aa;
-        margin-bottom: 4px;
-    }
-
-    .modal-os-campo p {
-        margin: 0;
-        font-size: 0.95rem;
-        font-weight: 500;
-        color: #f4f4f5;
-        word-break: break-word;
-    }
-</style>
 
 <body>
 
@@ -130,16 +32,16 @@
         </nav>
 
         <a href="/perfil-c" class="perfil" aria-label="Meu perfil">
-        <img id="topbar-avatar-img" src="" alt="Foto de perfil" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-        <svg id="topbar-avatar-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5Z"/></svg>
+            <img id="topbar-avatar-img" src="" alt="Foto de perfil" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+            <svg id="topbar-avatar-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5Z"/></svg>
         </a>
     </header>
 
-    <!-- Cadastro -->
+    <!-- Solicitação -->
     <main>
         <form id="formOs-c" class="solicitacao">
             <div class="cartao">
-                <h1>Solicitar OS</h1>
+                <h1>Solicitar <span>OS</span></h1>
                 <p class="subtitulo">Conte o que aconteceu com o seu equipamento para abrir o pedido.</p>
 
                 <!-- Provisório: este campo só aparece se o número ainda não foi informado.
@@ -149,56 +51,57 @@
                     <input type="text" id="clienteId" name="clienteId" placeholder="Número de identificação">
                 </div>
 
-                <h2>Seus dados</h2>
+                <div class="grid">
+                    <h2 class="secao"><span>Seus dados</span></h2>
 
-                <div class="campo">
-                    <label for="nomeCliente">Nome completo <span class="obrig" aria-hidden="true">*</span></label>
-                    <input type="text" id="nomeCliente" name="nomeCliente" placeholder="Nome completo" autocomplete="name" required>
-                </div>
+                    <div class="campo largo">
+                        <label for="nomeCliente">Nome completo <span class="obrig" aria-hidden="true">*</span></label>
+                        <input type="text" id="nomeCliente" name="nomeCliente" placeholder="Nome completo" autocomplete="name" required>
+                    </div>
 
-                <div class="campo">
-                    <label for="telefone">Telefone ou celular <span class="obrig" aria-hidden="true">*</span></label>
-                    <input type="tel" id="telefone" name="telefone" placeholder="(DDD) Telefone" autocomplete="tel" required>
-                </div>
+                    <div class="campo">
+                        <label for="telefone">Telefone ou celular <span class="obrig" aria-hidden="true">*</span></label>
+                        <input type="tel" id="telefone" name="telefone" placeholder="(DDD) Telefone" autocomplete="tel" required>
+                    </div>
 
-                <div class="campo">
-                    <label for="email">E-mail <span class="obrig" aria-hidden="true">*</span></label>
-                    <input type="email" id="email" name="email" placeholder="email" autocomplete="email" required>
-                </div>
+                    <div class="campo">
+                        <label for="email">E-mail <span class="obrig" aria-hidden="true">*</span></label>
+                        <input type="email" id="email" name="email" placeholder="email" autocomplete="email" required>
+                    </div>
 
-                <h2>Equipamento</h2>
+                    <h2 class="secao"><span>Equipamento</span></h2>
 
-                <div class="campo">
-                    <label for="marca">Marca <span class="opcional">(opcional)</span></label>
-                    <input type="text" id="marca" name="marca">
-                </div>
+                    <div class="campo">
+                        <label for="marca">Marca <span class="obrig" aria-hidden="true">*</span></label>
+                        <input type="text" id="marca" name="marca" required placeholder="Ex.: Samsung">
+                    </div>
 
-                <div class="campo">
-                    <label for="modelo">Modelo <span class="opcional">(opcional)</span></label>
-                    <input type="text" id="modelo" name="modelo">
-                </div>
+                    <div class="campo">
+                        <label for="modelo">Modelo <span class="obrig" aria-hidden="true">*</span></label>
+                        <input type="text" id="modelo" name="modelo" required placeholder="Ex.: Galaxy A54">
+                    </div>
 
-                <div class="campo">
-                    <label for="perifericos">O que acompanha o equipamento? <span class="opcional">(opcional)</span></label>
-                    <input type="text" id="perifericos" name="perifericos" placeholder="Ex.: carregador, mouse, capa">
-                </div>
+                    <div class="campo largo">
+                        <label for="perifericos">O que acompanha o equipamento? <span class="opcional">(opcional)</span></label>
+                        <input type="text" id="perifericos" name="perifericos" placeholder="Ex.: carregador, mouse, capa">
+                    </div>
 
-                <h2>Problema</h2>
+                    <h2 class="secao"><span>Problema</span></h2>
 
-                <div class="campo">
-                    <label for="descricao">Descrição do problema <span class="obrig" aria-hidden="true">*</span></label>
-                    <textarea id="descricao" name="descricao" rows="3" placeholder="O que está acontecendo? Quando começou?" required></textarea>
+                    <div class="campo largo">
+                        <label for="descricao">Descrição do problema <span class="obrig" aria-hidden="true">*</span></label>
+                        <textarea id="descricao" name="descricao" rows="3" placeholder="O que está acontecendo? Quando começou?" required></textarea>
+                    </div>
                 </div>
 
                 <p class="legenda"><span class="obrig" aria-hidden="true">*</span> Campos obrigatórios</p>
+
+                <button type="submit" class="botao" id="botaoSolicitar">Solicitar OS</button>
+
+                <p class="mensagem" id="mensagem" role="status"></p>
             </div>
-
-            <button type="submit" class="botao" id="botaoSolicitar">Solicitar OS</button>
-
-            <p class="mensagem" id="mensagem" role="status"></p>
         </form>
     </main>
-
 
 </body>
 </html>
