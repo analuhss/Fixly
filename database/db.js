@@ -699,5 +699,9 @@ module.exports = {
     atualizarPerfilUsuario,
     inicializarBanco,
     executarMigracoes,
-    sincronizarAdministrador
+    sincronizarAdministrador,
+    db,
+    get,
+    run,
+    all
 };

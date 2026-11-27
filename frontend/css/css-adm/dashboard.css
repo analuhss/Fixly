@@ -425,8 +425,6 @@ h1 span {
     display: flex;
     flex-direction: column;
     justify-content: center;
-
-    border-color: rgba(245, 195, 47, 0.6);  /* contorno amarelo */
 }
 
 .orc-numeros {

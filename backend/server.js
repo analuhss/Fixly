@@ -43,6 +43,8 @@ const {
     sincronizarAdministrador
 } = require('../database/db');
 
+const { popularContasPadrao } = require('../database/seed');
+
 const cors = require('cors');
 
 const session = require('express-session');            // --> importa as variáveis
@@ -864,6 +866,21 @@ app.put('/api/ordens/:id/atribuir', async (req, res) => {
     }
 });
 
+// =====================================
+//               LOGOUT
+// =====================================
+app.all('/api/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Erro ao encerrar sessão:', err);
+            return res.status(500).json({ mensagem: 'Erro ao sair da conta.' });
+        }
+
+        res.clearCookie('connect.sid');
+        return res.json({ mensagem: 'Logout realizado com sucesso!' });
+    });
+});
+
 //=====================================
 //    MANTER EMAIL DA SESSÃO ATIVO
 //=====================================
@@ -896,11 +913,13 @@ app.put('/api/perfil', async (req, res) => {
 // ========================================
 //             INICIALIZAÇÃO
 // ========================================
+
 async function iniciarSistema() {
     try {
         await inicializarBanco();
         await executarMigracoes();
         await sincronizarAdministrador(process.env.emailAdm, process.env.senhaAdm);
+        await popularContasPadrao();
 
         app.listen(PORT, () => {
             console.log(`Servidor rodando em http://localhost:${PORT}`);
