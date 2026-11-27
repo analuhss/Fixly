@@ -206,8 +206,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
+    // =========================================================
+    // MODAL DE DETALHES, APROVAÇÃO E FORMA DE PAGAMENTO
+    // =========================================================
     function abrirDetalhesOS(os, numeroOs, statusTexto, tecnico, valorFormatado) {
-        console.log(`[MODAL] A abrir modal para a OS# ${numeroOs}`);
+        console.log(`[MODAL] A abrir modal para a OS# ${numeroOs}`, os);
         let modal = document.getElementById('modal-detalhes-os');
 
         if (!document.getElementById('estilo-modal-os')) {
@@ -216,18 +219,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             style.innerHTML = `
                 .modal-os-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.78); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 99999; }
                 .modal-os-overlay.aberto { display: flex; }
-                .modal-os-box { background: #1a1a1d; border: 1px solid #333338; border-top: 6px solid #f5c542; border-radius: 16px; width: 100%; max-width: 500px; padding: 24px; color: #ffffff; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6); }
+                .modal-os-box { background: #1a1a1d; border: 1px solid #333338; border-top: 6px solid #f5c542; border-radius: 16px; width: 100%; max-width: 540px; padding: 24px; color: #ffffff; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6); max-height: 90vh; overflow-y: auto; }
                 .modal-os-topo { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2e2e33; padding-bottom: 14px; margin-bottom: 18px; }
                 .modal-os-topo h2 { margin: 0; font-size: 1.35rem; color: #f5c542; }
                 .modal-os-fechar { background: transparent; border: none; color: #a1a1aa; font-size: 1.6rem; cursor: pointer; line-height: 1; }
                 .modal-os-fechar:hover { color: #ffffff; }
-                .modal-os-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+                .modal-os-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
                 .modal-os-campo { background: #242429; padding: 12px 14px; border-radius: 10px; }
                 .modal-os-campo.full { grid-column: 1 / -1; }
                 .modal-os-campo span { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: #a1a1aa; margin-bottom: 4px; }
                 .modal-os-campo p { margin: 0; font-size: 0.95rem; font-weight: 500; color: #f4f4f5; word-break: break-word; }
-                .cartao-os { transition: transform 0.2s, box-shadow 0.2s; }
-                .cartao-os:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
+                .modal-os-secao-titulo { grid-column: 1 / -1; margin-top: 6px; padding-top: 12px; border-top: 1px solid #2e2e33; font-size: 0.95rem; font-weight: 700; color: #f5c542; display: flex; justify-content: space-between; align-items: center; }
+                .cartao-os { transition: transform 0.2s, box-shadow 0.2s; } .cartao-os:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
             `;
             document.head.appendChild(style);
         }
@@ -244,36 +247,208 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                     <div class="modal-os-grid">
                         <div class="modal-os-campo"><span>Status</span><p id="detalhe-status"></p></div>
-                        <div class="modal-os-campo"><span>Taxa Análise</span><p id="detalhe-taxa"></p></div>
-                        <div class="modal-os-campo full"><span>Valor</span><p id="detalhe-valor"></p></div>
+                        <div class="modal-os-campo"><span>Valor Total</span><p id="detalhe-valor"></p></div>
                         <div class="modal-os-campo full"><span>Técnico Responsável</span><p id="detalhe-tecnico"></p></div>
                         <div class="modal-os-campo"><span>Marca</span><p id="detalhe-marca"></p></div>
                         <div class="modal-os-campo"><span>Modelo</span><p id="detalhe-modelo"></p></div>
                         <div class="modal-os-campo full"><span>O que acompanha</span><p id="detalhe-perifericos"></p></div>
                         <div class="modal-os-campo full"><span>Descrição do Problema</span><p id="detalhe-descricao"></p></div>
+
+                        <div class="modal-os-secao-titulo">
+                            <span>Laudo Técnico & Orçamento</span>
+                        </div>
+                        <div class="modal-os-campo full"><span>Diagnóstico</span><p id="detalhe-diagnostico"></p></div>
+                        <div class="modal-os-campo full"><span>Serviço Executado</span><p id="detalhe-servico-executado"></p></div>
+                        <div class="modal-os-campo"><span>Preço Mão de Obra</span><p id="detalhe-mao-obra"></p></div>
+                        <div class="modal-os-campo"><span>Preço Material</span><p id="detalhe-materiais"></p></div>
+                        <div class="modal-os-campo"><span>Taxa de Análise</span><p id="detalhe-taxa-analise"></p></div>
+                        <div class="modal-os-campo"><span>Previsão / Finalização</span><p id="detalhe-data-finalizacao"></p></div>
+
+                        <div class="modal-os-campo full" id="area-aprovacao-orcamento" style="display: none;"></div>
                     </div>
                 </div>
             `;
             document.body.appendChild(modal);
 
             document.getElementById('fechar-modal-os').addEventListener('click', () => modal.classList.remove('aberto'));
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) modal.classList.remove('aberto');
-            });
+            modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('aberto'); });
         }
 
-        const valorTaxa = Number(os.taxa_analise ?? os.taxaAnalise ?? os.taxa ?? 60);
-        const taxaFormatada = valorTaxa.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        const formatarMoeda = (val) => Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        const diagnostico = os.diagnostico || os.laudo || 'Aguardando avaliação técnica';
+        const servicoExecutado = os.servico_executado || os.servicos_executados || os.servicoExecutado || os.servico || 'Aguardando definição';
+        const maoDeObraNum = Number(os.mao_de_obra ?? os.preco_mao_obra ?? os.maoDeObra ?? 0);
+        const materiaisNum = Number(os.materiais ?? os.preco_material ?? os.precoMaterial ?? os.pecas ?? 0);
+        const taxaNum = Number(os.taxa_analise ?? os.taxaAnalise ?? 60);
+        const valorTotal = Number(os.valor ?? os.valor_final ?? os.valorfinal ?? 0);
+
+        const dataFimBruta = os.data_finalizacao || os.dataFinalizacao || '';
+        const dataFimFormatada = dataFimBruta
+            ? (dataFimBruta.includes('-') ? dataFimBruta.split('T')[0].split('-').reverse().join('/') : dataFimBruta)
+            : 'A definir';
 
         document.getElementById('detalhe-titulo').textContent = `Detalhes da OS# ${numeroOs}`;
         document.getElementById('detalhe-status').textContent = statusTexto;
-        document.getElementById('detalhe-taxa').textContent = taxaFormatada;
         document.getElementById('detalhe-valor').textContent = valorFormatado;
         document.getElementById('detalhe-tecnico').textContent = tecnico;
         document.getElementById('detalhe-marca').textContent = os.marca || 'Não informada';
-        document.getElementById('detalhe-modelo').textContent = os.modelo || os.equipamento || os.aparelho || 'Não informado';
-        document.getElementById('detalhe-perifericos').textContent = os.perifericos || os.acessorios || 'Nenhum item';
-        document.getElementById('detalhe-descricao').textContent = os.descricao || os.defeito || 'Sem descrição';
+        document.getElementById('detalhe-modelo').textContent = os.modelo || 'Não informado';
+        document.getElementById('detalhe-perifericos').textContent = os.perifericos || 'Nenhum item';
+        document.getElementById('detalhe-descricao').textContent = os.descricao || 'Sem descrição';
+
+        document.getElementById('detalhe-diagnostico').textContent = diagnostico;
+        document.getElementById('detalhe-servico-executado').textContent = servicoExecutado;
+        document.getElementById('detalhe-mao-obra').textContent = formatarMoeda(maoDeObraNum);
+        document.getElementById('detalhe-materiais').textContent = formatarMoeda(materiaisNum);
+        document.getElementById('detalhe-taxa-analise').textContent = formatarMoeda(taxaNum);
+        document.getElementById('detalhe-data-finalizacao').textContent = dataFimFormatada;
+
+        // =========================================================
+        // BLOCO DE APROVAÇÃO -> FORMA DE PAGAMENTO
+        // =========================================================
+        const areaAprovacao = document.getElementById('area-aprovacao-orcamento');
+        const taxaFormatada = formatarMoeda(taxaNum);
+        const validacaoAtual = (os.validacao_cliente || os.validacaoCliente || 'pendente').toLowerCase();
+        const statusAtual = (os.status || '').toLowerCase();
+        const pagamentoSalvo = os.forma_pagamento || os.formaPagamento || '';
+
+        const aguardandoAprovacao =
+            valorTotal > 60 &&
+            statusAtual !== 'fechada' &&
+            validacaoAtual !== 'aprovado' &&
+            validacaoAtual !== 'recusado';
+
+        // Etapa 2: Exibe seleção de forma de pagamento logo após aceitar
+        const exibirEtapaPagamento = () => {
+            areaAprovacao.style.display = 'block';
+            areaAprovacao.innerHTML = `
+                <span>Orçamento Aprovado — Forma de Pagamento</span>
+                <p style="color: #22c55e; font-weight: 600; margin-bottom: 10px;">
+                    Orçamento de ${valorFormatado} aceito! Escolha como deseja pagar:
+                </p>
+                <select id="select-forma-pagamento" style="width: 100%; background: #18181b; color: #f4f4f5; border: 1px solid #3f3f46; border-radius: 8px; padding: 10px; font-size: 0.95rem; margin-bottom: 12px;">
+                    <option value="">-- Selecione a forma de pagamento --</option>
+                    <option value="Pix">Pix</option>
+                    <option value="Cartão de Crédito">Cartão de Crédito</option>
+                    <option value="Cartão de Débito">Cartão de Débito</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                </select>
+                <button type="button" id="btn-salvar-pagamento" style="width: 100%; background: #f5c542; color: #09090b; border: none; border-radius: 8px; padding: 10px 14px; font-weight: 700; cursor: pointer;">
+                    Confirmar Forma de Pagamento
+                </button>
+            `;
+
+            document.getElementById('btn-salvar-pagamento').onclick = async () => {
+                const formaEscolhida = document.getElementById('select-forma-pagamento').value;
+                if (!formaEscolhida) {
+                    alert('Por favor, selecione uma forma de pagamento.');
+                    return;
+                }
+
+                try {
+                    const resPag = await fetch(`/api/ordens/${numeroOs}/pagamento`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ formaPagamento: formaEscolhida })
+                    });
+
+                    const dadosPag = await resPag.json();
+                    if (!resPag.ok) {
+                        alert(dadosPag.mensagem || 'Erro ao salvar pagamento.');
+                        return;
+                    }
+
+                    alert(dadosPag.mensagem);
+                    modal.classList.remove('aberto');
+                    window.location.reload();
+                } catch (erro) {
+                    console.error('Erro ao salvar forma de pagamento:', erro);
+                    alert('Falha de comunicação com o servidor.');
+                }
+            };
+        };
+
+        // Etapa 1: Aceitar ou Recusar o orçamento
+        if (aguardandoAprovacao) {
+            areaAprovacao.style.display = 'block';
+            areaAprovacao.innerHTML = `
+                <span>Aprovação de Orçamento</span>
+                <p style="margin-bottom: 12px; font-size: 0.9rem; color: #d4d4d8;">
+                    Composição: <strong>${formatarMoeda(maoDeObraNum)}</strong> (Mão de obra) + 
+                    <strong>${formatarMoeda(materiaisNum)}</strong> (Material) + 
+                    <strong>${taxaFormatada}</strong> (Taxa de Análise) = 
+                    <strong style="color: #f5c542;">${valorFormatado}</strong>. Deseja autorizar o serviço?
+                </p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" id="btn-aprovar-orcamento" style="flex: 1; background: #22c55e; color: #09090b; border: none; border-radius: 8px; padding: 10px 14px; font-weight: 700; cursor: pointer;">
+                        Aceitar Orçamento
+                    </button>
+                    <button type="button" id="btn-recusar-orcamento" style="flex: 1; background: transparent; color: #ef4444; border: 1px solid #ef4444; border-radius: 8px; padding: 10px 14px; font-weight: 600; cursor: pointer;">
+                        Recusar (Pagar só Taxa)
+                    </button>
+                </div>
+            `;
+
+            const responderOrcamento = async (decisao) => {
+                const confirmacao = decisao === 'aprovado'
+                    ? `Confirmar a aprovação do orçamento no valor de ${valorFormatado}?`
+                    : `Deseja recusar o orçamento? O serviço não será executado e será cobrada apenas a Taxa de Análise (${taxaFormatada}).`;
+
+                if (!confirm(confirmacao)) return;
+
+                try {
+                    const resOrc = await fetch(`/api/ordens/${numeroOs}/orcamento`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ decisao })
+                    });
+
+                    const dadosOrc = await resOrc.json();
+
+                    if (!resOrc.ok) {
+                        alert(dadosOrc.mensagem || 'Erro ao registrar decisão.');
+                        return;
+                    }
+
+                    if (decisao === 'aprovado') {
+                        document.getElementById('detalhe-status').textContent = 'ANDAMENTO';
+                        exibirEtapaPagamento();
+                    } else {
+                        alert(dadosOrc.mensagem);
+                        modal.classList.remove('aberto');
+                        window.location.reload();
+                    }
+                } catch (erro) {
+                    console.error('Erro ao responder orçamento:', erro);
+                    alert('Falha de comunicação com o servidor.');
+                }
+            };
+
+            document.getElementById('btn-aprovar-orcamento').onclick = () => responderOrcamento('aprovado');
+            document.getElementById('btn-recusar-orcamento').onclick = () => responderOrcamento('recusado');
+
+        } else if (validacaoAtual === 'aprovado' && !pagamentoSalvo) {
+            exibirEtapaPagamento();
+        } else if (validacaoAtual === 'aprovado') {
+            areaAprovacao.style.display = 'block';
+            areaAprovacao.innerHTML = `
+                <span>Status do Orçamento</span>
+                <p style="color: #22c55e; font-weight: 600;">
+                    Orçamento aprovado (${valorFormatado}) — Pagamento: ${pagamentoSalvo}
+                </p>
+            `;
+        } else if (validacaoAtual === 'recusado') {
+            areaAprovacao.style.display = 'block';
+            areaAprovacao.innerHTML = `
+                <span>Status do Orçamento</span>
+                <p style="color: #ef4444; font-weight: 600;">Orçamento recusado — Cobrada apenas a Taxa de Análise (${taxaFormatada})</p>
+            `;
+        } else {
+            areaAprovacao.style.display = 'none';
+        }
 
         modal.classList.add('aberto');
     }

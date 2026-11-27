@@ -19,14 +19,27 @@ formulario.addEventListener('submit', async (event) => {
         const dados = await resposta.json();
 
         if (resposta.ok) {
-            alert('Login realizado com sucesso!');
-
             if (dados.tipo === 'cliente') {
-                window.location.href = '/home-c';
+                if (typeof redirecionarComAlerta === 'function') {
+                    redirecionarComAlerta('Login realizado com sucesso!', '/home-c', 'sucesso');
+                } else {
+                    alert('Login realizado com sucesso!');
+                    window.location.href = '/home-c';
+                }
             } else if (dados.tipo === 'profissional') {
-                window.location.href = '/home-p';
+                if (typeof redirecionarComAlerta === 'function') {
+                    redirecionarComAlerta('Login realizado com sucesso!', '/home-p', 'sucesso');
+                } else {
+                    alert('Login realizado com sucesso!');
+                    window.location.href = '/home-p';
+                }
             } else if (dados.tipo === 'adm') {
-                window.location.href = '/home-adm';
+                if (typeof redirecionarComAlerta === 'function') {
+                    redirecionarComAlerta('Login realizado com sucesso!', '/home-adm', 'sucesso');
+                } else {
+                    alert('Login realizado com sucesso!');
+                    window.location.href = '/home-adm';
+                }
             } else {
                 alert('Tipo de usuário desconhecido: ' + dados.tipo);
             }
@@ -55,5 +68,3 @@ formulario.addEventListener('submit', async (event) => {
         btnOlho.innerHTML = mostrando ? olhoAberto : olhoFechado;
     });
 })();
-
-if (dados.tipo === 'cliente') redirecionarComAlerta('Login realizado com sucesso!', '/home-c', 'sucesso');

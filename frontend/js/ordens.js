@@ -1,10 +1,4 @@
-// ===== Armazenamento das ordens de serviço =====
-//
-// ATENÇÃO: por enquanto as ordens ficam no localStorage, ou seja, só aparecem
-// no MESMO navegador/computador onde foram cadastradas (serve para testar).
-// Para o cliente ver a ordem em OUTRO aparelho, é preciso um servidor:
-// troque só o conteúdo de salvarOrdem() e buscarOrdensDoCliente() por
-// chamadas fetch() para a sua API. O resto do código não muda.
+
 
 const CHAVE_ORDENS = "fixlyOrdens";
 

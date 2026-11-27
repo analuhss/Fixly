@@ -15,7 +15,7 @@ const fs = require('fs');
 const bcrypt = require('bcrypt');
 
 const {
-    db,
+        db,
     cadastrarUsuario,
     finalizarCadastroUsuario,
     buscarLoginPorEmail,
@@ -42,7 +42,13 @@ const {
     atualizarPerfilUsuario,
     inicializarBanco,
     executarMigracoes,
-    sincronizarAdministrador
+    sincronizarAdministrador,
+    get,
+    run,
+    all,
+    buscarOrdemDoCliente, 
+    aprovarOrcamentoOrdem,
+    recusarOrcamentoOrdem
 } = require('../database/db');
 
 const { popularContasPadrao } = require('../database/seed');
@@ -813,6 +819,87 @@ app.get('/api/ordens/admin', async (req, res) => {
     } catch (erro) {
         console.error('Erro no banco de dados (Admin):', erro.message);
         return res.status(500).json({ mensagem: 'Erro ao buscar ordens no banco.' });
+    }
+});
+
+// ==========================
+//   APROVAÇÃO DO CLIENTE
+// ==========================
+
+app.put('/api/ordens/:id/orcamento', async (req, res) => {
+    const usuarioSessao = req.session?.usuario || req.session?.user;
+    const idClienteLogado = usuarioSessao?.id || req.session?.userId || req.session?.idUsuario;
+
+    if (!idClienteLogado) {
+        return res.status(401).json({ mensagem: 'Sessão expirada ou usuário não autenticado.' });
+    }
+
+    const idOrdem = req.params.id;
+    const { decisao } = req.body;
+
+    if (!['aprovado', 'recusado'].includes(decisao)) {
+        return res.status(400).json({ mensagem: 'Decisão inválida. Informe "aprovado" ou "recusado".' });
+    }
+
+    try {
+        const ordem = await buscarOrdemDoCliente(idOrdem, idClienteLogado);
+        if (!ordem) {
+            return res.status(404).json({ mensagem: 'Ordem de serviço não encontrada para este cliente.' });
+        }
+
+        if (decisao === 'aprovado') {
+            await aprovarOrcamentoOrdem(idOrdem);
+            return res.json({
+                mensagem: 'Orçamento aprovado! Agora selecione a forma de pagamento.',
+                status: 'andamento',
+                validacao_cliente: 'aprovado'
+            });
+        } else {
+            const taxaAnalise = Number(ordem.taxa_analise || 60);
+            await recusarOrcamentoOrdem(idOrdem, taxaAnalise);
+            return res.json({
+                mensagem: 'Orçamento recusado. Será cobrada apenas a Taxa de Análise (R$ 60,00).',
+                status: 'fechada',
+                validacao_cliente: 'recusado',
+                valor: taxaAnalise
+            });
+        }
+    } catch (erro) {
+        console.error('Erro ao processar validação do orçamento:', erro);
+        return res.status(500).json({ mensagem: 'Erro interno: ' + erro.message });
+    }
+});
+
+// 2. Rota para registrar a Forma de Pagamento após o cliente aceitar o orçamento
+app.put('/api/ordens/:id/pagamento', async (req, res) => {
+    const usuarioSessao = req.session?.usuario || req.session?.user;
+    const idClienteLogado = usuarioSessao?.id || req.session?.userId || req.session?.idUsuario;
+
+    if (!idClienteLogado) {
+        return res.status(401).json({ mensagem: 'Sessão expirada ou usuário não autenticado.' });
+    }
+
+    const idOrdem = req.params.id;
+    const { formaPagamento } = req.body;
+
+    if (!formaPagamento) {
+        return res.status(400).json({ mensagem: 'Selecione uma forma de pagamento.' });
+    }
+
+    try {
+        const ordem = await buscarOrdemDoCliente(idOrdem, idClienteLogado);
+        if (!ordem) {
+            return res.status(404).json({ mensagem: 'Ordem de serviço não encontrada.' });
+        }
+
+        await salvarFormaPagamentoOrdem(idOrdem, formaPagamento);
+        return res.json({
+            mensagem: `Forma de pagamento (${formaPagamento}) registrada com sucesso!`,
+            forma_pagamento: formaPagamento
+        });
+    } catch (erro) {
+        console.error('Erro ao salvar forma de pagamento:', erro);
+        return res.status(500).json({ mensagem: 'Erro interno: ' + erro.message });
     }
 });
 

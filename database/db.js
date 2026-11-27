@@ -671,6 +671,110 @@ const executarMigracoes = async () => {
     }
 };
 
+// ========================
+//  CLIENTE APROVAR ORDENS
+// ========================
+// Descobre qual é o nome exato da coluna de ID na tabela 'os' (id, idOs, id_os, etc.)
+function obterColunaIdOs() {
+    return new Promise((resolve) => {
+        db.all("PRAGMA table_info(os)", (err, cols) => {
+            if (err || !cols) return resolve('id');
+            const pk = cols.find(c => c.pk === 1) || cols.find(c => ['id', 'idos', 'id_os'].includes(c.name.toLowerCase()));
+            resolve(pk ? pk.name : 'id');
+        });
+    });
+}
+
+async function buscarOrdemDoCliente(idOrdem, idCliente) {
+    const colId = await obterColunaIdOs();
+    return new Promise((resolve, reject) => {
+        db.get(`SELECT * FROM os WHERE ${colId} = ?`, [idOrdem], (err, row) => {
+            if (err) return reject(err);
+            if (!row) return resolve(null);
+
+            const donoId = row.cliente_id ?? row.id_cliente ?? row.usuario_id ?? row.idUsuario;
+            if (donoId != null && Number(donoId) !== Number(idCliente)) {
+                return resolve(null);
+            }
+            resolve(row);
+        });
+    });
+}
+
+async function aprovarOrcamentoOrdem(idOrdem) {
+    const colId = await obterColunaIdOs();
+    await new Promise((r) => db.run("ALTER TABLE os ADD COLUMN validacao_cliente TEXT DEFAULT 'pendente'", () => r()));
+    await new Promise((r) => db.run("ALTER TABLE os ADD COLUMN forma_pagamento TEXT", () => r()));
+
+    return new Promise((resolve, reject) => {
+        db.run(
+            `UPDATE os SET status = 'andamento', validacao_cliente = 'aprovado' WHERE ${colId} = ?`,
+            [idOrdem],
+            function (err) {
+                if (err) return reject(err);
+                resolve({ changes: this.changes });
+            }
+        );
+    });
+}
+
+async function salvarFormaPagamentoOrdem(idOrdem, formaPagamento) {
+    const colId = await obterColunaIdOs();
+    await new Promise((r) => db.run("ALTER TABLE os ADD COLUMN forma_pagamento TEXT", () => r()));
+
+    return new Promise((resolve, reject) => {
+        db.run(
+            `UPDATE os SET forma_pagamento = ? WHERE ${colId} = ?`,
+            [formaPagamento, idOrdem],
+            function (err) {
+                if (err) return reject(err);
+                resolve({ changes: this.changes });
+            }
+        );
+    });
+}
+
+async function recusarOrcamentoOrdem(idOrdem, taxaAnalise) {
+    const colId = await obterColunaIdOs();
+    await new Promise((r) => db.run("ALTER TABLE os ADD COLUMN validacao_cliente TEXT DEFAULT 'pendente'", () => r()));
+
+    const ordem = await new Promise((resolve, reject) => {
+        db.get(`SELECT * FROM os WHERE ${colId} = ?`, [idOrdem], (err, row) => {
+            if (err) return reject(err);
+            resolve(row || {});
+        });
+    });
+
+    const sets = ["status = 'fechada'", "validacao_cliente = 'recusado'"];
+    const params = [];
+
+    if ('mao_de_obra' in ordem) sets.push('mao_de_obra = 0');
+    if ('preco_mao_obra' in ordem) sets.push('preco_mao_obra = 0');
+    if ('materiais' in ordem) sets.push('materiais = 0');
+    if ('preco_material' in ordem) sets.push('preco_material = 0');
+    if ('valor' in ordem) {
+        sets.push('valor = ?');
+        params.push(taxaAnalise);
+    }
+    if ('valor_final' in ordem) {
+        sets.push('valor_final = ?');
+        params.push(taxaAnalise);
+    }
+
+    params.push(idOrdem);
+
+    return new Promise((resolve, reject) => {
+        db.run(
+            `UPDATE os SET ${sets.join(', ')} WHERE ${colId} = ?`,
+            params,
+            function (err) {
+                if (err) return reject(err);
+                resolve({ changes: this.changes });
+            }
+        );
+    });
+}
+
 module.exports = {
     db,
     cadastrarUsuario,
@@ -700,8 +804,11 @@ module.exports = {
     inicializarBanco,
     executarMigracoes,
     sincronizarAdministrador,
-    db,
     get,
     run,
-    all
+    all,
+    buscarOrdemDoCliente, 
+    aprovarOrcamentoOrdem,
+    recusarOrcamentoOrdem,
+    salvarFormaPagamentoOrdem
 };

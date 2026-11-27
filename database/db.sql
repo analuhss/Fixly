@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS os (
     pecas_mate TEXT,
     valorfinal FLOAT,
     processo TEXT,
-    validacao TEXT,
+    validacao_cliente TEXT DEFAULT 'pendente',
     idCliente INTEGER,
     idTecnico INTEGER,
     status TEXT
