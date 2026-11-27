@@ -41,6 +41,8 @@ CREATE TABLE IF NOT EXISTS os (
     idChamado INTEGER PRIMARY KEY AUTOINCREMENT,
     identificacao TEXT,
     abertura TEXT,
+    data_abertura TEXT DEFAULT (date('now', 'localtime')),
+    modelo TEXT,
     hora TEXT,
     descricao TEXT,
     equipamento TEXT,

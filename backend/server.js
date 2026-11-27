@@ -12,7 +12,38 @@ const express = require('express');      // --> biblioteca para criar o servidor
 
 const fs = require('fs');
 
-const db = require('../database/db.js');
+const {
+    db,
+    cadastrarUsuario,
+    finalizarCadastroUsuario,
+    buscarLoginPorEmail,
+    criarOrdemServico,
+    buscarPerfilProfissional,
+    buscarPerfilUsuario,
+    buscarSenhaPorId,
+    atualizarSenha,
+    removerFotoPerfil,
+    criarLoginPorTipo,
+    cadastrarTecnico,
+    cadastrarDadosUsuario,
+    listarTecnicos,
+    listarOrdensComCliente,
+    assumirOrdemServico,
+    atualizarStatusOrdem,
+    listarTodosUsuariosAdmin,
+    salvarDetalhesTecnicosOrdem,
+    registrarValidacaoClienteOrdem,
+    listarOrdensDoCliente,
+    listarOrdensAdmin,
+    inicializarBanco,
+    sincronizarAdministrador,
+    listarTecnicosAtivos,
+    atribuirTecnicoOrdem,
+    atualizarPerfilUsuario,
+    inicializarBanco,
+    executarMigracoes,
+    sincronizarAdministrador
+} = require('./db');
 
 const cors = require('cors');
 
@@ -52,10 +83,6 @@ app.use(session({
     }
 }));
 
-
-db.run("ALTER TABLE os ADD COLUMN data_abertura TEXT", () => {
-    db.run("UPDATE os SET data_abertura = date('now', 'localtime') WHERE data_abertura IS NULL OR data_abertura = ''");
-});
 
 // ==================================
 //       ROTAS DE PÁGINAS (GET)
@@ -179,90 +206,70 @@ app.get('/os-adm', (req, res) => {
 //           Cadastro (POST)
 // =====================================
 
-// Aqui ós usamos ele para que esas informações sejam colocadas no nosso banco de dados
-app.post('/api/usuarios', (req, res) => {
-    const { email, senha } = req.body;
+// =====================================
+//      CADASTRO DE NOVOS USUÁRIOS
+// =====================================
+app.post('/api/usuarios', async (req, res) => {
+    try {
+        const { email, senha } = req.body;
 
-    // Inserção na tabela de logins
-    const sql = "INSERT INTO login (email, senha, tipo) VALUES (?, ?, 'cliente')";
-
-    db.run(sql, [email, senha], function (erro) {
-        if (erro) {
-            console.error('Erro interno no SQLite:', erro.message);
-            return res.status(500).json({ mensagem: 'Erro interno no servidor ao salvar login' });
-        }
-
-        // 1. Pega o ID gerado automaticamente
-        const novoIdCliente = this.lastID;
+        // Cadastra o novo usuário no banco e recupera o ID gerado
+        const resultadoCadastro = await cadastrarUsuario(email, senha);
+        const novoIdUsuario = resultadoCadastro.id;
 
         req.session.usuario = {
-            id: novoIdCliente,
+            id: novoIdUsuario,
             email: email,
             tipo: 'cliente'
         };
 
-        // 3. Forçamos a gravação explícita da sessão antes de responder
         req.session.save((err) => {
             if (err) {
                 console.error('Erro ao salvar sessão:', err);
-                return res.status(500).json({ mensagem: 'Erro ao criar sessão após cadastro.' });
+                return res.status(500).json({ mensagem: 'Erro ao iniciar sessão após o cadastro.' });
             }
 
-            // 4. Retorna a resposta de sucesso com a sessão criada
             return res.status(201).json({
-                mensagem: 'Login criado com sucesso!',
-                id: novoIdCliente
+                mensagem: 'Usuário cadastrado com sucesso!',
+                id: novoIdUsuario
             });
         });
-    });
+    } catch (erro) {
+        console.error('Erro interno no SQLite:', erro.message);
+        return res.status(500).json({ mensagem: 'Erro interno no servidor ao cadastrar usuário.' });
+    }
 });
 
 // =====================================
 //         FINALIZAR CADASTRO 
 // =====================================
 
-app.put('/api/usuarios/finalizar-cadastro', (req, res) => {
-    // 1. Verifica sessão
+app.put('/api/usuarios/finalizar-cadastro', async (req, res) => {
     if (!req.session || !req.session.usuario) {
         return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
     }
 
-    // Pega o ID que está salvo na sessão (veja como ele foi salvo no /api/login)
-    const idCliente = req.session.usuario.id;
-    const { nome, dataNascimento, cpf, cep, endereco, telefone } = req.body;
-
-    // 2. Insere na tabela 'usuarios' vinculando com o idCliente da tabela 'login'
-    const sql = `
-        INSERT OR REPLACE INTO usuarios 
-        (idCliente, nome, dataNascimento, cpf, cep, endereco, telefone, cadastro_completo) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-    `;
-
-    db.run(sql, [idCliente, nome, dataNascimento, cpf, cep, endereco, telefone], function (erro) {
-        if (erro) {
-            console.error('Erro fatal ao inserir na tabela usuarios:', erro.message);
-            return res.status(500).json({ mensagem: 'Erro ao salvar informações no banco de dados.' });
-        }
+    try {
+        const idCliente = req.session.usuario.id;
+        await finalizarCadastroUsuario(idCliente, req.body);
 
         return res.json({ mensagem: 'Cadastro finalizado com sucesso!' });
-    });
+    } catch (erro) {
+        console.error('Erro fatal ao inserir na tabela usuarios:', erro.message);
+        return res.status(500).json({ mensagem: 'Erro ao salvar informações no banco de dados.' });
+    }
 });
 
 // =====================================
 //               LOGIN
 // =====================================
 
-app.post('/api/login', (req, res) => {
-    const { email, senha } = req.body;    // --> recebe os dados
+app.post('/api/login', async (req, res) => {
+    try {
+        const { email, senha } = req.body;
+        const usuarioDoBanco = await buscarLoginPorEmail(email);
 
-    const sql = `SELECT * FROM login WHERE email = ?`;
-
-    db.get(sql, [email], (err, usuarioDoBanco) => {
-        if (err || !usuarioDoBanco) {
-            return res.status(401).json({ mensagem: 'E-mail ou senha incorretos.' });
-        }                                  // --> compara a senha digitada com a senha salva no banco
-
-        if (usuarioDoBanco.senha !== senha) {
+        if (!usuarioDoBanco || usuarioDoBanco.senha !== senha) {
             return res.status(401).json({ mensagem: 'E-mail ou senha incorretos.' });
         }
 
@@ -278,98 +285,70 @@ app.post('/api/login', (req, res) => {
                 return res.status(500).json({ mensagem: 'Erro ao salvar sessão.' });
             }
 
-            // IMPORTANTE: Devolva a propriedade 'tipo' no JSON!
             return res.json({
                 mensagem: 'Login realizado com sucesso!',
                 tipo: usuarioDoBanco.tipo || 'cliente'
             });
         });
-    });
+    } catch (erro) {
+        console.error('Erro no login:', erro.message);
+        return res.status(500).json({ mensagem: 'Erro interno no servidor.' });
+    }
 });
+
 // ===================================
 //      CADASTRO DE OS - CLIENTE
 // ===================================
 
-app.post('/api/ordens', (req, res) => {
-
-    // Recebe os dados do formulário do frontend
-    const { equipamento, marca, perifericos, descricao } = req.body;
-
-    // Pega o ID do cliente que está logado na sessão atual
+app.post('/api/ordens', async (req, res) => {
     if (!req.session || !req.session.usuario) {
         return res.status(401).json({ message: 'Usuário não autenticado.' });
     }
-    const idCliente = req.session.usuario.id;
 
-    // Pega a data e hora do momento da criação
-    const dataAtual = new Date();
-    const abertura = dataAtual.toLocaleDateString('pt-BR');
-    const hora = dataAtual.toLocaleTimeString('pt-BR');
+    try {
+        const { equipamento, marca, perifericos, descricao } = req.body;
+        const idCliente = req.session.usuario.id;
 
-    // Insere na sua tabela 'os'
-    const sql = `
-        INSERT INTO os (
-            abertura, hora, equipamento, marca, perifericos, descricao, processo, idCliente
-        ) VALUES (?, ?, ?, ?, ?, ?, 'Pendente', ?)
-    `;
+        const dataAtual = new Date();
+        const abertura = dataAtual.toLocaleDateString('pt-BR');
+        const hora = dataAtual.toLocaleTimeString('pt-BR');
 
-    db.run(sql, [abertura, hora, equipamento, marca, perifericos, descricao, idCliente], function (err) {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ message: 'Erro ao abrir chamado no banco de dados.' });
-        }
+        const resultado = await criarOrdemServico({
+            abertura,
+            hora,
+            equipamento,
+            marca,
+            perifericos,
+            descricao,
+            idCliente
+        });
 
         return res.status(201).json({
             message: 'Ordem de serviço aberta com sucesso!',
-            idChamado: this.lastID // Retorna o idChamado gerado
+            idChamado: resultado.id
         });
-    });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Erro ao abrir chamado no banco de dados.' });
+    }
 });
 
 // ============================================
-//     BUSCAR OS DADOS DO CLIENTE LOGADO
+//     BUSCAR OS DADOS DO USUÁRIO LOGADO
 // ============================================
 
-app.get('/api/perfil', (req, res) => {
+app.get('/api/perfil', async (req, res) => {
     if (!req.session || !req.session.usuario) {
-        return res.status(401).json({ mensagem: 'Não autorizado. Faça login novamente.' }); // --> verifica se há uma sessão ativa
+        return res.status(401).json({ mensagem: 'Não autorizado. Faça login novamente.' });
     }
 
     const usuarioSessao = req.session.usuario;
     const emailLogado = usuarioSessao.email;
     const tipoLogado = (usuarioSessao.tipo || '').toLowerCase();
 
-    if (tipoLogado === 'profissional') {  // --> se o pefil logado for de profissional, ele busca os dados da tabela de técnicos.
-        const sqlTecnico = `
-            SELECT 
-                t.idTecnico AS id,
-                t.nome,
-                t.cpf,
-                t.dataNascimento,
-                t.telefone,
-                COALESCE(NULLIF(TRIM(t.email), ''), l.email) AS email,
-                t.cep,
-                t.cargo,
-                t.admissao,
-                l.tipo,
-                u.foto
-            FROM tecnicos t
-            LEFT JOIN login l ON LOWER(TRIM(t.email)) = LOWER(TRIM(l.email))
-            LEFT JOIN usuarios u ON l.idCliente = u.idCliente
-            WHERE LOWER(TRIM(t.email)) = LOWER(TRIM(?))
-            LIMIT 1
-        `;
-
-        // --> COALESCE(NULLIF(TRIM(t.email), ''), l.email) : Garante que o email venha da tabela tecnicos, e se lá estiver vazio, vem da tabela login
-
-        // --> LOWER(TRIM(...)): Compara os e-mails ignorando letras maiúsculas/minúsculas ou espaços adicionais
-
-        return db.get(sqlTecnico, [emailLogado], (erro, tecnico) => {
-            if (erro) {
-                console.error('Erro ao buscar perfil do profissional:', erro.message);
-                return res.status(500).json({ mensagem: 'Erro ao carregar perfil do profissional.' });
-                // --> Executa a consulta no sqlite. Se houver falha, retorna 500
-            }
+    try {
+        if (tipoLogado === 'profissional') {
+            const tecnico = await buscarPerfilProfissional(emailLogado);
 
             if (!tecnico) {
                 return res.json({
@@ -377,79 +356,55 @@ app.get('/api/perfil', (req, res) => {
                     email: emailLogado,
                     tipo: 'profissional'
                 });
-                //--> Se o técnico tiver login, mas ainda nao tiver registro completo na tabela, cria um objeto básico usando a primeira parte do email.
             }
 
             return res.json(tecnico);
-            //--> Se encontar o registro, devolve JSON completo e encerra a função com return
-        });
-    }
-
-    // Se for CLIENTE ou ADM, busca na tabela "usuarios"
-    const idCliente = usuarioSessao.idCliente || usuarioSessao.id;
-    const sqlUsuario = `
-        SELECT 
-            l.idCliente AS id,
-            COALESCE(u.nome, l.email) AS nome,
-            u.cpf,
-            u.dataNascimento,
-            u.telefone,
-            l.email,
-            u.cep,
-            u.endereco,
-            u.foto,
-            l.tipo
-        FROM login l
-        LEFT JOIN usuarios u ON l.idCliente = u.idCliente
-        WHERE l.idCliente = ?
-    `;
-    //--> Caso o usuário não seja profissional, o fluxo para buscar segue pelo idCliente salvo na sessão
-
-    //-->(l) -- (u): Cruzamento de tabelas pelo idCliente
-
-    //-->COALESCE(u.nome, l.email): Exibe o nome de cadastro ou, se ainda não tiver sido preenchido, usa o próprio e-mail como fallback.
-
-    db.get(sqlUsuario, [idCliente], (erro, usuario) => { //--> busca o registro pelo idCliente
-
-        if (erro) {
-            console.error('Erro ao buscar perfil do usuário:', erro.message);
-            return res.status(500).json({ mensagem: 'Erro ao carregar perfil.' });
-        } //--> erros internos do banco
-
-        if (!usuario) {
-            return res.status(404).json({ mensagem: 'Perfil não encontrado.' }); //--> id não existe
         }
 
-        return res.json(usuario); //-->envia os dados em json para preencher os campos
-    });
+        // Se for CLIENTE ou ADM
+        const idCliente = usuarioSessao.idCliente || usuarioSessao.id;
+        const usuario = await buscarPerfilUsuario(idCliente);
+
+        if (!usuario) {
+            return res.status(404).json({ mensagem: 'Perfil não encontrado.' });
+        }
+
+        return res.json(usuario);
+    } catch (erro) {
+        console.error('Erro ao buscar perfil:', erro.message);
+        return res.status(500).json({ mensagem: 'Erro ao carregar perfil.' });
+    }
 });
 
 // =============================
 //         ALTERAR SENHA
 // =============================
 
-app.put('/api/perfil/senha', (req, res) => {
+app.put('/api/perfil/senha', async (req, res) => {
     if (!req.session || !req.session.usuario) {
-        return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' }); //--> verifica se há uma sessão ativa
+        return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
     }
 
     const idCliente = req.session.usuario.idCliente || req.session.usuario.id;
     const { senhaAtual, novaSenha } = req.body;
-    //--> obtém o ID do usuário pela sessão (idCliente) e lê senhaAtual e novaSenha enviados 
 
     if (!senhaAtual || !novaSenha) {
         return res.status(400).json({ mensagem: 'Preencha a senha atual e a nova senha.' });
     }
 
-    // Busca a senha atual salva no banco
-    db.get('SELECT senha FROM login WHERE idCliente = ?', [idCliente], async (err, row) => {
-        if (err || !row) {
-            return res.status(500).json({ mensagem: 'Erro ao verificar usuário.' });
+    try {
+        // Busca a senha atual salva no banco
+        const row = await buscarSenhaPorId(idCliente);
+
+        if (!row) {
+            return res.status(404).json({ mensagem: 'Usuário não encontrado.' });
         }
 
         // Verifica se a senha atual confere (suporta hash bcrypt ou texto simples)
+        const usaBcrypt = row.senha.startsWith('$2b$') || row.senha.startsWith('$2a$');
         let senhaValida = false;
-        if (row.senha.startsWith('$2b$') || row.senha.startsWith('$2a$')) {
+
+        if (usaBcrypt) {
             const bcrypt = require('bcrypt');
             senhaValida = await bcrypt.compare(senhaAtual, row.senha);
         } else {
@@ -460,51 +415,48 @@ app.put('/api/perfil/senha', (req, res) => {
             return res.status(401).json({ mensagem: 'A senha atual está incorreta.' });
         }
 
-        // Criptografa a nova senha se o projeto usa bcrypt, senão salva direto
+        // Criptografa a nova senha se a conta já usa bcrypt, senão salva direto
         let senhaParaSalvar = novaSenha;
-        try {
-            const bcrypt = require('bcrypt');
-            if (row.senha.startsWith('$2b$') || row.senha.startsWith('$2a$')) {
+        if (usaBcrypt) {
+            try {
+                const bcrypt = require('bcrypt');
                 senhaParaSalvar = await bcrypt.hash(novaSenha, 10);
+            } catch (e) {
+                // Segue sem bcrypt caso não esteja instalado
             }
-        } catch (e) {
-            // Segue sem bcrypt caso não esteja instalado
         }
 
-        db.run('UPDATE login SET senha = ? WHERE idCliente = ?', [senhaParaSalvar, idCliente], (errUpdate) => {
-            if (errUpdate) {
-                return res.status(500).json({ mensagem: 'Erro ao atualizar a senha.' });
-            }
-            res.json({ mensagem: 'Senha alterada com sucesso!' });
-        });
-    });
+        await atualizarSenha(idCliente, senhaParaSalvar);
+        return res.json({ mensagem: 'Senha alterada com sucesso!' });
+    } catch (erro) {
+        console.error('Erro ao alterar senha:', erro.message);
+        return res.status(500).json({ mensagem: 'Erro ao atualizar a senha.' });
+    }
 });
 
 // ============================
-//    REMOVER FOTO DE PERIL
+//    REMOVER FOTO DE PERFIL
 // ============================
-
-app.delete('/api/perfil/foto', (req, res) => {
+app.delete('/api/perfil/foto', async (req, res) => {
     if (!req.session || !req.session.usuario) {
         return res.status(401).json({ mensagem: 'Não autorizado.' });
     }
 
-    const idCliente = req.session.usuario.idCliente || req.session.usuario.id;
+    try {
+        const idCliente = req.session.usuario.idCliente || req.session.usuario.id;
+        await removerFotoPerfil(idCliente);
 
-    db.run('UPDATE usuarios SET foto = NULL WHERE idCliente = ?', [idCliente], (err) => {
-        if (err) {
-            console.error('Erro ao remover foto:', err.message);
-            return res.status(500).json({ mensagem: 'Erro ao remover a foto de perfil.' });
-        }
-        res.json({ mensagem: 'Foto removida com sucesso!' });
-    });
+        return res.json({ mensagem: 'Foto removida com sucesso!' });
+    } catch (err) {
+        console.error('Erro ao remover foto:', err.message);
+        return res.status(500).json({ mensagem: 'Erro ao remover a foto de perfil.' });
+    }
 });
 
 // =========================
 //      ADM CADASTRAR
 // =========================
-
-app.post('/api/usuarios/admin', (req, res) => {
+app.post('/api/usuarios/admin', async (req, res) => {
     const {
         tipo,
         nome,
@@ -527,77 +479,77 @@ app.post('/api/usuarios/admin', (req, res) => {
         return res.status(400).json({ mensagem: 'Selecione a função do profissional.' });
     }
 
-    const sqlLogin = 'INSERT INTO login (email, senha, tipo) VALUES (?, ?, ?)';
+    // 1. Cria o login
+    let idGerado;
+    try {
+        const resultadoLogin = await criarLoginPorTipo(email, senha, tipo);
+        idGerado = resultadoLogin.id;
+    } catch (erroLogin) {
+        console.error('Erro ao inserir na tabela login:', erroLogin.message);
 
-    db.run(sqlLogin, [email, senha, tipo], function (erroLogin) {
-        if (erroLogin) {
-            console.error('Erro ao inserir na tabela login:', erroLogin.message);
-
-            if (erroLogin.message.includes('UNIQUE')) {
-                return res.status(400).json({ mensagem: 'Este e-mail já está cadastrado no sistema.' });
-            }
-
-            return res.status(500).json({ mensagem: 'Erro ao criar login no banco de dados.' });
+        if (erroLogin.message.includes('UNIQUE')) {
+            return res.status(400).json({ mensagem: 'Este e-mail já está cadastrado no sistema.' });
         }
 
-        const idGerado = this.lastID;
+        return res.status(500).json({ mensagem: 'Erro ao criar login no banco de dados.' });
+    }
 
-        // 2A. Se for PROFISSIONAL, grava apenas na tabela "tecnicos"
-        if (tipo === 'profissional') {
-            const cargoCompleto = especialidades ? `${funcao} (${especialidades})` : funcao;
-            const dataHoje = new Date().toISOString().split('T')[0];
+    // 2A. Se for PROFISSIONAL, grava apenas na tabela "tecnicos"
+    if (tipo === 'profissional') {
+        try {
+            const cargo = especialidades ? `${funcao} (${especialidades})` : funcao;
+            const admissao = new Date().toISOString().split('T')[0];
 
-            const sqlTecnico = `
-                INSERT INTO tecnicos (nome, cpf, dataNascimento, telefone, email, cep, admissao, cargo)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            `;
+            const resultadoTecnico = await cadastrarTecnico({
+                nome,
+                cpf,
+                nascimento,
+                telefone,
+                email,
+                cep,
+                admissao,
+                cargo
+            });
 
-            return db.run(
-                sqlTecnico,
-                [nome, cpf, nascimento, telefone, email, cep, dataHoje, cargoCompleto],
-                function (erroTecnico) {
-                    if (erroTecnico) {
-                        console.error('Erro ao inserir na tabela tecnicos:', erroTecnico.message);
-                        return res.status(500).json({ mensagem: 'Login criado, mas houve erro ao salvar dados do técnico.' });
-                    }
-
-                    return res.status(201).json({
-                        mensagem: 'Profissional cadastrado com sucesso!',
-                        idLogin: idGerado,
-                        idTecnico: this.lastID
-                    });
-                }
-            );
+            return res.status(201).json({
+                mensagem: 'Profissional cadastrado com sucesso!',
+                idLogin: idGerado,
+                idTecnico: resultadoTecnico.id
+            });
+        } catch (erroTecnico) {
+            console.error('Erro ao inserir na tabela tecnicos:', erroTecnico.message);
+            return res.status(500).json({ mensagem: 'Login criado, mas houve erro ao salvar dados do técnico.' });
         }
+    }
 
-        // 2B. Se for CLIENTE ou ADM, grava apenas na tabela "usuarios"
-        const sqlUsuario = `
-            INSERT INTO usuarios (idCliente, nome, cpf, dataNascimento, telefone, email, cep, endereco, cadastro_completo)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
-        `;
+    // 2B. Se for CLIENTE ou ADM, grava apenas na tabela "usuarios"
+    try {
+        await cadastrarDadosUsuario({
+            idCliente: idGerado,
+            nome,
+            cpf,
+            nascimento,
+            telefone,
+            email,
+            cep,
+            endereco
+        });
 
-        return db.run(
-            sqlUsuario,
-            [idGerado, nome, cpf, nascimento, telefone, email, cep, endereco],
-            function (erroUsuario) {
-                if (erroUsuario) {
-                    console.error('Erro ao inserir na tabela usuarios:', erroUsuario.message);
-                    return res.status(500).json({ mensagem: 'Login criado, mas houve erro ao salvar dados do usuário.' });
-                }
-
-                return res.status(201).json({
-                    mensagem: 'Usuário cadastrado com sucesso!',
-                    idCliente: idGerado
-                });
-            }
-        );
-    });
+        return res.status(201).json({
+            mensagem: 'Usuário cadastrado com sucesso!',
+            idCliente: idGerado
+        });
+    } catch (erroUsuario) {
+        console.error('Erro ao inserir na tabela usuarios:', erroUsuario.message);
+        return res.status(500).json({ mensagem: 'Login criado, mas houve erro ao salvar dados do usuário.' });
+    }
 });
 
 // ==================================
 //    BUSCAR ORDENS DO PROFISSIONAL 
 // ==================================
-app.get('/api/ordens/profissional', (req, res) => {
+
+app.get('/api/ordens/profissional', async (req, res) => {
     if (!req.session || !req.session.usuario) {
         return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
     }
@@ -605,12 +557,8 @@ app.get('/api/ordens/profissional', (req, res) => {
     const emailLogado = (req.session.usuario.email || '').trim().toLowerCase();
     const idLoginLogado = req.session.usuario.idCliente || req.session.usuario.id;
 
-    db.all('SELECT * FROM tecnicos', [], (errTec, listaTecnicos) => {
-        if (errTec) {
-            console.error('Erro SQL ao ler tecnicos:', errTec.message);
-            return res.status(500).json({ mensagem: 'Erro ao identificar profissional no banco.' });
-        }
-
+    try {
+        const listaTecnicos = await listarTecnicos();
         const tecnico = (listaTecnicos || []).find(
             (t) =>
                 (t.email && t.email.trim().toLowerCase() === emailLogado) ||
@@ -620,66 +568,51 @@ app.get('/api/ordens/profissional', (req, res) => {
         const idTecnico = tecnico ? Number(tecnico.idTecnico) : -1;
         const nomeTecnico = tecnico ? (tecnico.nome || '').trim().toLowerCase() : '';
 
-        const sqlOrdens = `
-            SELECT 
-                o.*,
-                o.rowid AS rowid_os,
-                COALESCE(u.nome, l.email, 'Cliente não identificado') AS clienteNome,
-                u.telefone AS clienteTelefone,
-                u.endereco AS clienteEndereco
-            FROM os o
-            LEFT JOIN usuarios u ON o.idCliente = u.idCliente
-            LEFT JOIN login l ON o.idCliente = l.idCliente
-            ORDER BY o.rowid DESC
-        `;
+        const todasOrdens = await listarOrdensComCliente();
 
-        db.all(sqlOrdens, [], (errOs, todasOrdens) => {
-            if (errOs) {
-                console.error('Erro SQL ao buscar ordens:', errOs.message);
-                return res.status(500).json({ mensagem: 'Erro ao carregar ordens: ' + errOs.message });
-            }
+        const normalizadas = (todasOrdens || []).map((os) => {
+            const rawStatus = (os.status || os.processo || '').toLowerCase().trim();
+            let statusFinal = 'aberta';
+            if (rawStatus.includes('andamento')) statusFinal = 'andamento';
+            else if (rawStatus.includes('fechada') || rawStatus.includes('conclu')) statusFinal = 'fechada';
+            else if (rawStatus.includes('congelada') || rawStatus.includes('pausada')) statusFinal = 'congelada';
+            else if (rawStatus.includes('analise') || rawStatus.includes('análise')) statusFinal = 'analise';
+            else if (rawStatus) statusFinal = rawStatus;
 
-            const normalizadas = (todasOrdens || []).map((os) => {
-                const rawStatus = (os.status || os.processo || '').toLowerCase().trim();
-                let statusFinal = 'aberta';
-                if (rawStatus.includes('andamento')) statusFinal = 'andamento';
-                else if (rawStatus.includes('fechada') || rawStatus.includes('conclu')) statusFinal = 'fechada';
-                else if (rawStatus.includes('congelada') || rawStatus.includes('pausada')) statusFinal = 'congelada';
-                else if (rawStatus.includes('analise') || rawStatus.includes('análise')) statusFinal = 'analise';
-                else if (rawStatus) statusFinal = rawStatus;
-
-                return {
-                    ...os,
-                    id: os.idChamado || os.idOrdem || os.id || os.rowid_os,
-                    status: statusFinal
-                };
-            });
-
-            const atribuidas = normalizadas.filter((os) => {
-                const osIdTec = Number(os.idTecnico || 0);
-                const osNomeTec = (os.tecnico || '').trim().toLowerCase();
-                return (idTecnico > 0 && osIdTec === idTecnico) ||
-                    (nomeTecnico && osNomeTec === nomeTecnico);
-            });
-
-            const disponiveis = normalizadas.filter((os) => {
-                const osIdTec = Number(os.idTecnico || 0);
-                const osNomeTec = (os.tecnico || '').trim().toLowerCase();
-                const semId = osIdTec === 0;
-                const semNome = !osNomeTec || osNomeTec === 'aguardando técnico' || osNomeTec === 'sem técnico';
-                return semId && semNome;
-            });
-
-            return res.json({ atribuidas, disponiveis });
+            return {
+                ...os,
+                id: os.idChamado || os.idOrdem || os.id || os.rowid_os,
+                status: statusFinal
+            };
         });
-    });
+
+        const atribuidas = normalizadas.filter((os) => {
+            const osIdTec = Number(os.idTecnico || 0);
+            const osNomeTec = (os.tecnico || '').trim().toLowerCase();
+            return (idTecnico > 0 && osIdTec === idTecnico) ||
+                (nomeTecnico && osNomeTec === nomeTecnico);
+        });
+
+        const disponiveis = normalizadas.filter((os) => {
+            const osIdTec = Number(os.idTecnico || 0);
+            const osNomeTec = (os.tecnico || '').trim().toLowerCase();
+            const semId = osIdTec === 0;
+            const semNome = !osNomeTec || osNomeTec === 'aguardando técnico' || osNomeTec === 'sem técnico';
+            return semId && semNome;
+        });
+
+        return res.json({ atribuidas, disponiveis });
+    } catch (erro) {
+        console.error('Erro ao buscar ordens do profissional:', erro.message);
+        return res.status(500).json({ mensagem: 'Erro ao carregar ordens: ' + erro.message });
+    }
 });
 
 // ===========================
-//   PROFISIONAL ATRIBUIR-SE
+//   PROFISSIONAL ATRIBUIR-SE
 // ===========================
 
-app.put('/api/ordens/:id/assumir', (req, res) => {
+app.put('/api/ordens/:id/assumir', async (req, res) => {
     if (!req.session || !req.session.usuario) {
         return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
     }
@@ -688,12 +621,8 @@ app.put('/api/ordens/:id/assumir', (req, res) => {
     const emailProfissional = (req.session.usuario.email || '').trim().toLowerCase();
     const idLoginLogado = req.session.usuario.idCliente || req.session.usuario.id;
 
-    db.all('SELECT * FROM tecnicos', [], (errTec, listaTecnicos) => {
-        if (errTec) {
-            console.error('Erro ao buscar técnicos:', errTec.message);
-            return res.status(500).json({ mensagem: 'Erro interno ao identificar profissional.' });
-        }
-
+    try {
+        const listaTecnicos = await listarTecnicos();
         const tecnico = (listaTecnicos || []).find(
             (t) =>
                 (t.email && t.email.trim().toLowerCase() === emailProfissional) ||
@@ -704,74 +633,23 @@ app.put('/api/ordens/:id/assumir', (req, res) => {
             return res.status(404).json({ mensagem: 'Perfil técnico não encontrado no banco.' });
         }
 
-        // Descobre dinamicamente as colunas da tabela "os" para evitar erro de coluna inexistente
-        db.all('PRAGMA table_info(os)', [], (errCols, colunas) => {
-            if (errCols) {
-                return res.status(500).json({ mensagem: 'Erro ao verificar estrutura da tabela os.' });
-            }
+        const resultado = await assumirOrdemServico(idOrdem, tecnico);
 
-            const nomesColunas = colunas.map((c) => c.name);
-            const updates = [];
-            const params = [];
+        if (resultado.changes === 0) {
+            return res.status(404).json({ mensagem: 'Ordem de serviço não encontrada.' });
+        }
 
-            if (nomesColunas.includes('idTecnico')) {
-                updates.push('idTecnico = ?');
-                params.push(tecnico.idTecnico);
-            }
-            if (nomesColunas.includes('tecnico')) {
-                updates.push('tecnico = ?');
-                params.push(tecnico.nome);
-            }
-            if (nomesColunas.includes('status')) {
-                updates.push("status = 'andamento'");
-            }
-            if (nomesColunas.includes('processo')) {
-                updates.push("processo = 'Em andamento'");
-            }
-
-            if (updates.length === 0) {
-                return res.status(500).json({ mensagem: 'Colunas de atribuição não encontradas na tabela os.' });
-            }
-
-            const condicoesId = ['rowid = ?'];
-            const paramsWhere = [idOrdem];
-
-            if (nomesColunas.includes('idChamado')) {
-                condicoesId.push('idChamado = ?');
-                paramsWhere.push(idOrdem);
-            }
-            if (nomesColunas.includes('idOrdem')) {
-                condicoesId.push('idOrdem = ?');
-                paramsWhere.push(idOrdem);
-            }
-            if (nomesColunas.includes('id')) {
-                condicoesId.push('id = ?');
-                paramsWhere.push(idOrdem);
-            }
-
-            const sql = `UPDATE os SET ${updates.join(', ')} WHERE (${condicoesId.join(' OR ')})`;
-
-            db.run(sql, [...params, ...paramsWhere], function (erroUpdate) {
-                if (erroUpdate) {
-                    console.error('Erro ao assumir ordem:', erroUpdate.message);
-                    return res.status(500).json({ mensagem: 'Erro ao atualizar a ordem no banco.' });
-                }
-
-                if (this.changes === 0) {
-                    return res.status(404).json({ mensagem: 'Ordem de serviço não encontrada.' });
-                }
-
-                return res.json({ mensagem: 'Ordem assumida com sucesso!' });
-            });
-        });
-    });
+        return res.json({ mensagem: 'Ordem assumida com sucesso!' });
+    } catch (erro) {
+        console.error('Erro ao assumir ordem:', erro.message);
+        return res.status(500).json({ mensagem: 'Erro ao atualizar a ordem no banco.' });
+    }
 });
 
 // ==================
-//    FINALZIAR OS
+//    FINALIZAR OS
 // ==================
-
-app.put('/api/ordens/:id/status', (req, res) => {
+app.put('/api/ordens/:id/status', async (req, res) => {
     if (!req.session || !req.session.usuario) {
         return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
     }
@@ -792,122 +670,39 @@ app.put('/api/ordens/:id/status', (req, res) => {
         return res.status(400).json({ mensagem: 'Status inválido.' });
     }
 
-    db.all('PRAGMA table_info(os)', [], (errCols, colunas) => {
-        if (errCols) {
-            return res.status(500).json({ mensagem: 'Erro ao verificar estrutura da tabela os.' });
+    try {
+        const resultado = await atualizarStatusOrdem(idOrdem, novoStatus, mapaProcesso[novoStatus]);
+
+        if (resultado.changes === 0) {
+            return res.status(404).json({ mensagem: 'Ordem de serviço não encontrada.' });
         }
 
-        const nomesColunas = colunas.map((c) => c.name);
-        const updates = [];
-        const params = [];
-
-        if (nomesColunas.includes('status')) {
-            updates.push('status = ?');
-            params.push(novoStatus);
-        }
-        if (nomesColunas.includes('processo')) {
-            updates.push('processo = ?');
-            params.push(mapaProcesso[novoStatus]);
-        }
-
-        if (updates.length === 0) {
-            return res.status(500).json({ mensagem: 'Colunas de status não encontradas na tabela os.' });
-        }
-
-        const condicoesId = ['rowid = ?'];
-        const paramsWhere = [idOrdem];
-
-        if (nomesColunas.includes('idChamado')) {
-            condicoesId.push('idChamado = ?');
-            paramsWhere.push(idOrdem);
-        }
-        if (nomesColunas.includes('idOrdem')) {
-            condicoesId.push('idOrdem = ?');
-            paramsWhere.push(idOrdem);
-        }
-        if (nomesColunas.includes('id')) {
-            condicoesId.push('id = ?');
-            paramsWhere.push(idOrdem);
-        }
-
-        const sql = `UPDATE os SET ${updates.join(', ')} WHERE (${condicoesId.join(' OR ')})`;
-
-        db.run(sql, [...params, ...paramsWhere], function (erroUpdate) {
-            if (erroUpdate) {
-                console.error('Erro ao atualizar status da OS:', erroUpdate.message);
-                return res.status(500).json({ mensagem: 'Erro ao atualizar status no banco.' });
-            }
-
-            if (this.changes === 0) {
-                return res.status(404).json({ mensagem: 'Ordem de serviço não encontrada.' });
-            }
-
-            return res.json({ mensagem: 'Status atualizado com sucesso!' });
-        });
-    });
+        return res.json({ mensagem: 'Status atualizado com sucesso!' });
+    } catch (erro) {
+        console.error('Erro ao atualizar status da OS:', erro.message);
+        return res.status(500).json({ mensagem: 'Erro ao atualizar status no banco.' });
+    }
 });
 
 // =============================
 //      MOSTRAR USUÁRIOS
 // =============================
 
-app.get('/api/usuarios/admin', (req, res) => {
-    const sqlUsuarios = `
-        SELECT 
-            l.idCliente AS id,
-            COALESCE(u.nome, l.email) AS nome,
-            u.cpf,
-            u.dataNascimento,
-            u.telefone,
-            l.email AS email,
-            u.cep,
-            u.endereco,
-            COALESCE(l.tipo, 'cliente') AS tipo,
-            NULL AS cargo,
-            NULL AS admissao
-        FROM login l
-        LEFT JOIN usuarios u ON l.idCliente = u.idCliente
-        WHERE LOWER(COALESCE(l.tipo, 'cliente')) != 'profissional'
-    `;
-
-    const sqlTecnicos = `
-        SELECT 
-            idTecnico AS id,
-            nome,
-            cpf,
-            dataNascimento,
-            telefone,
-            email,
-            cep,
-            NULL AS endereco,
-            'profissional' AS tipo,
-            cargo,
-            admissao
-        FROM tecnicos
-    `;
-
-    db.all(sqlUsuarios, [], (errUsuarios, listaUsuarios) => {
-        if (errUsuarios) {
-            console.error('Erro ao buscar usuários:', errUsuarios);
-            return res.status(500).json({ mensagem: 'Erro ao buscar usuários no banco.' });
-        }
-
-        db.all(sqlTecnicos, [], (errTecnicos, listaTecnicos) => {
-            if (errTecnicos) {
-                console.error('Erro ao buscar técnicos:', errTecnicos);
-                return res.status(500).json({ mensagem: 'Erro ao buscar profissionais no banco.' });
-            }
-
-            return res.json([...listaUsuarios, ...listaTecnicos]);
-        });
-    });
+app.get('/api/usuarios/admin', async (req, res) => {
+    try {
+        const usuarios = await listarTodosUsuariosAdmin();
+        return res.json(usuarios);
+    } catch (erro) {
+        console.error('Erro ao buscar usuários e profissionais:', erro.message);
+        return res.status(500).json({ mensagem: 'Erro ao buscar usuários no banco.' });
+    }
 });
 
+// =================================================================
+//   SALVAR DIAGNÓSTICO, VALORES E ENVIAR PARA VALIDAÇÃO DO CLIENTE
+// =================================================================
 
-// =========================================================
-// SALVAR DIAGNÓSTICO, VALORES E ENVIAR PARA VALIDAÇÃO DO CLIENTE
-// =========================================================
-app.put('/api/ordens/:id/tecnico-detalhes', (req, res) => {
+app.put('/api/ordens/:id/tecnico-detalhes', async (req, res) => {
     if (!req.session || !req.session.usuario) {
         return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
     }
@@ -928,90 +723,39 @@ app.put('/api/ordens/:id/tecnico-detalhes', (req, res) => {
     const materialNum = parseFloat(preco_material) || 0;
     const valorTotal = taxaAnalise + maoObraNum + materialNum;
 
-    const colunasExtras = [
-        'diagnostico TEXT',
-        'servico_executado TEXT',
-        'data_finalizacao TEXT',
-        'data_abertura TEXT',
-        'preco_mao_obra REAL',
-        'preco_material REAL',
-        'processo TEXT',
-        'validacao_cliente TEXT',
-        'valor REAL',
-        'valorfinal REAL',
-        'status TEXT'
-    ];
-
-    db.serialize(() => {
-        colunasExtras.forEach((colDef) => {
-            db.run(`ALTER TABLE os ADD COLUMN ${colDef}`, () => { });
+    try {
+        const resultado = await salvarDetalhesTecnicosOrdem(idOrdem, {
+            diagnostico,
+            servico_executado,
+            data_finalizacao,
+            maoObraNum,
+            materialNum,
+            processo,
+            valorTotal,
+            enviar_validacao
         });
 
-        db.all('PRAGMA table_info(os)', [], (errCols, colunas) => {
-            if (errCols) {
-                console.error('Erro PRAGMA os:', errCols.message);
-                return res.status(500).json({ mensagem: 'Erro ao ler estrutura da tabela os.' });
-            }
+        if (resultado.changes === 0) {
+            return res.status(404).json({ mensagem: 'Ordem de serviço não encontrada.' });
+        }
 
-            const nomes = colunas.map((c) => c.name);
-            const condicoesId = ['rowid = ?'];
-            const paramsWhere = [idOrdem];
-
-            if (nomes.includes('idChamado')) { condicoesId.push('idChamado = ?'); paramsWhere.push(idOrdem); }
-            if (nomes.includes('idOrdem')) { condicoesId.push('idOrdem = ?'); paramsWhere.push(idOrdem); }
-            if (nomes.includes('id')) { condicoesId.push('id = ?'); paramsWhere.push(idOrdem); }
-
-            const sets = [
-                'diagnostico = ?',
-                'servico_executado = ?',
-                'data_finalizacao = ?',
-                'preco_mao_obra = ?',
-                'preco_material = ?',
-                'processo = ?',
-                'valor = ?',
-                'valorfinal = ?'
-            ];
-            const params = [
-                diagnostico || '',
-                servico_executado || '',
-                data_finalizacao || '',
-                maoObraNum,
-                materialNum,
-                processo || 'Em análise',
-                valorTotal,
-                valorTotal
-            ];
-
-            if (enviar_validacao) {
-                sets.push("validacao_cliente = 'pendente'");
-                sets.push("status = 'analise'");
-            }
-
-            const sql = `UPDATE os SET ${sets.join(', ')} WHERE (${condicoesId.join(' OR ')})`;
-
-            db.run(sql, [...params, ...paramsWhere], function (errUp) {
-                if (errUp) {
-                    console.error('Erro ao salvar dados técnicos da OS:', errUp.message);
-                    return res.status(500).json({ mensagem: 'Erro SQL: ' + errUp.message });
-                }
-                if (this.changes === 0) {
-                    return res.status(404).json({ mensagem: 'Ordem de serviço não encontrada.' });
-                }
-                console.log(`[OS# ${idOrdem}] Dados técnicos salvos com sucesso! Total: R$ ${valorTotal.toFixed(2)}`);
-                return res.json({
-                    mensagem: enviar_validacao
-                        ? 'Dados salvos e enviados para validação do cliente!'
-                        : 'Dados técnicos salvos com sucesso!'
-                });
-            });
+        console.log(`[OS# ${idOrdem}] Dados técnicos salvos com sucesso! Total: R$ ${valorTotal.toFixed(2)}`);
+        return res.json({
+            mensagem: enviar_validacao
+                ? 'Dados salvos e enviados para validação do cliente!'
+                : 'Dados técnicos salvos com sucesso!'
         });
-    });
+    } catch (erro) {
+        console.error('Erro ao salvar dados técnicos da OS:', erro.message);
+        return res.status(500).json({ mensagem: 'Erro SQL: ' + erro.message });
+    }
 });
 
 // =========================================================
 // RESPOSTA DO CLIENTE À VALIDAÇÃO DO ORÇAMENTO / SERVIÇO
 // =========================================================
-app.put('/api/ordens/:id/validacao-cliente', (req, res) => {
+
+app.put('/api/ordens/:id/validacao-cliente', async (req, res) => {
     if (!req.session || !req.session.usuario) {
         return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
     }
@@ -1024,250 +768,99 @@ app.put('/api/ordens/:id/validacao-cliente', (req, res) => {
     }
 
     const novoStatus = decisao === 'aprovado' ? 'andamento' : 'cancelada';
-    const novoProcesso = decisao === 'aprovado' ? 'Aprovado pelo cliente - Em andamento' : 'Recusado pelo cliente';
+    const novoProcesso = decisao === 'aprovado'
+        ? 'Aprovado pelo cliente - Em andamento'
+        : 'Recusado pelo cliente';
 
-    db.all('PRAGMA table_info(os)', [], (errCols, colunas) => {
-        if (errCols) return res.status(500).json({ mensagem: 'Erro ao verificar tabela os.' });
-
-        const nomes = colunas.map((c) => c.name);
-        const condicoesId = ['rowid = ?'];
-        const paramsWhere = [idOrdem];
-
-        if (nomes.includes('idChamado')) { condicoesId.push('idChamado = ?'); paramsWhere.push(idOrdem); }
-        if (nomes.includes('idOrdem')) { condicoesId.push('idOrdem = ?'); paramsWhere.push(idOrdem); }
-        if (nomes.includes('id')) { condicoesId.push('id = ?'); paramsWhere.push(idOrdem); }
-
-        const sql = `
-            UPDATE os 
-            SET validacao_cliente = ?, status = ?, processo = ?
-            WHERE (${condicoesId.join(' OR ')})
-        `;
-
-        db.run(sql, [decisao, novoStatus, novoProcesso, ...paramsWhere], function (errUp) {
-            if (errUp) {
-                console.error('Erro na validação do cliente:', errUp.message);
-                return res.status(500).json({ mensagem: 'Erro ao registrar validação.' });
-            }
-            return res.json({
-                mensagem: decisao === 'aprovado'
-                    ? 'Orçamento aprovado! O técnico foi liberado para executar o serviço.'
-                    : 'Orçamento recusado e ordem encerrada.'
-            });
+    try {
+        const resultado = await registrarValidacaoClienteOrdem(idOrdem, {
+            decisao,
+            novoStatus,
+            novoProcesso
         });
-    });
+
+        if (resultado.changes === 0) {
+            return res.status(404).json({ mensagem: 'Ordem de serviço não encontrada.' });
+        }
+
+        return res.json({
+            mensagem: decisao === 'aprovado'
+                ? 'Orçamento aprovado! O técnico foi liberado para executar o serviço.'
+                : 'Orçamento recusado e ordem encerrada.'
+        });
+    } catch (erro) {
+        console.error('Erro na validação do cliente:', erro.message);
+        return res.status(500).json({ mensagem: 'Erro ao registrar validação.' });
+    }
 });
 
 // =========================================================
 // LISTAR APENAS AS ORDENS DE SERVIÇO DO CLIENTE LOGADO
 // =========================================================
-app.get('/api/ordens/cliente', (req, res) => {
+app.get('/api/ordens/cliente', async (req, res) => {
     if (!req.session || !req.session.usuario) {
         return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
     }
 
     const usuario = req.session.usuario;
-    const idClienteSessao = usuario.idCliente || usuario.id || null;
-    const emailSessao = (usuario.email || '').trim().toLowerCase();
-    const nomeSessao = (usuario.nome || '').trim().toLowerCase();
+    const idCliente = usuario.idCliente || usuario.id || null;
+    const email = (usuario.email || '').trim().toLowerCase();
+    const nome = (usuario.nome || '').trim().toLowerCase();
 
-    db.all('PRAGMA table_info(os)', [], (errCols, colunas) => {
-        if (errCols) {
-            console.error('Erro ao ler estrutura da tabela os:', errCols.message);
-            return res.status(500).json({ mensagem: 'Erro ao consultar estrutura de ordens.' });
-        }
-
-        const nomesColunas = colunas.map((c) => c.name);
-        const condicoes = [];
-        const params = [];
-
-        // Filtra pelo ID do cliente se a coluna existir
-        if (idClienteSessao !== null) {
-            if (nomesColunas.includes('idCliente')) {
-                condicoes.push('os.idCliente = ?');
-                params.push(idClienteSessao);
-            }
-            if (nomesColunas.includes('cliente_id')) {
-                condicoes.push('os.cliente_id = ?');
-                params.push(idClienteSessao);
-            }
-            if (nomesColunas.includes('id_cliente')) {
-                condicoes.push('os.id_cliente = ?');
-                params.push(idClienteSessao);
-            }
-        }
-
-        // Também verifica vínculo por e-mail ou nome do cliente caso alguma OS antiga tenha sido gravada assim
-        if (emailSessao) {
-            if (nomesColunas.includes('emailCliente')) {
-                condicoes.push('LOWER(TRIM(os.emailCliente)) = ?');
-                params.push(emailSessao);
-            }
-            if (nomesColunas.includes('clienteEmail')) {
-                condicoes.push('LOWER(TRIM(os.clienteEmail)) = ?');
-                params.push(emailSessao);
-            }
-            if (nomesColunas.includes('cliente')) {
-                condicoes.push('LOWER(TRIM(os.cliente)) = ?');
-                params.push(emailSessao);
-            }
-        }
-
-        if (nomeSessao && nomesColunas.includes('clienteNome')) {
-            condicoes.push('LOWER(TRIM(os.clienteNome)) = ?');
-            params.push(nomeSessao);
-        }
-
-        // Se nenhuma coluna de identificação existir, não retorna ordens de terceiros
-        if (condicoes.length === 0) {
-            return res.json([]);
-        }
-
-        const colunaId = nomesColunas.includes('idChamado')
-            ? 'os.idChamado'
-            : (nomesColunas.includes('idOrdem') ? 'os.idOrdem' : 'os.rowid');
-
-        const sql = `
-            SELECT os.*,
-                   ${colunaId} AS id,
-                   t.nome AS nomeTecnicoTabela
-            FROM os
-            LEFT JOIN tecnicos t ON os.idTecnico = t.idTecnico
-            WHERE (${condicoes.join(' OR ')})
-            ORDER BY os.rowid DESC
-        `;
-
-        db.all(sql, params, (err, linhas) => {
-            if (err) {
-                console.error('Erro SQL ao buscar ordens do cliente:', err.message);
-                return res.status(500).json({ mensagem: 'Erro ao carregar suas ordens de serviço.' });
-            }
-
-            const resultado = (linhas || []).map((os) => ({
-                ...os,
-                id: os.id || os.idChamado || os.idOrdem,
-                tecnico: os.tecnico || os.nomeTecnicoTabela || 'Aguardando técnico'
-            }));
-
-            return res.json(resultado);
-        });
-    });
-});
-
-// ==================
-//     DASHBORD
-// ==================
-
-app.get('/api/ordens/admin', (req, res) => {
-    const sql = `
-        SELECT 
-            o.*,
-            COALESCE(o.idChamado, o.rowid) AS id,
-            t.nome AS tecnico,
-            COALESCE(
-                NULLIF(o.status, ''),
-                CASE 
-                    WHEN LOWER(o.processo) = 'em andamento' THEN 'andamento'
-                    WHEN LOWER(o.processo) IN ('concluido', 'concluída', 'fechada') THEN 'fechada'
-                    ELSE 'analise'
-                END
-            ) AS status
-        FROM os o
-        LEFT JOIN tecnicos t ON o.idTecnico = t.idTecnico
-        ORDER BY COALESCE(o.idChamado, o.rowid) DESC
-    `;
-
-    db.all(sql, [], (erro, ordens) => {
-        if (erro) {
-            console.error('Erro no banco de dados (Admin):', erro);
-            return res.status(500).json({ mensagem: 'Erro ao buscar ordens no banco.' });
-        }
-        res.json(ordens);
-    });
-});
-
-
-// ======================================================
-//      FUNÇÃO PARA CRIAR A SENHA DE ADMINISTRADOR
-// ======================================================
-
-function administrador() {
-    const emailAdmin = process.env.emailAdm;
-    const senhaAdmin = process.env.senhaAdm;
-
-    if (!emailAdmin || !senhaAdmin) {
-        console.log('Aviso: Variáveis emailAdm ou senhaAdm não configuradas no .env');
-        return;
-    }
-
-    const buscarSql = 'SELECT * FROM login WHERE email = ?';
-
-    db.get(buscarSql, [emailAdmin], (erro, usuario) => {
-        if (erro) {
-            console.error('Erro ao verificar admin:', erro.message);
-            return;
-        }
-
-        if (!usuario) {
-            // Inserção caso não exista
-            const inserirSql = "INSERT INTO login (email, senha, tipo) VALUES (?, ?, 'adm')";
-            db.run(inserirSql, [emailAdmin, senhaAdmin], (err) => {
-                if (err) console.error('Erro ao inserir admin:', err.message);
-                else console.log(`Administrador (${emailAdmin}) inserido com sucesso!`);
-            });
-        } else {
-            // FORÇA A ATUALIZAÇÃO DA SENHA E DO TIPO 'adm' CASO JÁ EXISTA
-            const atualizarSql = "UPDATE login SET senha = ?, tipo = 'adm' WHERE email = ?";
-            db.run(atualizarSql, [senhaAdmin, emailAdmin], (err) => {
-                if (err) console.error('Erro ao atualizar admin:', err.message);
-                else console.log(`Credenciais do administrador (${emailAdmin}) sincronizadas com o .env!`);
-            });
-        }
-    });
-}
-
-// Função para rodar o script do BDD de login
-function iniBDD() {
-    const scriptPath = path.resolve(__dirname, '..', 'database', 'script.sql');
     try {
-        if (fs.existsSync(scriptPath)) {
-            const sql = fs.readFileSync(scriptPath, 'utf8');
-            db.exec(sql);
-            console.log('Banco de dados inicializado a partir do script.sql');
-        }
-    } catch (error) {
-        console.error('ERRO ao rodar o script de inicialização do banco de dados:', error.message);
+        const ordens = await listarOrdensDoCliente({ idCliente, email, nome });
+        return res.json(ordens);
+    } catch (erro) {
+        console.error('Erro ao buscar ordens do cliente:', erro.message);
+        return res.status(500).json({ mensagem: 'Erro ao carregar suas ordens de serviço.' });
+    }
+});
+
+// ==================
+//     DASHBOARD
+// ==================
+app.get('/api/ordens/admin', async (req, res) => {
+    try {
+        const ordens = await listarOrdensAdmin();
+        return res.json(ordens);
+    } catch (erro) {
+        console.error('Erro no banco de dados (Admin):', erro.message);
+        return res.status(500).json({ mensagem: 'Erro ao buscar ordens no banco.' });
+    }
+});
+
+// ======================================================
+//     INICIALIZAÇÃO DO BANCO E DO ADMINISTRADOR
+// ======================================================
+async function iniciarSistema() {
+    try {
+        await inicializarBanco();
+        await sincronizarAdministrador(process.env.emailAdm, process.env.senhaAdm);
+    } catch (erro) {
+        console.error('Erro na inicialização do banco de dados:', erro.message);
     }
 }
+
+iniciarSistema();
 
 //=============================================
 //    ADM ADICIONAR TÉCNICOS PARA AS ORDENS
 //=============================================
 
 // 1. Lista os técnicos cadastrados para preencher o <select> do modal
-app.get('/api/tecnicos', (req, res) => {
-    const sql = `
-        SELECT 
-            COALESCE(idTecnico, rowid) AS idTecnico, 
-            nome, 
-            cargo 
-        FROM tecnicos 
-        WHERE demissao IS NULL OR TRIM(demissao) = '' 
-        ORDER BY nome ASC
-    `;
-
-    db.all(sql, [], (erro, linhas) => {
-        if (erro) {
-            console.error('Erro ao buscar técnicos:', erro);
-            return res.status(500).json({ mensagem: 'Erro ao carregar lista de técnicos.' });
-        }
-
+app.get('/api/tecnicos', async (req, res) => {
+    try {
+        const linhas = await listarTecnicosAtivos();
         console.log(`[GET /api/tecnicos] Técnicos encontrados: ${linhas.length}`);
-        res.json(linhas);
-    });
+        return res.json(linhas);
+    } catch (erro) {
+        console.error('Erro ao buscar técnicos:', erro.message);
+        return res.status(500).json({ mensagem: 'Erro ao carregar lista de técnicos.' });
+    }
 });
 
 // 2. Atribui o técnico à OS e coloca em andamento
-app.put('/api/ordens/:id/atribuir', (req, res) => {
+app.put('/api/ordens/:id/atribuir', async (req, res) => {
     const { id } = req.params;
     const { idTecnico } = req.body;
 
@@ -1275,201 +868,65 @@ app.put('/api/ordens/:id/atribuir', (req, res) => {
         return res.status(400).json({ mensagem: 'Selecione um técnico válido.' });
     }
 
-    const sql = `
-        UPDATE os 
-        SET idTecnico = ?,
-            status = 'andamento',
-            processo = 'Em andamento'
-        WHERE idChamado = ? OR rowid = ?
-    `;
+    try {
+        const resultado = await atribuirTecnicoOrdem(id, idTecnico);
 
-    db.run(sql, [idTecnico, id, id], function (erro) {
-        if (erro) {
-            console.error('Erro ao atribuir técnico à OS:', erro);
-            return res.status(500).json({ mensagem: 'Erro ao salvar atribuição no banco de dados.' });
-        }
-
-        if (this.changes === 0) {
+        if (resultado.changes === 0) {
             return res.status(404).json({ mensagem: 'Ordem de serviço não encontrada.' });
         }
 
-        res.json({ mensagem: 'Técnico atribuído e ordem colocada em andamento!' });
-    });
-});
-
-//=============================================
-//    ADM ADICIONAR TÉCNICOS PARA AS ORDENS
-//=============================================
-
-app.put('/api/ordens/:id/atribuir', (req, res) => {
-    const { id } = req.params;
-    const { idTecnico } = req.body;
-
-    if (!idTecnico) {
-        return res.status(400).json({ mensagem: 'Selecione um técnico válido.' });
+        return res.json({ mensagem: 'Técnico atribuído e ordem colocada em andamento!' });
+    } catch (erro) {
+        console.error('Erro ao atribuir técnico à OS:', erro.message);
+        return res.status(500).json({ mensagem: 'Erro ao salvar atribuição no banco de dados.' });
     }
-
-    const sql = `
-        UPDATE os 
-        SET idTecnico = ?,
-            status = 'andamento',
-            processo = 'Em andamento'
-        WHERE idChamado = ? OR rowid = ?
-    `;
-
-    db.run(sql, [idTecnico, id, id], function (erro) {
-        if (erro) {
-            console.error('Erro ao atribuir técnico à OS:', erro);
-            return res.status(500).json({ mensagem: 'Erro ao salvar atribuição no banco de dados.' });
-        }
-
-        console.log(`[PUT /api/ordens/${id}/atribuir] Linhas alteradas: ${this.changes} | idTecnico: ${idTecnico}`);
-
-        if (this.changes === 0) {
-            return res.status(404).json({ mensagem: 'Ordem de serviço não encontrada.' });
-        }
-
-        res.json({ mensagem: 'Técnico atribuído e ordem colocada em andamento!' });
-    });
 });
 
-// Rota para o profissional ver apenas as ordens atribuídas a ele
-app.get('/api/ordens/profissional', (req, res) => {
-    if (!req.session || !req.session.usuario) {
-        return res.status(401).json({ mensagem: 'Sessão expirada. Faça login novamente.' });
-    }
-
-    const emailLogado = req.session.usuario.email;
-    const idLoginLogado = req.session.usuario.idCliente || req.session.usuario.id;
-
-    db.run("ALTER TABLE tecnicos ADD COLUMN email TEXT", () => {
-        const sqlBuscaTecnico = `
-            SELECT idTecnico FROM tecnicos 
-            WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) OR idTecnico = ?
-            ORDER BY CASE WHEN LOWER(TRIM(email)) = LOWER(TRIM(?)) THEN 0 ELSE 1 END
-            LIMIT 1
-        `;
-
-        db.get(sqlBuscaTecnico, [emailLogado, idLoginLogado, emailLogado], (errTec, tecnico) => {
-            if (errTec) {
-                console.error('Erro SQL ao identificar técnico:', errTec.message);
-                return res.status(500).json({ mensagem: 'Erro ao identificar profissional no banco.' });
-            }
-
-            if (!tecnico) {
-                return res.json([]);
-            }
-
-            const sqlOrdens = `
-                SELECT 
-                    o.*,
-                    COALESCE(o.idChamado, o.rowid) AS id,
-                    COALESCE(u.nome, l.email, 'Cliente não identificado') AS clienteNome,
-                    u.telefone AS clienteTelefone,
-                    u.endereco AS clienteEndereco,
-                    COALESCE(
-                        NULLIF(o.status, ''),
-                        CASE 
-                            WHEN LOWER(o.processo) = 'em andamento' THEN 'andamento'
-                            WHEN LOWER(o.processo) IN ('concluido', 'concluída', 'fechada') THEN 'fechada'
-                            ELSE 'andamento'
-                        END
-                    ) AS status
-                FROM os o
-                LEFT JOIN usuarios u ON o.idCliente = u.idCliente
-                LEFT JOIN login l ON o.idCliente = l.idCliente
-                WHERE o.idTecnico = ?
-                ORDER BY COALESCE(o.idChamado, o.rowid) DESC
-            `;
-
-            db.all(sqlOrdens, [tecnico.idTecnico], (errOs, ordens) => {
-                if (errOs) {
-                    console.error('Erro SQL ao buscar ordens do técnico:', errOs.message);
-                    return res.status(500).json({ mensagem: 'Erro ao carregar ordens de serviço.' });
-                }
-
-                res.json(ordens || []);
-            });
-        });
-    });
-});
 //=====================================
 //    MANTER EMAIL DA SESSÃO ATIVO
 //=====================================
 
 // 2. ATUALIZAR DADOS E FOTO DE PERFIL
-app.put('/api/perfil', (req, res) => {
+app.put('/api/perfil', async (req, res) => {
     if (!req.session || !req.session.usuario) {
         return res.status(401).json({ mensagem: 'Não autorizado.' });
     }
 
-    // Tenta pegar o ID de todas as formas possíveis
     const idCliente = req.session.usuario.idCliente || req.session.usuario.id;
     const { nome, cpf, email, foto } = req.body;
 
-    db.serialize(() => {
-        // Atualiza o e-mail na tabela de login
-        db.run('UPDATE login SET email = ? WHERE idCliente = ?', [email, idCliente], (err) => {
-            if (err) return res.status(400).json({ mensagem: 'Este e-mail já está em uso por outra conta.' });
+    try {
+        await atualizarPerfilUsuario(idCliente, { nome, cpf, email, foto });
 
-            // AQUI ESTÁ A VARIÁVEL sqlUser QUE FALTAVA
-            const sqlUser = `
-                INSERT INTO usuarios (idCliente, nome, cpf, email, foto) 
-                VALUES (?, ?, ?, ?, ?)
-                ON CONFLICT(idCliente) DO UPDATE SET 
-                    nome = excluded.nome, 
-                    cpf = excluded.cpf, 
-                    email = excluded.email,
-                    foto = COALESCE(excluded.foto, usuarios.foto)
-            `;
+        // Mantém o e-mail atualizado na sessão ativa
+        req.session.usuario.email = email;
 
-            // Agora o db.run já sabe o que é o sqlUser
-            db.run(sqlUser, [idCliente, nome, cpf, email, foto || null], (errUser) => {
-                if (errUser) return res.status(500).json({ mensagem: 'Erro ao atualizar perfil.' });
-
-                // Mantém o e-mail atualizado na sessão ativa
-                req.session.usuario.email = email;
-
-                res.json({ mensagem: 'Perfil atualizado com sucesso!' });
-            });
-        });
-    });
+        return res.json({ mensagem: 'Perfil atualizado com sucesso!' });
+    } catch (erro) {
+        if (erro.code === 'SQLITE_CONSTRAINT') {
+            return res.status(400).json({ mensagem: 'Este e-mail já está em uso por outra conta.' });
+        }
+        console.error('Erro ao atualizar perfil:', erro.message);
+        return res.status(500).json({ mensagem: 'Erro ao atualizar perfil.' });
+    }
 });
 
 // ========================================
 //             INICIALIZAÇÃO
 // ========================================
+async function iniciarSistema() {
+    try {
+        await inicializarBanco();
+        await executarMigracoes();
+        await sincronizarAdministrador(process.env.emailAdm, process.env.senhaAdm);
 
-iniBDD();
-
-db.serialize(() => {
-    db.run("ALTER TABLE tecnicos ADD COLUMN email TEXT", () => {
-        // Vincula automaticamente profissionais antigos da tabela login com a tabela tecnicos
-        db.all("SELECT email FROM login WHERE LOWER(tipo) = 'profissional' ORDER BY idCliente ASC", [], (errL, loginsProf) => {
-            db.all("SELECT idTecnico, email FROM tecnicos ORDER BY idTecnico ASC", [], (errT, listaTec) => {
-                if (!errL && !errT && loginsProf && listaTec) {
-                    listaTec.forEach((tec, index) => {
-                        if (!tec.email && loginsProf[index]) {
-                            db.run("UPDATE tecnicos SET email = ? WHERE idTecnico = ?", [loginsProf[index].email, tec.idTecnico]);
-                        }
-                    });
-                }
-            });
+        app.listen(PORT, () => {
+            console.log(`Servidor rodando em http://localhost:${PORT}`);
         });
-    });
-});
-
-administrador();
-
-app.listen(PORT, () => {
-    console.log(`Servidor rodando em http://localhost:${PORT}`);
-});
-
-// Garante que a coluna "modelo" exista na tabela "os" sem apagar dados existentes
-db.run("ALTER TABLE os ADD COLUMN modelo TEXT", (err) => {
-    if (err && !err.message.includes('duplicate column name')) {
-        console.error('Erro ao criar coluna modelo na tabela os:', err.message);
+    } catch (erro) {
+        console.error('Erro na inicialização do sistema:', erro.message);
+        process.exit(1);
     }
-});
+}
 
-module.exports = db;
+iniciarSistema();
