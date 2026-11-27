@@ -53,15 +53,13 @@ const PORT = process.env.PORT || 3000;   // --> Essa linha define a porta em que
 const app = express();                   // --> cria o servidor 
 
 app.use(express.json({ limit: '15mb' }));
-app.use(express.urlencoded({ limit: '15mb', extended: true }));
+app.use(express.urlencoded({ limit: '15mb', extended: true })); // Faz o servidor entender JSON - Middleware 
+// (Função que participa do processamento de requisições antes que elas 
+// cheguem à rota responsàvel por responder)
 
 app.use(express.static(path.resolve(__dirname, '..', 'frontend'))); // --> Servir os dados para do frontend
 
 app.use('/files', express.static(path.join(__dirname, '../../files'))); // Rastrear dados de imagem e svg
-
-app.use(express.json());  // Faz o servidor entender JSON - Middleware 
-// (Função que participa do processamento de requisições antes que elas 
-// cheguem à rota responsàvel por responder)
 
 //Essa parte do nosso código permite que o frontend como live-server
 //envie cookies de autenticação
@@ -826,20 +824,6 @@ app.get('/api/ordens/admin', async (req, res) => {
         return res.status(500).json({ mensagem: 'Erro ao buscar ordens no banco.' });
     }
 });
-
-// ======================================================
-//     INICIALIZAÇÃO DO BANCO E DO ADMINISTRADOR
-// ======================================================
-async function iniciarSistema() {
-    try {
-        await inicializarBanco();
-        await sincronizarAdministrador(process.env.emailAdm, process.env.senhaAdm);
-    } catch (erro) {
-        console.error('Erro na inicialização do banco de dados:', erro.message);
-    }
-}
-
-iniciarSistema();
 
 //=============================================
 //    ADM ADICIONAR TÉCNICOS PARA AS ORDENS

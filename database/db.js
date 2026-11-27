@@ -1,25 +1,9 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const fs = require('fs'); // <-- 1. Importa o módulo para ler arquivos
+const fs = require('fs');
 
 const dbPath = path.join(__dirname, 'banco.db');
-const conexao = new sqlite3.Database(dbPath);
-const db = conexao; // Garante que "db" exista e aponte para a mesma conexão
-
-// 2. Define o caminho e lê o CONTEÚDO de dentro do db.sql
-const caminhoSql = path.join(__dirname, 'db.sql');
-const schema = fs.readFileSync(caminhoSql, 'utf8');
-
-const scriptPath = path.resolve(__dirname, 'script.sql');
-
-// 3. Executa o código SQL lido
-conexao.exec(schema, (erro) => {
-    if (erro) {
-        console.error('Erro ao inicializar o banco de dados:', erro.message);
-    } else {
-        console.log('Banco de dados criado com sucesso :) ');
-    }
-});
+const db = new sqlite3.Database(dbPath);
 
 const exec = (sql) =>
     new Promise((resolve, reject) => {
@@ -33,7 +17,7 @@ const run = (sql, params = []) =>
     new Promise((resolve, reject) => {
         db.run(sql, params, function (err) {
             if (err) reject(err);
-            else resolve(this);
+            else resolve({ id: this.lastID, lastID: this.lastID, changes: this.changes });
         });
     });
 
@@ -563,16 +547,16 @@ const listarOrdensAdmin = () =>
 // ===============
 
 const inicializarBanco = async () => {
-    const scriptPath = path.resolve(__dirname, '..', 'database', 'db.sql');
+    const caminhoSql = path.join(__dirname, 'db.sql');
 
-    if (!fs.existsSync(scriptPath)) {
-        console.log('Aviso: arquivo db.sql não encontrado em:', scriptPath);
+    if (!fs.existsSync(caminhoSql)) {
+        console.log('Aviso: arquivo db.sql não encontrado em:', caminhoSql);
         return;
     }
 
-    const sql = fs.readFileSync(scriptPath, 'utf8');
+    const sql = fs.readFileSync(caminhoSql, 'utf8');
     await exec(sql);
-    console.log('Banco de dados inicializado a partir do script.sql');
+    console.log('Banco de dados inicializado a partir do db.sql');
 };
 
 // ==========================
@@ -685,14 +669,6 @@ const executarMigracoes = async () => {
             console.error('Erro ao criar coluna modelo na tabela os:', err.message);
         }
     }
-};
-
-module.exports = {
-    db,
-    // ...outras funções já exportadas
-    inicializarBanco,
-    executarMigracoes,
-    sincronizarAdministrador
 };
 
 module.exports = {
