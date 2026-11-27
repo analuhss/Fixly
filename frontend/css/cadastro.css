@@ -1,3 +1,19 @@
+/* ===== Tokens (mesmos do login, início, ordens e perfil) ===== */
+:root {
+    --fundo: #0a0a0a;
+    --fundo-claro: #1c1c1e;
+    --cartao: #1a1a1c;
+    --borda: #2c2c30;
+    --amarelo: #f5c32f;
+    --amarelo-claro: #ffd447;
+    --texto: #ffffff;
+    --texto-suave: #9a9aa2;
+    --input: #ebebeb;
+    --input-texto: #1a1a1c;
+    --placeholder: #8a8a90;
+    --erro: #ff6b5e;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -7,75 +23,92 @@
 body {
     min-height: 100vh;
     font-family: "Poppins", Arial, Helvetica, sans-serif;
-    color: #000000;
+    color: var(--texto);
 
-    /* mesmo fundo do login, cadastro, início e conversas */
-    background-color: #0a0a0a;
-    background-image: radial-gradient(circle at 50% 0%, #1c1c1e 0%, #0a0a0a 70%);
+    background-color: var(--fundo);
+    background-image: radial-gradient(circle at 50% 0%, var(--fundo-claro) 0%, var(--fundo) 70%);
     background-attachment: fixed;
 
     display: flex;
-    justify-content: center;
-    align-items: center; /* centraliza o formulário na altura da tela */
-
     padding: 32px 16px;
+}
+
+:focus-visible {
+    outline: 2px solid var(--amarelo);
+    outline-offset: 3px;
 }
 
 .cadastro {
     width: 100%;
     max-width: 520px;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 24px;
+    margin: auto; /* centraliza sem cortar o topo em telas baixas */
 }
 
-/* ===== Cartão ===== */
+/* ===== Cartão escuro, como o do login ===== */
 .card {
-    width: 100%;
+    background-color: var(--cartao);
+    border: 1px solid var(--borda);
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
 
-    background-color: #ffffff; /* branco do cartão */
-    border: 5px solid #f5c32f; /* amarelo */
-    border-radius: 24px;
+    padding: 32px 32px 28px;
+}
 
-    padding: 28px 28px 24px;
+.logo {
+    display: block;
+    margin: 0 auto 20px;
 }
 
 .card h1 {
-    font-size: 30px;
+    font-size: 28px;
     font-weight: 700;
+    line-height: 1.2;
     text-align: center;
 }
 
+/* palavra em destaque, igual a "Ordens de Serviço" */
+.card h1 span {
+    color: var(--amarelo);
+}
+
 .subtitulo {
-    margin-top: 4px;
-    margin-bottom: 22px;
+    margin-top: 6px;
+    margin-bottom: 8px;
 
     font-size: 14px;
     text-align: center;
-    color: #666666; /* cinza escuro */
+    color: var(--texto-suave);
 }
 
 /* ===== Campos ===== */
 .grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px 20px;
+    gap: 16px 16px;
 }
 
-/* títulos "Dados pessoais" e "Endereço" */
+/* divisor com título, igual a "Visão Geral" do dashboard */
 .secao {
     grid-column: 1 / -1;
 
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    margin-top: 16px;
+
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: var(--texto-suave);
 }
 
-.secao:not(:first-child) {
-    margin-top: 8px;
+.secao::before,
+.secao::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: var(--borda);
 }
 
 .campo {
@@ -91,59 +124,63 @@ body {
 }
 
 label {
-    font-size: 15px;
+    font-size: 12px;
     font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: var(--texto-suave);
 }
 
 .obrig {
-    color: #b00000; /* vermelho do asterisco */
-    margin-left: 3px;
+    color: var(--amarelo);
+    margin-left: 2px;
 }
 
 .opcional {
     margin-left: 4px;
 
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 400;
-    color: #777777; /* cinza */
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--texto-suave);
 }
 
 input {
     width: 100%;
-    height: 44px;
+    height: 48px;
 
-    border: 1px solid #333333;
-    border-radius: 8px;
+    border: 2px solid transparent;
+    border-radius: 10px;
 
-    background-color: #ebebeb; /* cinza do input */
-    color: #222222;
+    background-color: var(--input);
+    color: var(--input-texto);
 
     font-family: inherit;
     font-size: 15px;
     font-weight: 500;
 
-    padding: 0 12px;
+    padding: 0 14px;
 
     outline: none;
-
-    transition: 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 input::placeholder {
-    color: #c2c2c2; /* cinza do placeholder */
-    font-weight: 600;
+    color: var(--placeholder);
+    font-weight: 400;
     opacity: 1;
 }
 
 input:focus {
-    border-color: #f5c32f; /* amarelo */
-    box-shadow: 0 0 0 3px rgba(245, 195, 47, 0.35);
+    border-color: var(--amarelo);
+    box-shadow: 0 0 0 3px rgba(245, 195, 47, 0.3);
 }
 
-/* campo com erro (só aparece depois que a pessoa mexeu nele) */
+/* erro só aparece depois que a pessoa mexeu no campo */
 input:user-invalid {
-    border-color: #d94a3d; /* vermelho */
-    box-shadow: 0 0 0 3px rgba(217, 74, 61, 0.25);
+    border-color: var(--erro);
+    box-shadow: 0 0 0 3px rgba(255, 107, 94, 0.25);
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator {
@@ -154,42 +191,36 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     margin-top: 18px;
 
     font-size: 12px;
-    color: #666666;
+    color: var(--texto-suave);
 }
 
 /* ===== Botão e mensagem ===== */
 .botao {
     width: 100%;
-    max-width: 220px;
-    height: 48px;
+    height: 52px;
+    margin-top: 20px;
 
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
 
-    background-color: #f5c32f; /* amarelo */
-    color: #ffffff;
+    background-color: var(--amarelo);
+    color: #111111; /* texto escuro, como o "Entrar" do login */
 
     font-family: inherit;
     font-size: 16px;
     font-weight: 700;
 
     cursor: pointer;
-
-    transition: 0.2s ease;
+    transition: background-color 0.2s, transform 0.2s;
 }
 
 .botao:hover {
-    background-color: #ffd447; /* amarelo claro */
+    background-color: var(--amarelo-claro);
     transform: translateY(-1px);
 }
 
 .botao:active {
     transform: translateY(0);
-}
-
-.botao:focus-visible {
-    outline: 2px solid #ffffff;
-    outline-offset: 3px;
 }
 
 /* enquanto envia para a API */
@@ -200,30 +231,36 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .mensagem {
-    min-height: 24px;
+    min-height: 22px;
+    margin-top: 14px;
 
-    color: #ffffff;
-    font-size: 15px;
+    color: var(--texto);
+    font-size: 14px;
     font-weight: 500;
     text-align: center;
 }
 
 .mensagem.erro {
-    color: #ff6b5e; /* vermelho claro */
+    color: var(--erro);
 }
 
 /* ===== Celular ===== */
 @media (max-width: 480px) {
     .card {
-        padding: 24px 18px 22px;
+        padding: 26px 18px 22px;
     }
 
     .card h1 {
-        font-size: 26px;
+        font-size: 24px;
     }
 
-    /* CEP e Endereço passam a ocupar a linha toda */
     .grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
     }
 }
