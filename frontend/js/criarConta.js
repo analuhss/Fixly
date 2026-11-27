@@ -1,5 +1,6 @@
 const formulario = document.getElementById('cadastro');
 const inputSenha = document.getElementById('senha');
+const btnCriar = formulario ? formulario.querySelector('button[type="submit"]') : null;
 
 function checarRequisitosSenha(senha) {
     const regras = {
@@ -30,7 +31,6 @@ if (inputSenha) {
     });
 }
 
-// Suporte opcional ao botão de olhinho no cadastro (id="btn-olho-cadastro")
 (function () {
     const btnOlho = document.getElementById('btn-olho-cadastro');
     if (!btnOlho || !inputSenha) return;
@@ -47,14 +47,17 @@ if (inputSenha) {
     });
 })();
 
-formulario.addEventListener('submit', async (evento) => {
-    evento.preventDefault(); // Impede a página de recarregar sozinha
-
+async function enviarCadastro() {
     const email = document.getElementById('email').value.trim();
     const senha = document.getElementById('senha').value;
 
+    if (!email || !senha) {
+        mostrarAlerta('Preencha e-mail e senha.', 'erro');
+        return;
+    }
+
     if (!checarRequisitosSenha(senha)) {
-        alert('A senha deve ter no mínimo 8 caracteres, com letra maiúscula, minúscula, número e caractere especial.');
+        mostrarAlerta('A senha deve ter no mínimo 8 caracteres, com letra maiúscula, minúscula, número e caractere especial.', 'erro');
         if (inputSenha) inputSenha.focus();
         return;
     }
@@ -71,17 +74,22 @@ formulario.addEventListener('submit', async (evento) => {
 
         if (resposta.ok) {
             localStorage.setItem('idClienteLogado', dados.id);
-
-            alert('Conta criada com sucesso! Vamos finalizar o seu perfil.');
-
-            // Redirecionamento compulsório para a tela de informações
-            window.location.href = '/cadastro';
+            redirecionarComAlerta('Conta criada com sucesso! Vamos finalizar o seu perfil.', '/cadastro', 'sucesso', 2500);
         } else {
-            alert(dados.mensagem || 'Erro ao criar conta.');
+            mostrarAlerta(dados.mensagem || 'Erro ao criar conta.', 'erro');
         }
-
     } catch (erro) {
         console.error('Erro ao conectar com o servidor:', erro);
-        alert('Não foi possível conectar ao servidor.');
+        mostrarAlerta('Não foi possível conectar ao servidor.', 'erro');
     }
-});
+}
+
+if (formulario) {
+    // Bloqueia qualquer submit automático que não venha do botão Criar
+    formulario.addEventListener('submit', (evento) => {
+        evento.preventDefault();
+        if (evento.submitter === btnCriar) {
+            enviarCadastro();
+        }
+    });
+}

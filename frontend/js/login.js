@@ -55,3 +55,5 @@ formulario.addEventListener('submit', async (event) => {
         btnOlho.innerHTML = mostrando ? olhoAberto : olhoFechado;
     });
 })();
+
+if (dados.tipo === 'cliente') redirecionarComAlerta('Login realizado com sucesso!', '/home-c', 'sucesso');

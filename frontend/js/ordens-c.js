@@ -60,26 +60,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 2. TELA DE LISTAGEM DE ORDENS E MODAL
     // =========================================================
     const lista = document.getElementById('lista');
-    
+
     if (!lista) {
-        console.log("[PASSO 3] Elemento #lista não encontrado. O script para por aqui (normal se não estiver na página de listagem).");
+        console.log("[PASSO 3] Elemento #lista não encontrado.");
         return;
     }
 
-   console.log("[PASSO 4] Elemento #lista encontrado. A procurar ordens...");
+    console.log("[PASSO 4] Elemento #lista encontrado. A procurar ordens...");
 
-const mapStatus = {
-    analise:   { texto: 'EM ANÁLISE', classe: 'status-analise' },
-    aberta:    { texto: 'ABERTA',     classe: 'status-aberta' },
-    andamento: { texto: 'ANDAMENTO',  classe: 'status-andamento' },
-    fechada:   { texto: 'FECHADA',    classe: 'status-fechada' },
-    congelada: { texto: 'CONGELADA',  classe: 'status-congelada' }
-};
+    const mapStatus = {
+        analise:   { texto: 'EM ANÁLISE', classe: 'status-analise' },
+        aberta:    { texto: 'ABERTA',     classe: 'status-aberta' },
+        andamento: { texto: 'ANDAMENTO',  classe: 'status-andamento' },
+        fechada:   { texto: 'FECHADA',    classe: 'status-fechada' },
+        congelada: { texto: 'CONGELADA',  classe: 'status-congelada' }
+    };
 
     try {
         const res = await fetch('/api/ordens/cliente', { credentials: 'include' });
         console.log("[PASSO 5] Resposta do servidor recebida. Status HTTP:", res.status);
-        
+
         if (!res.ok) {
             console.error('[ERRO] Falha ao buscar ordens. Status HTTP:', res.status);
             lista.innerHTML = `<p style="color: #ef4444;">Erro ao buscar do servidor (Status ${res.status}).</p>`;
@@ -91,17 +91,16 @@ const mapStatus = {
 
         lista.innerHTML = '';
 
-        // Previne erro se o servidor devolver um objeto de erro em vez de uma lista (Array)
         if (!Array.isArray(ordens)) {
             console.error('[ERRO] A API não devolveu uma lista (Array). Devolveu:', ordens);
             lista.innerHTML = '<p style="color: #ef4444;">Erro no formato dos dados recebidos.</p>';
-            return; 
+            return;
         }
 
         if (ordens.length === 0) {
             console.log("[PASSO 7] Lista vazia.");
             lista.innerHTML = '<p style="color: #a1a1aa;">Nenhuma ordem de serviço solicitada ainda.</p>';
-            return; 
+            return;
         }
 
         console.log(`[PASSO 7] A renderizar ${ordens.length} cartões...`);
@@ -118,7 +117,7 @@ const mapStatus = {
             const cartao = document.createElement('article');
             cartao.className = `cartao-os ${info.classe}`;
             cartao.dataset.status = statusKey;
-            cartao.style.cursor = 'pointer'
+            cartao.style.cursor = 'pointer';
 
             cartao.innerHTML = `
                 <div class="linha-topo">
@@ -170,7 +169,7 @@ const mapStatus = {
                 abrirDetalhesOS(os, numeroOs, info.texto, tecnico, valorFormatado);
             });
         });
-        
+
         console.log("[PASSO 8] Cartões renderizados com sucesso no ecrã.");
 
     } catch (erro) {
@@ -178,7 +177,7 @@ const mapStatus = {
     }
 
     // =========================================================
-    // FILTRAR PELAS CLASSES E MODAL
+    // FILTRAR PELAS CLASSES E PESQUISA
     // =========================================================
     const botoesFiltro = document.querySelectorAll('.filtro');
     botoesFiltro.forEach((botao) => {
@@ -227,8 +226,9 @@ const mapStatus = {
                 .modal-os-campo.full { grid-column: 1 / -1; }
                 .modal-os-campo span { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: #a1a1aa; margin-bottom: 4px; }
                 .modal-os-campo p { margin: 0; font-size: 0.95rem; font-weight: 500; color: #f4f4f5; word-break: break-word; }
-                .cartao-os { transition: transform 0.2s, box-shadow 0.2s; } .cartao-os:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
-                `;
+                .cartao-os { transition: transform 0.2s, box-shadow 0.2s; }
+                .cartao-os:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
+            `;
             document.head.appendChild(style);
         }
 
@@ -244,8 +244,8 @@ const mapStatus = {
                     </div>
                     <div class="modal-os-grid">
                         <div class="modal-os-campo"><span>Status</span><p id="detalhe-status"></p></div>
-                        <div class="modal-os-campo"><span>Taxa Análise</span><p id="detalhe-status"></p></div>
-                        <div class="modal-os-campo"><span>Valor</span><p id="detalhe-valor"></p></div>
+                        <div class="modal-os-campo"><span>Taxa Análise</span><p id="detalhe-taxa"></p></div>
+                        <div class="modal-os-campo full"><span>Valor</span><p id="detalhe-valor"></p></div>
                         <div class="modal-os-campo full"><span>Técnico Responsável</span><p id="detalhe-tecnico"></p></div>
                         <div class="modal-os-campo"><span>Marca</span><p id="detalhe-marca"></p></div>
                         <div class="modal-os-campo"><span>Modelo</span><p id="detalhe-modelo"></p></div>
@@ -257,17 +257,23 @@ const mapStatus = {
             document.body.appendChild(modal);
 
             document.getElementById('fechar-modal-os').addEventListener('click', () => modal.classList.remove('aberto'));
-            modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('aberto'); });
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.remove('aberto');
+            });
         }
+
+        const valorTaxa = Number(os.taxa_analise ?? os.taxaAnalise ?? os.taxa ?? 60);
+        const taxaFormatada = valorTaxa.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
         document.getElementById('detalhe-titulo').textContent = `Detalhes da OS# ${numeroOs}`;
         document.getElementById('detalhe-status').textContent = statusTexto;
+        document.getElementById('detalhe-taxa').textContent = taxaFormatada;
         document.getElementById('detalhe-valor').textContent = valorFormatado;
         document.getElementById('detalhe-tecnico').textContent = tecnico;
-       document.getElementById('detalhe-marca').textContent = os.marca || 'Não informada';
-document.getElementById('detalhe-modelo').textContent = os.modelo || os.equipamento || os.aparelho || 'Não informado';
-document.getElementById('detalhe-perifericos').textContent = os.perifericos || os.acessorios || 'Nenhum item';
-document.getElementById('detalhe-descricao').textContent = os.descricao || os.defeito || 'Sem descrição';
+        document.getElementById('detalhe-marca').textContent = os.marca || 'Não informada';
+        document.getElementById('detalhe-modelo').textContent = os.modelo || os.equipamento || os.aparelho || 'Não informado';
+        document.getElementById('detalhe-perifericos').textContent = os.perifericos || os.acessorios || 'Nenhum item';
+        document.getElementById('detalhe-descricao').textContent = os.descricao || os.defeito || 'Sem descrição';
 
         modal.classList.add('aberto');
     }
