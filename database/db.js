@@ -4,10 +4,13 @@ const fs = require('fs'); // <-- 1. Importa o módulo para ler arquivos
 
 const dbPath = path.join(__dirname, 'banco.db');
 const conexao = new sqlite3.Database(dbPath);
+const db = conexao; // Garante que "db" exista e aponte para a mesma conexão
 
 // 2. Define o caminho e lê o CONTEÚDO de dentro do db.sql
 const caminhoSql = path.join(__dirname, 'db.sql');
 const schema = fs.readFileSync(caminhoSql, 'utf8');
+
+const scriptPath = path.resolve(__dirname, 'script.sql');
 
 // 3. Executa o código SQL lido
 conexao.exec(schema, (erro) => {
@@ -23,6 +26,30 @@ const exec = (sql) =>
         db.exec(sql, (err) => {
             if (err) reject(err);
             else resolve();
+        });
+    });
+
+const run = (sql, params = []) =>
+    new Promise((resolve, reject) => {
+        db.run(sql, params, function (err) {
+            if (err) reject(err);
+            else resolve(this);
+        });
+    });
+
+const get = (sql, params = []) =>
+    new Promise((resolve, reject) => {
+        db.get(sql, params, (err, row) => {
+            if (err) reject(err);
+            else resolve(row);
+        });
+    });
+
+const all = (sql, params = []) =>
+    new Promise((resolve, reject) => {
+        db.all(sql, params, (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows);
         });
     });
 
@@ -477,8 +504,8 @@ const listarOrdensDoCliente = async ({ idCliente, email, nome }) => {
 
     const sql = `
         SELECT os.*,
-               ${colunaId} AS id,
-               t.nome AS nomeTecnicoTabela
+                ${colunaId} AS id,
+                t.nome AS nomeTecnicoTabela
         FROM os
         LEFT JOIN tecnicos t ON os.idTecnico = t.idTecnico
         WHERE (${condicoes.join(' OR ')})
@@ -493,6 +520,20 @@ const listarOrdensDoCliente = async ({ idCliente, email, nome }) => {
         tecnico: os.tecnico || os.nomeTecnicoTabela || 'Aguardando técnico'
     }));
 };
+
+// =================
+//  ATUALIZAR SENHA
+// =================
+
+const atualizarSenha = (idCliente, novaSenha) =>
+    run('UPDATE login SET senha = ? WHERE idCliente = ?', [novaSenha, idCliente]);
+
+// =======================
+//   BUSCAR SENHA POR ID
+// =======================
+
+const buscarSenhaPorId = (idCliente) =>
+    get('SELECT senha FROM login WHERE idCliente = ?', [idCliente]);
 
 // ======================
 //  LISTAR ORDENS ADMIN
@@ -522,10 +563,10 @@ const listarOrdensAdmin = () =>
 // ===============
 
 const inicializarBanco = async () => {
-    const scriptPath = path.resolve(__dirname, '..', 'database', 'script.sql');
+    const scriptPath = path.resolve(__dirname, '..', 'database', 'db.sql');
 
     if (!fs.existsSync(scriptPath)) {
-        console.log('Aviso: arquivo script.sql não encontrado em:', scriptPath);
+        console.log('Aviso: arquivo db.sql não encontrado em:', scriptPath);
         return;
     }
 
@@ -677,8 +718,6 @@ module.exports = {
     registrarValidacaoClienteOrdem,
     listarOrdensDoCliente,
     listarOrdensAdmin,
-    inicializarBanco,
-    sincronizarAdministrador,
     listarTecnicosAtivos,
     atribuirTecnicoOrdem,
     atualizarPerfilUsuario,

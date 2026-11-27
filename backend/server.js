@@ -35,15 +35,13 @@ const {
     registrarValidacaoClienteOrdem,
     listarOrdensDoCliente,
     listarOrdensAdmin,
-    inicializarBanco,
-    sincronizarAdministrador,
     listarTecnicosAtivos,
     atribuirTecnicoOrdem,
     atualizarPerfilUsuario,
     inicializarBanco,
     executarMigracoes,
     sincronizarAdministrador
-} = require('./db');
+} = require('../database/db');
 
 const cors = require('cors');
 
